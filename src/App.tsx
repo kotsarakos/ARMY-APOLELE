@@ -65,10 +65,9 @@ export default function App() {
         {profile?.unit && route === 'home' && (
           <span className="topbar__unit">{caps(profile.unit)}</span>
         )}
-        {/* Segmented control: φαίνεται ποια γλώσσα είναι ενεργή, αντί για
-            κουμπί που δείχνει την άλλη και μπερδεύει. */}
+        {/* Και οι δύο γλώσσες φαίνονται πάντα: ένα κουμπί που δείχνει μόνο
+            την άλλη δεν λέει ποτέ ξεκάθαρα αν είναι κατάσταση ή ενέργεια. */}
         <div className="langsw" role="group" aria-label={t.settings.language}>
-          <span className="langsw__thumb" data-lang={lang} aria-hidden="true" />
           <button
             type="button"
             className={`langsw__b ${lang === 'el' ? 'langsw__b--on' : ''}`}

@@ -372,32 +372,32 @@
   max-width: 40vw;
 }
 /* Διακόπτης γλώσσας — δύο τμήματα με ολισθαίνον highlight. */
-.langsw {
-  position: relative; flex: 0 0 auto; display: flex;
-  background: var(--surface-2);
-  border: 1px solid var(--hairline-strong);
-  border-radius: var(--r-pill); padding: 3px;
-  overflow: hidden; /* το thumb δεν ξεφεύγει ποτέ από το περίγραμμα */
-}
-.langsw__thumb {
-  position: absolute; top: 3px; bottom: 3px; left: 3px;
-  width: calc(50% - 3px);
-  background: var(--primary); border-radius: var(--r-pill);
-  transition: transform 220ms cubic-bezier(.3,.8,.3,1);
-}
-.langsw__thumb[data-lang="el"] { transform: translateX(0); }
-.langsw__thumb[data-lang="en"] { transform: translateX(100%); }
+/* Εναλλαγή γλώσσας.
+   Χωρίς πλαίσιο και χωρίς γεμάτο pill: στην μπάρα κάθεται δίπλα στο σήμα, και
+   ένα δεύτερο έντονο σχήμα εκεί τραβούσε περισσότερη προσοχή απ' όση αξίζει.
+   Μένουν τα δύο κείμενα, με το ενεργό φωτεινό και μια λεπτή λαδί γραμμή. */
+.langsw { flex: 0 0 auto; display: flex; align-items: center; }
 .langsw__b {
-  position: relative; z-index: 1;
-  background: none; border: 0; border-radius: var(--r-pill);
-  min-width: 46px; min-height: 44px; padding: 0 8px;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-  letter-spacing: 1.2px; color: var(--ink-subtle);
-  transition: color 180ms ease;
+  position: relative;
+  background: none; border: 0; padding: 0 10px;
+  min-height: 44px; display: inline-flex; align-items: center;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 1.4px; color: var(--ink-tertiary);
+  transition: color 160ms ease;
 }
-.langsw__b--on { color: var(--on-primary); }
-.langsw__b:not(.langsw__b--on):hover { color: var(--ink); }
+/* Λεπτή κάθετη γραμμή ανάμεσά τους αντί για περίγραμμα γύρω από όλο. */
+.langsw__b + .langsw__b::before {
+  content: ''; position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 1px; height: 11px; background: var(--hairline-strong);
+}
+.langsw__b--on { color: var(--ink); }
+.langsw__b--on::after {
+  content: ''; position: absolute; left: 10px; right: 10px; bottom: 12px;
+  height: 1px; background: var(--primary);
+}
+.langsw__b:not(.langsw__b--on):hover { color: var(--ink-muted); }
+.langsw__b:focus-visible { outline: 2px solid var(--primary); outline-offset: -4px; border-radius: var(--r-xs); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Σελίδες: Απόρρητο & 404
