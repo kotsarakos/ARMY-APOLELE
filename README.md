@@ -1,157 +1,222 @@
-# Army Apolele
+<h1 align="center">Army Apolele</h1>
 
-*Μέτρηση στρατιωτικής θητείας*
+<p align="center">
+  <strong>A countdown for Greek military service.</strong><br>
+  Days until discharge, leave, duties and money — offline, bilingual, installable.
+</p>
 
-Εφαρμογή που μετράει τις μέρες μέχρι το απολυτήριο, με βάση το πλαίσιο που
-ισχύει στην Ελλάδα από **1/1/2026** (Ν. 5265/2026).
+<p align="center">
+  <a href="https://army-apolele.web.app"><strong>Open the app →</strong></a>
+</p>
 
-Διαθέσιμη στα **ελληνικά και στα αγγλικά** — η γλώσσα ανιχνεύεται από τον
-browser και αλλάζει με το κουμπί πάνω δεξιά.
+<p align="center">
+  <img src="docs/screenshots/counter.png" width="30%" alt="Counter screen showing days until discharge">
+  <img src="docs/screenshots/leave.png" width="30%" alt="Leave screen with a countdown to the next leave">
+  <img src="docs/screenshots/money.png" width="30%" alt="Money screen with balance and projections">
+</p>
+
+---
+
+Greek conscription changed on **1 January 2026** under Law 5265/2026: four intakes
+a year instead of six, everyone serving in the Army, a new leave formula. This app
+encodes those rules and answers the only question that matters day to day — *how
+long is left*.
+
+It is **bilingual** (Greek and English), works **entirely offline**, and installs
+to the home screen as a PWA. An account is optional and exists solely to sync
+between devices. The screenshots above and below show the English interface.
+
+## Features
+
+| | |
+|---|---|
+| **Counter** | Days until discharge, progress, days actually on base, pay earned, and a rank tier that goes from *Newbie* to *Short-timer* |
+| **Leave** | Entitlement accrual, leave recorded by date with type, a countdown to the next one, and days taken kept separate from days booked |
+| **Duties** | Guard shifts and fatigues with time and length, next-duty countdown, totals per type, and an average per month |
+| **Money** | Allowance, expenses by category, recurring charges that post themselves, a projection to discharge and a daily limit |
+| **Profile** | Service record at a glance, local notifications, JSON backup, and optional cross-device sync |
+
+<p align="center">
+  <img src="docs/screenshots/duty.png" width="30%" alt="Duties screen with the next guard shift">
+  <img src="docs/screenshots/calendar.png" width="30%" alt="Custom date picker with circular day buttons">
+  <img src="docs/screenshots/profile.png" width="30%" alt="Profile screen with the service record">
+</p>
+
+Alongside those: a privacy page, a custom 404, success and error messaging on
+every action, and a confirmation step before anything is deleted.
+
+## Quick start
 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm test         # έλεγχοι υπολογισμών και μεταφράσεων
+npm test         # domain logic and dictionary parity
 npm run build
-npm run audit    # έλεγχοι σε πραγματικό browser — δες scripts/README.md
+npm run audit    # real-browser checks — see scripts/README.md
 ```
 
-## Τι κάνει
+Node 20 or newer. No configuration is required to run it: without Firebase
+credentials the app simply stores everything locally.
 
-| Οθόνη | Περιεχόμενο |
-|---|---|
-| **Μετρητής** | Μέρες μέχρι το απολυτήριο, πρόοδος, «μέρες μέσα» (χωρίς άδειες), αποζημίωση, βαθμίδα (ΨΑΡΑΚΙ → ΛΕΛΕΣ) |
-| **Άδειες** | Δικαιωμένες / ληφθείσες / επερχόμενες μέρες, τιμητικές, επόμενη πίστωση |
-| **Πορεία** | Ορόσημα (ορκωμοσία, τέλος βασικής, μισή θητεία, λελές, απόλυση) και ρυθμίσεις |
+## The rules it encodes
 
-Επιπλέον: σελίδα **απορρήτου** (`/privacy`), custom **404**, μηνύματα επιτυχίας
-και σφάλματος, και επιβεβαίωση πριν τον μηδενισμό δεδομένων.
+Every constant lives in [`src/lib/service.ts`](src/lib/service.ts) with a name, so
+that a change in the law is a change in one place:
 
-## Το πλαίσιο που κωδικοποιεί
+- **Length** — 12 months in full; 9 months for Thrace, the East Aegean islands,
+  the Presidential Guard and ELDYK; 6 and 3 months for reduced obligation.
+- **Intakes** — four a year rather than six: February, May, August, November. The
+  2026 A intake is confirmed (24–27 February 2026); the rest are flagged as
+  *estimates* in [`src/lib/esso.ts`](src/lib/esso.ts) until each official call-up
+  is published.
+- **Branch** — since 1 January 2026 every conscript joins the Army, which is why
+  the app never asks.
+- **Leave** — 3 days for every completed two-month period (18 for a twelve-month
+  term), capped at 36 including sick leave; roughly 3 honorary days per blood
+  donation, up to twice; 2 days per completed month in a border unit.
+- **Pay** — €50 a month, €100 in a border unit.
+- **Training** — 10 weeks of basic training, 14 weeks in total before posting.
 
-Οι κανόνες ζουν σε [src/lib/service.ts](src/lib/service.ts) ως ονομασμένες σταθερές,
-ώστε να αλλάζουν σε ένα σημείο όταν αλλάξει ο νόμος:
+One consequence is worth stating because it surprises people: the discharge date
+is `enlistment + months of obligation`. **Leave counts as service**, so it never
+pushes discharge back. What it moves is the number of days you are physically on
+base — which is why that appears as its own figure.
 
-- **Διάρκεια** — 12 μήνες πλήρης· 9 μήνες για Θράκη, νησιά Αν. Αιγαίου, Προεδρική
-  Φρουρά και ΕΛΔΥΚ· 6 και 3 μήνες για μειωμένη υποχρέωση.
-- **ΕΣΣΟ** — τέσσερις τον χρόνο αντί για έξι: Φεβρουάριος, Μάιος, Αύγουστος,
-  Νοέμβριος. Η 2026 Α΄ ΕΣΣΟ είναι επιβεβαιωμένη (24–27 Φεβρουαρίου 2026)· οι
-  υπόλοιπες σημειώνονται ως *εκτίμηση* στο [src/lib/esso.ts](src/lib/esso.ts)
-  μέχρι να βγει η επίσημη πρόσκληση.
-- **Κλάδος** — από 1/1/2026 όλοι οι στρατεύσιμοι κατατάσσονται στον Στρατό Ξηράς·
-  γι' αυτό η εφαρμογή δεν ρωτάει κλάδο.
-- **Άδειες** — κανονική 3 ημέρες ανά πλήρες δίμηνο (18 για δωδεκάμηνη θητεία),
-  ανώτατο όριο 36 ημέρες μαζί με την αναρρωτική· τιμητική αιμοδοσίας ~3 ημέρες
-  έως 2 φορές· ΤΑΠ παραμεθορίου 2 ημέρες ανά πλήρη μήνα.
-- **Αποζημίωση** — 50€/μήνα, 100€/μήνα σε παραμεθόριο.
-- **Εκπαίδευση** — 10 εβδομάδες βασική στο ΚΕΝ, 14 εβδομάδες συνολικά πριν την
-  τοποθέτηση σε μονάδα.
+## Engineering notes
 
-Η ημερομηνία απόλυσης είναι `κατάταξη + μήνες υποχρέωσης`: η κανονική άδεια
-**υπηρετείται**, οπότε δεν μεταθέτει το απολυτήριο. Αυτό που μετακινεί είναι οι
-«μέρες μέσα» — γι' αυτό εμφανίζονται ως ξεχωριστό μέγεθος.
+A few decisions that shaped the codebase.
 
-## Δίγλωσση διεπαφή
+**Money is stored as integer cents.** In floating point `0.1 + 0.2` is not `0.3`,
+and after a few dozen entries a balance would be visibly wrong. A test asserts the
+exact sum.
 
-Όλα τα κείμενα ζουν στο [src/lib/i18n.ts](src/lib/i18n.ts). Το αγγλικό λεξικό
-δηλώνεται ως `const en: typeof el`, οπότε ένα κλειδί που λείπει γίνεται **σφάλμα
-μεταγλώττισης** αντί για κενό στη διεπαφή. Οι έλεγχοι επιβεβαιώνουν επιπλέον ότι
-τα δύο λεξικά έχουν ίδιο σχήμα και ότι καμία συμβολοσειρά δεν είναι κενή.
+**A missing translation is a compile error.** The English dictionary is declared
+as `const en: typeof el`, so omitting a key fails the build rather than rendering
+a blank string in production. Tests additionally assert that neither dictionary
+contains an empty string.
 
-Τα modules της λογικής (`service`, `ranks`, `esso`) επιστρέφουν **κλειδιά**, όχι
-κείμενο· η μετάφραση γίνεται στο επίπεδο των components. Έτσι οι υπολογισμοί
-μένουν ανεξάρτητοι από τη γλώσσα.
+**Domain modules return keys, not text.** `service`, `duty`, `leave` and `ranks`
+hand back identifiers; translation happens in components. The calculations are
+therefore language-independent, and `src/lib/` has no React dependency at all —
+it would port unchanged to React Native or a Cloud Function.
 
-## Κινητά
+**Greek uppercase drops the accent.** `ΥΠΟΛΟΓΙΣΤΗΣ`, not `ΥΠΟΛΟΓΙΣΤΉΣ` — unless
+the accent falls on the first letter, where it stays. CSS `text-transform` gets
+this wrong, so every capitalisation goes through
+[`src/lib/greek.ts`](src/lib/greek.ts) and no stylesheet carries a
+`text-transform: uppercase` rule.
 
-- Καμία οριζόντια κύλιση σε καμία οθόνη από 320px και πάνω (ελεγμένο σε πραγματικό browser).
-- Το ζουμ είναι κλειδωμένο (`user-scalable=no`). Για να **μη χρειάζεται** ζουμ:
-  τα πεδία είναι 16px — κάτω από αυτό το iOS Safari κάνει αυτόματο zoom στο focus —
-  και κάθε στόχος αφής είναι τουλάχιστον 44px.
-- `touch-action: manipulation` ώστε το διπλό tap να μη μεγεθύνει.
-- Σεβασμός των safe-area insets σε συσκευές με εγκοπή, και ξεχωριστό layout για
-  χαμηλά landscape παράθυρα.
+**Syncing merges lists instead of overwriting them.** Two devices editing offline
+would lose entries under last-write-wins, so lists are merged by `id` and
+deletions leave tombstones — see [`src/lib/merge.ts`](src/lib/merge.ts).
 
-> Σημείωση προσβασιμότητας: το κλείδωμα του ζουμ παραβιάζει το WCAG 2.1 (1.4.4),
-> που ζητά μεγέθυνση έως 200%. Έγινε κατόπιν ρητού αιτήματος· αν θελήσεις να το
-> επαναφέρεις, αφαίρεσε το `maximum-scale=1, user-scalable=no` από το
-> [index.html](index.html) — τίποτε άλλο δεν εξαρτάται από αυτό.
+**The date picker is custom.** A native `<input type="date">` renders month/day
+order according to the browser's locale rather than the page's, so Chrome on
+desktop showed American dates in a Greek interface. The replacement is a sheet of
+circular day buttons, laid out so each tap target stays above 44px even at 320px
+wide.
 
-## Δομή
+## Mobile
+
+- No horizontal scrolling on any screen from 320px up, verified in a real browser.
+- Zoom is locked (`user-scalable=no`). So that zoom is never *needed*: every input
+  is 16px — below that iOS Safari zooms on focus — and every tap target is at
+  least 44px.
+- `touch-action: manipulation`, so a double tap does not magnify.
+- Safe-area insets are respected, with a separate layout for short landscape
+  windows.
+
+> **Accessibility note.** Locking zoom violates WCAG 2.1 (1.4.4), which requires
+> magnification up to 200%. It was done on request. To restore it, remove
+> `maximum-scale=1, user-scalable=no` from [`index.html`](index.html) — nothing
+> else depends on it.
+
+## Testing
+
+```bash
+npm test           # domain logic, formatting, merge behaviour, dictionaries
+npm run audit      # six browser suites
+```
+
+The browser suites run against a production build in headless Chromium and cover
+mobile layout at five widths, end-to-end interaction, Greek glyph coverage, PWA
+installability and offline start-up, scrolling, and notifications, share cards and
+backups. Details in [`scripts/README.md`](scripts/README.md).
+
+The font suite exists because of a real failure: Oswald has no Greek glyphs and
+fell back silently, so a Greek heading rendered in a serif nobody chose.
+
+## Project layout
 
 ```
-src/lib/        καθαρή λογική — dates, service, esso, ranks, i18n, types (χωρίς React)
-src/components/ UI, συμπεριλαμβανομένων Privacy, NotFound, Toasts, ErrorBoundary
-src/hooks/      useI18n, useToast, useProfile, useRoute, useToday
-src/firebase/   config, sync — αδρανή μέχρι να μπουν κλειδιά
-tests/          έλεγχοι λογικής και μεταφράσεων
-scripts/        έλεγχοι σε πραγματικό browser (mobile, functional, fonts)
-DESIGN.md       το design system
+src/lib/          domain logic, no React — dates, service, leave, duty, money,
+                  merge, notify, share, backup, calendar, greek, i18n
+src/components/   UI, including Privacy, NotFound, Toasts, ErrorBoundary
+src/hooks/        useI18n, useToast, useProfile, useAuth, useRoute, useToday
+src/firebase/     config, auth, sync — inert until credentials are supplied
+src/styles/       tokens, global, app
+tests/            domain and dictionary checks
+scripts/          browser audits, icon generation, service-worker build step
+DESIGN.md         the design system
 ```
-
-Η λογική στο `src/lib/` δεν εξαρτάται από React, ώστε να μπορεί να μεταφερθεί
-αυτούσια σε React Native ή σε Cloud Function.
 
 ## Firebase
 
-Η εφαρμογή είναι **local-first**: δουλεύει πλήρως χωρίς λογαριασμό και χωρίς
-δίκτυο. Το Firebase είναι προαιρετικό επίπεδο από πάνω — σύνδεση με email ή
-Google, και συγχρονισμός του προφίλ ανάμεσα σε συσκευές.
+The app is **local-first**: it works fully without an account and without a
+network. Firebase is an optional layer on top — email or Google sign-in, and
+profile sync across devices.
 
-Για να τρέξει σε δικό σου project:
+To run it against your own project:
 
 ```bash
-cp .env.example .env.local   # συμπλήρωσε από Firebase Console → Project settings
-npx firebase use --add       # διάλεξε το δικό σου project
+cp .env.example .env.local   # fill in from Firebase Console → Project settings
+npx firebase use --add       # select your project
 npx firebase deploy --only firestore:rules
-npm run deploy               # build + Hosting
+npm run deploy               # build and deploy hosting
 ```
 
-Χωρίς `.env.local` όλα τα κομμάτια του Firebase μένουν αδρανή: το SDK φορτώνεται
-δυναμικά και το `isFirebaseConfigured()` επιστρέφει `false`, οπότε η εφαρμογή
-τρέχει κανονικά με μόνο τοπική αποθήκευση.
+Without `.env.local` every Firebase path stays inert: the SDK is imported
+dynamically and `isFirebaseConfigured()` returns `false`, so the app runs normally
+on local storage alone.
 
-Σχήμα: `users/{uid}`. Η συγχώνευση δύο συσκευών ενώνει τις λίστες ανά `id` και
-κρατά ταφόπλακες για τις διαγραφές — δες [src/lib/merge.ts](src/lib/merge.ts).
+Schema is `users/{uid}`, one document per user.
 
-### Σημείωση ασφάλειας
+### Security
 
-Το `apiKey` του Firebase **δεν είναι μυστικό**. Ενσωματώνεται στο bundle και
-είναι ορατό σε οποιονδήποτε ανοίξει τα developer tools — έτσι δουλεύει κάθε
-Firebase web εφαρμογή. Ταυτοποιεί το project, δεν το προστατεύει.
+The Firebase `apiKey` **is not a secret**. It is bundled into the JavaScript and
+visible to anyone who opens developer tools — that is how every Firebase web app
+works. It identifies the project; it does not protect it.
 
-Η προστασία είναι δύο πράγματα:
+Protection comes from two things:
 
-1. **[firestore.rules](firestore.rules)** — κάθε χρήστης διαβάζει και γράφει
-   μόνο το δικό του έγγραφο. Αυτό είναι που κρατά τα δεδομένα ασφαλή.
-2. **Περιορισμοί στο κλειδί** — στο Google Cloud Console, *Credentials* →
-   application restrictions σε συγκεκριμένα domains και API restrictions στα
-   API που όντως χρησιμοποιούνται. Περιορίζει την κατάχρηση, δεν αντικαθιστά
-   το πρώτο.
+1. **[`firestore.rules`](firestore.rules)** — each user can read and write only
+   their own document. This is what actually keeps data safe.
+2. **Key restrictions** — in the Google Cloud console, application restrictions to
+   specific domains and API restrictions to the APIs actually in use. This limits
+   abuse; it does not replace the first.
 
-Το `.env.local` και το `.firebaserc` είναι στο `.gitignore` — όχι επειδή
-περιέχουν μυστικά, αλλά επειδή δείχνουν σε **συγκεκριμένο** project.
+`.env.local` and `.firebaserc` are gitignored — not because they hold secrets, but
+because they point at one particular project.
 
 ## Design
 
-Δες [DESIGN.md](DESIGN.md). Μείγμα δύο συστημάτων από
-[awesome-design-md](https://github.com/VoltAgent/awesome-design-md): η **δομή** του
-Linear (σχεδόν μαύρος καμβάς, πάνελ με hairline περιγράμματα, ένα μόνο accent) και
-η **φωνή** του SpaceX (ένας τεράστιος αριθμός ανά οθόνη, κεφαλαία monospace
-microtext). Το lavender του Linear αντικαταστάθηκε από χακί, με πορτοκαλί σήμα
-αποκλειστικά για την τελευταία φάση της θητείας.
+See [DESIGN.md](DESIGN.md). The system mixes two references from
+[awesome-design-md](https://github.com/VoltAgent/awesome-design-md): the
+**structure** of Linear — near-black canvas, hairline-bordered panels, a single
+accent — and the **voice** of SpaceX, one enormous numeral per screen above
+tracked uppercase microtext. Linear's lavender is replaced by field olive, with an
+amber signal reserved for the final phase of service.
 
-Οι γραμματοσειρές είναι Roboto Condensed / Roboto Mono επειδή **πρέπει να
-καλύπτουν ελληνικά**. Το Oswald, που ταίριαζε καλύτερα αισθητικά, δεν έχει
-ελληνικά glyphs και έκανε σιωπηλό fallback — το `npm run audit:fonts` πιάνει
-ακριβώς αυτή την περίπτωση.
+Typefaces are Roboto Condensed and Roboto Mono because they **must cover Greek**.
 
-## Απόρρητο
+## Privacy
 
-Κανένα δεδομένο δεν φεύγει από τη συσκευή. Δεν υπάρχει λογαριασμός, analytics ή
-διαφημίσεις. Πλήρες κείμενο στη σελίδα `/privacy` της εφαρμογής (και στο
-[src/lib/i18n.ts](src/lib/i18n.ts), και στις δύο γλώσσες).
+Without an account, no data leaves the device: no tracking, no analytics, no
+advertising. Signing in stores the profile in Firestore in a document readable
+only by that account. The full text is at `/privacy` in the app, in both
+languages.
 
-## Σημείωση
+## Disclaimer
 
-Ενημερωτική εφαρμογή. Η επίσημη ημερομηνία απόλυσης καθορίζεται από τη μονάδα.
+Informational only, and not affiliated with the Hellenic Army General Staff or the
+Ministry of National Defence. Your official discharge date is set by your unit.
