@@ -39,7 +39,7 @@
   --s-xxl: 48px;
   --s-section: 72px;
 
-  /* Πρέπει να καλύπτει ελληνικά — δες tests/ και .font-check.mjs. */
+  /* Πρέπει να καλύπτει ελληνικά — δες scripts/audit-fonts.mjs. */
   --font-display: 'Roboto Condensed', 'DIN Alternate', 'Arial Narrow', sans-serif;
   --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   --font-mono: 'Roboto Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;

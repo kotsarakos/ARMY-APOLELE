@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Chevron">
-  <rect width="64" height="64" rx="14" fill="#06070A"/>
-  <rect x=".5" y=".5" width="63" height="63" rx="13.5" fill="none" stroke="#212429"/>
-  <g fill="none" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M17 50 32 41 47 50" stroke="#7C8B3F" opacity=".45"/>
-    <path d="M17 37 32 28 47 37" stroke="#7C8B3F"/>
-    <path d="M17 24 32 15 47 24" stroke="#D9A441"/>
-  </g>
-</svg>

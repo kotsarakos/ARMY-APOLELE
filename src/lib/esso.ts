@@ -40,8 +40,3 @@ export function essoLabel(e: Esso, dict: Dict): string {
 }
 
 export const ALL_ESSO = [...ESSO_2026, ...ESSO_2027]
-
-/** Η επόμενη ΕΣΣΟ μετά από μια ημερομηνία — για όσους δεν έχουν καταταγεί ακόμη. */
-export function nextEsso(after: Date = new Date()): Esso | undefined {
-  return ALL_ESSO.find((e) => new Date(e.from + 'T00:00:00') > after)
-}

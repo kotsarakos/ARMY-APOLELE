@@ -110,7 +110,6 @@
   font-size: 26px; font-weight: 600; line-height: 1.1; color: var(--ink);
 }
 .tile__value--text { font-size: 21px; letter-spacing: -0.3px; overflow-wrap: normal; }
-.tile__unit { font-size: 13px; color: var(--ink-subtle); margin-left: 4px; }
 .tile__hint { margin: 6px 0 0; font-size: 12px; color: var(--ink-tertiary); line-height: 1.4; }
 
 /* ── Άδειες ─────────────────────────────────────────────────────────────── */
@@ -133,11 +132,6 @@
   color: var(--ink-subtle); line-height: 1.6;
 }
 .leave__note strong { color: var(--ink-muted); }
-.leave__controls {
-  display: grid; gap: var(--s-md); margin-top: var(--s-lg);
-  padding-top: var(--s-lg); border-top: 1px solid var(--hairline);
-  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
-}
 .stepper { min-width: 0; }
 .stepper__row { display: flex; align-items: center; gap: var(--s-sm); margin-top: var(--s-xs); }
 .stepper__val {
@@ -250,7 +244,6 @@
   margin-top: var(--s-xs); padding-top: var(--s-md);
   border-top: 1px solid var(--hairline);
 }
-.set__sync { margin: 0; font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary); }
 
 /* ── Κουμπιά ────────────────────────────────────────────────────────────── */
 .btn {
