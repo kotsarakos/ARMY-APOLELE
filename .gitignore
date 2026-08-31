@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+.env.local
+.firebase
+*.log
+.DS_Store
+tsconfig.tsbuildinfo
+
+# Δείχνει σε ΠΟΙΟ project γίνεται deploy — προσωπικό, όχι μέρος του κώδικα.
+# Όποιος κάνει fork βάζει το δικό του με `firebase use --add`.
+.firebaserc

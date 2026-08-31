@@ -1,0 +1,37 @@
+{
+  "hosting": {
+    "public": "dist",
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [{ "source": "**", "destination": "/index.html" }],
+    "headers": [
+      {
+        "comment": "Baseline: κάθε διαδρομή HTML (και το «/», και οι SPA διαδρομές μέσω rewrite) δεν πρέπει να είναι cached, αλλιώς μετά από deploy ο κόσμος μένει στην παλιά έκδοση. Οι επόμενοι κανόνες υπερισχύουν για ό,τι είναι όντως αμετάβλητο.",
+        "source": "**",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, max-age=0, must-revalidate" },
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        ]
+      },
+      {
+        "comment": "Hash στο όνομα — ασφαλές για πάντα.",
+        "source": "/assets/**",
+        "headers": [{ "key": "Cache-Control", "value": "max-age=31536000, immutable" }]
+      },
+      {
+        "source": "**/*.@(png|svg|ico|woff2)",
+        "headers": [{ "key": "Cache-Control", "value": "max-age=86400" }]
+      },
+      {
+        "source": "/manifest.webmanifest",
+        "headers": [{ "key": "Cache-Control", "value": "max-age=3600" }]
+      }
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

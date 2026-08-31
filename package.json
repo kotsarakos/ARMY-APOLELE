@@ -1,0 +1,35 @@
+{
+  "name": "army-apolele",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Army Apolele — μέτρηση ημερών στρατιωτικής θητείας (Ελλάδα)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && node scripts/build-sw.mjs",
+    "preview": "vite preview",
+    "deploy": "npm run build && firebase deploy --only hosting",
+    "test": "npm run test:core && npm run test:features",
+    "audit:mobile": "node scripts/audit-mobile.mjs",
+    "audit:func": "node scripts/audit-functional.mjs",
+    "audit:fonts": "node scripts/audit-fonts.mjs",
+    "audit": "npm run audit:mobile && npm run audit:func && npm run audit:fonts && npm run audit:pwa && npm run audit:extras && node scripts/audit-scroll.mjs",
+    "audit:pwa": "node scripts/audit-pwa.mjs",
+    "test:core": "esbuild tests/service.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp-test.mjs --log-level=error && node node_modules/.tmp-test.mjs",
+    "test:features": "esbuild tests/features.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp-feat.mjs --log-level=error && node node_modules/.tmp-feat.mjs",
+    "audit:extras": "node scripts/audit-extras.mjs"
+  },
+  "dependencies": {
+    "firebase": "^12.18.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "playwright-core": "^1.62.0",
+    "typescript": "^5.9.0",
+    "vite": "^7.1.0"
+  }
+}

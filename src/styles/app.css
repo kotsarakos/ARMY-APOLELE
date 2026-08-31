@@ -1,0 +1,1158 @@
+/* Layout & components — υλοποίηση του DESIGN.md */
+
+.boot { min-height: 100vh; background: var(--canvas); }
+
+.shell {
+  position: relative;
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+  padding:
+    max(var(--s-lg), env(safe-area-inset-top))
+    max(var(--s-md), env(safe-area-inset-right))
+    128px
+    max(var(--s-md), env(safe-area-inset-left));
+}
+
+/* ── Topbar ─────────────────────────────────────────────────────────────── */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: var(--s-md);
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: var(--s-xxl);
+}
+.topbar__mark {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 2.2px; color: var(--primary);
+}
+.topbar__unit {
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 1.2px; color: var(--ink-tertiary);
+}
+
+/* ── Το ρολόι ───────────────────────────────────────────────────────────── */
+.clock { margin-bottom: var(--s-section); }
+.clock__top {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--s-md); margin-bottom: var(--s-sm);
+}
+.clock__name {
+  margin: 0; font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 1.2px; color: var(--ink-tertiary);
+}
+.clock__figure {
+  display: flex; align-items: baseline; gap: var(--s-sm);
+  flex-wrap: wrap; min-width: 0; max-width: 100%;
+}
+.clock__num {
+  font-family: var(--font-display);
+  font-size: clamp(72px, 24vw, 148px);
+  font-weight: 700; line-height: 0.86; letter-spacing: -2px;
+  color: var(--ink); min-width: 0;
+}
+.clock--signal .clock__num { color: var(--signal); }
+.clock__unit {
+  font-family: var(--font-mono); font-size: 13px;
+  letter-spacing: 1.4px; color: var(--ink-subtle);
+}
+.clock__tier {
+  display: flex; align-items: center; gap: var(--s-sm);
+  flex-wrap: wrap; margin-top: var(--s-md);
+}
+.badge {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 1.4px; padding: 4px 10px;
+  border: 1px solid var(--primary-dim); border-radius: var(--r-pill);
+  color: var(--primary);
+}
+.clock--signal .badge { border-color: var(--signal-dim); color: var(--signal); }
+.clock__blurb { font-size: 13px; color: var(--ink-subtle); }
+.clock__note { margin-top: var(--s-md); color: var(--ink-muted); font-size: 14px; }
+
+/* ── Πρόοδος ────────────────────────────────────────────────────────────── */
+.progress { margin-top: var(--s-xl); }
+.progress__meta {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: var(--s-xs);
+}
+.progress__pct { font-family: var(--font-mono); font-size: 13px; color: var(--ink-muted); }
+.progress__track {
+  height: 6px; background: var(--surface-3);
+  border-radius: var(--r-pill); overflow: hidden;
+}
+.progress__fill {
+  height: 100%; background: var(--primary);
+  border-radius: var(--r-pill); transition: width 600ms ease;
+}
+.progress__fill--signal { background: var(--signal); }
+.progress__ends {
+  display: flex; justify-content: space-between; gap: var(--s-sm);
+  margin-top: var(--s-xs);
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);
+}
+.progress__ends span { min-width: 0; }
+.progress__ends span:last-child { text-align: right; }
+
+/* ── Bands & tiles ──────────────────────────────────────────────────────── */
+.band { margin-bottom: var(--s-section); }
+.band__label { margin-bottom: var(--s-md); }
+.tiles {
+  display: grid; gap: var(--s-sm);
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+}
+.tile { min-width: 0; }
+.tile {
+  background: var(--surface-1); border: 1px solid var(--hairline);
+  border-radius: var(--r-md); padding: var(--s-md);
+}
+.tile__value {
+  margin: var(--s-xs) 0 0; font-family: var(--font-display);
+  font-size: 26px; font-weight: 600; line-height: 1.1; color: var(--ink);
+}
+.tile__value--text { font-size: 21px; letter-spacing: -0.3px; overflow-wrap: normal; }
+.tile__unit { font-size: 13px; color: var(--ink-subtle); margin-left: 4px; }
+.tile__hint { margin: 6px 0 0; font-size: 12px; color: var(--ink-tertiary); line-height: 1.4; }
+
+/* ── Άδειες ─────────────────────────────────────────────────────────────── */
+.leave__head {
+  display: flex; justify-content: space-between; gap: var(--s-lg);
+  flex-wrap: wrap; margin-bottom: var(--s-md);
+}
+.leave__big {
+  margin: 0; font-family: var(--font-display); font-size: 56px;
+  font-weight: 700; line-height: 0.9; color: var(--signal);
+}
+.leave__side { display: grid; gap: 6px; align-content: start; min-width: min(150px, 100%); flex: 1; }
+.leave__row {
+  display: flex; justify-content: space-between; gap: var(--s-md);
+  margin: 0; font-size: 13px; color: var(--ink-subtle);
+}
+.leave__row strong { color: var(--ink); }
+.leave__note {
+  margin: var(--s-md) 0 0; font-size: 13px;
+  color: var(--ink-subtle); line-height: 1.6;
+}
+.leave__note strong { color: var(--ink-muted); }
+.leave__controls {
+  display: grid; gap: var(--s-md); margin-top: var(--s-lg);
+  padding-top: var(--s-lg); border-top: 1px solid var(--hairline);
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+}
+.stepper { min-width: 0; }
+.stepper__row { display: flex; align-items: center; gap: var(--s-sm); margin-top: var(--s-xs); }
+.stepper__val {
+  font-family: var(--font-display); font-size: 24px;
+  font-weight: 600; min-width: 40px; text-align: center;
+}
+.stepper__hint { margin: 6px 0 0; font-size: 11px; color: var(--ink-tertiary); }
+
+/* ── Ορόσημα ────────────────────────────────────────────────────────────── */
+.ms { list-style: none; margin: 0; padding: 0; }
+.ms__item {
+  position: relative; display: flex; gap: var(--s-md);
+  padding: 0 0 var(--s-lg) var(--s-lg);
+}
+.ms__item::before {
+  content: ''; position: absolute; left: 5px; top: 14px; bottom: -2px;
+  width: 1px; background: var(--hairline);
+}
+.ms__item:last-child::before { display: none; }
+.ms__dot {
+  position: absolute; left: 0; top: 6px;
+  width: 11px; height: 11px; border-radius: 50%;
+  border: 1px solid var(--hairline-strong); background: var(--canvas);
+}
+.ms__item--done .ms__dot { background: var(--primary); border-color: var(--primary); }
+.ms__body { flex: 1; min-width: 0; }
+.ms__line {
+  display: flex; justify-content: space-between; gap: var(--s-sm);
+  align-items: baseline; flex-wrap: wrap;
+}
+.ms__label { font-weight: 500; color: var(--ink); }
+.ms__item--done .ms__label { color: var(--ink-subtle); }
+.ms__when {
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.6px; color: var(--ink-tertiary);
+}
+.ms__detail { margin: 2px 0 0; font-size: 13px; color: var(--ink-tertiary); }
+
+/* ── Onboarding ─────────────────────────────────────────────────────────── */
+.onboard { padding-top: var(--s-lg); }
+.onboard__head { margin-bottom: var(--s-xl); }
+.onboard__title {
+  font-family: var(--font-display); font-size: 44px; font-weight: 700;
+  line-height: 1.05; letter-spacing: -0.8px; margin: var(--s-xs) 0 var(--s-sm);
+}
+.onboard__sub { margin: 0; color: var(--ink-subtle); max-width: 46ch; }
+.field { margin-bottom: var(--s-md); }
+.field__hint { margin: var(--s-xs) 0 var(--s-md); font-size: 13px; color: var(--ink-tertiary); }
+.field__or { display: block; margin: var(--s-md) 0 var(--s-xs); }
+
+.input {
+  width: 100%; margin-top: var(--s-xs);
+  background: var(--surface-2); color: var(--ink);
+  border: 1px solid var(--hairline-strong); border-radius: var(--r-md);
+  padding: 11px var(--s-sm); font-family: inherit;
+  font-size: 16px; /* ΜΗΝ το μειώσεις: <16px ενεργοποιεί αυτόματο zoom στο iOS */
+  min-height: 44px; max-width: 100%;
+}
+.input--sm {
+  width: auto; max-width: 55%; margin: 0;
+  padding: 8px var(--s-sm); font-size: 16px; min-height: 44px;
+}
+.input::placeholder { color: var(--ink-tertiary); }
+
+.esso-grid, .dur-grid {
+  display: grid; gap: var(--s-xs);
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+}
+.esso, .dur { min-width: 0; }
+.esso, .dur {
+  display: grid; gap: 2px; text-align: left;
+  background: var(--surface-2); color: var(--ink);
+  border: 1px solid var(--hairline-strong); border-radius: var(--r-md);
+  padding: var(--s-sm); transition: background 120ms ease;
+}
+.esso:hover, .dur:hover { background: var(--surface-3); }
+.esso--on, .dur--on { border-color: var(--primary); background: var(--surface-3); }
+.esso__label, .dur__label { font-size: 14px; font-weight: 500; }
+.esso__dates, .dur__detail {
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);
+}
+.dur__detail { font-family: var(--font-body); font-size: 12px; }
+.esso__tag {
+  justify-self: start; font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.8px;
+  color: var(--signal); margin-top: 2px;
+}
+
+.check {
+  display: flex; gap: var(--s-sm); align-items: flex-start;
+  margin-top: var(--s-md); padding-top: var(--s-md);
+  border-top: 1px solid var(--hairline); cursor: pointer;
+}
+.check input { margin-top: 3px; accent-color: var(--primary); }
+.check strong { display: block; font-size: 14px; font-weight: 500; }
+.check em { font-style: normal; font-size: 12px; color: var(--ink-tertiary); }
+
+/* ── Ρυθμίσεις ──────────────────────────────────────────────────────────── */
+.set { display: grid; gap: var(--s-sm); }
+.set__row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s-sm); font-size: 14px; color: var(--ink-muted);
+  flex-wrap: wrap; min-width: 0;
+}
+.set__row > span { flex: 1 1 auto; min-width: 0; }
+.set__row--check input { accent-color: var(--primary); }
+.set__foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s-md); flex-wrap: wrap;
+  margin-top: var(--s-xs); padding-top: var(--s-md);
+  border-top: 1px solid var(--hairline);
+}
+.set__sync { margin: 0; font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary); }
+
+/* ── Κουμπιά ────────────────────────────────────────────────────────────── */
+.btn {
+  border: 1px solid transparent; border-radius: var(--r-md);
+  padding: 11px 18px; font-size: 14px; font-weight: 500;
+  transition: background 120ms ease;
+}
+.btn--primary { background: var(--primary); color: var(--on-primary); }
+.btn--primary:hover:not(:disabled) { background: var(--primary-hover); }
+.btn--ghost {
+  background: var(--surface-2); color: var(--ink);
+  border-color: var(--hairline-strong);
+  min-width: 40px; padding: 8px 12px; font-size: 17px; line-height: 1;
+}
+.btn--ghost:hover:not(:disabled) { background: var(--surface-3); }
+.btn--danger {
+  background: transparent; color: var(--danger);
+  border-color: var(--hairline-strong); padding: 8px 14px; font-size: 13px;
+}
+.btn--block { width: 100%; margin-top: var(--s-md); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Tabs & footer ──────────────────────────────────────────────────────── */
+.tabs {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: max(var(--s-md), env(safe-area-inset-bottom));
+  display: flex; gap: 2px; padding: 4px; z-index: 20;
+  max-width: calc(100vw - 24px);
+  background: var(--surface-1); border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-pill);
+}
+.tabs__b {
+  background: transparent; border: 0; border-radius: var(--r-pill);
+  padding: 9px 16px; min-height: 44px; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 11px;
+  font-weight: 500; letter-spacing: 1.2px;
+  color: var(--ink-subtle);
+}
+.tabs__b--on { background: var(--surface-3); color: var(--ink); }
+
+.foot {
+  padding-top: var(--s-lg); border-top: 1px solid var(--hairline);
+}
+.foot p { margin: 0; font-size: 12px; color: var(--ink-tertiary); line-height: 1.6; }
+
+/* ── Στενές οθόνες ──────────────────────────────────────────────────────── */
+@media (max-width: 420px) {
+  .shell {
+    padding-left: max(var(--s-sm), env(safe-area-inset-left));
+    padding-right: max(var(--s-sm), env(safe-area-inset-right));
+  }
+  .panel { padding: var(--s-md); }
+  .leave__big { font-size: 44px; }
+  .leave__head { gap: var(--s-md); }
+  .band { margin-bottom: var(--s-xxl); }
+  .clock { margin-bottom: var(--s-xxl); }
+  .tabs__b { padding: 9px 12px; letter-spacing: 0.8px; }
+  .topbar__unit { max-width: 32vw; }
+  .progress__ends { font-size: 10px; }
+  .set__row { font-size: 13px; }
+  .input--sm { max-width: 100%; flex: 1 1 140px; }
+}
+
+@media (max-width: 340px) {
+  .tabs__b { padding: 9px 9px; font-size: 10px; letter-spacing: 0.4px; }
+  .clock__num { font-size: 68px; }
+}
+
+/* Σε χαμηλά landscape παράθυρα τα tabs δεν πρέπει να καλύπτουν περιεχόμενο. */
+@media (max-height: 460px) and (orientation: landscape) {
+  .shell { padding-bottom: 96px; }
+  .clock__num { font-size: clamp(56px, 12vw, 96px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Toasts — μηνύματα επιτυχίας και σφάλματος
+   ═══════════════════════════════════════════════════════════════════════════ */
+.toasts {
+  position: fixed; z-index: 50;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(76px + max(var(--s-md), env(safe-area-inset-bottom)));
+  display: flex; flex-direction: column; gap: var(--s-xs);
+  width: min(440px, calc(100vw - 24px));
+  pointer-events: none;
+}
+.toast {
+  display: flex; align-items: flex-start; gap: var(--s-sm);
+  width: 100%; text-align: left; pointer-events: auto;
+  background: var(--surface-2); color: var(--ink);
+  border: 1px solid var(--hairline-strong);
+  border-left-width: 3px;
+  border-radius: var(--r-md);
+  padding: 12px var(--s-md);
+  font-size: 14px; line-height: 1.45;
+  animation: toast-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.toast--success { border-left-color: var(--primary); }
+.toast--error   { border-left-color: var(--danger); }
+.toast__icon {
+  flex: 0 0 auto; width: 18px; height: 18px; margin-top: 1px;
+  display: grid; place-items: center;
+  border-radius: 50%; font-size: 11px; font-weight: 700;
+  font-family: var(--font-mono);
+}
+.toast--success .toast__icon { background: var(--primary); color: var(--on-primary); }
+.toast--error   .toast__icon { background: var(--danger); color: #fff; }
+.toast__text { flex: 1; min-width: 0; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Topbar: γλώσσα
+   ═══════════════════════════════════════════════════════════════════════════ */
+.topbar__mark {
+  background: none; border: 0; padding: 0;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 2.2px; color: var(--primary);
+  min-height: 44px; display: flex; align-items: center;
+}
+.topbar__right { display: flex; align-items: center; gap: var(--s-sm); min-width: 0; }
+.topbar__unit {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 40vw;
+}
+/* Διακόπτης γλώσσας — δύο τμήματα με ολισθαίνον highlight. */
+.langsw {
+  position: relative; flex: 0 0 auto; display: flex;
+  background: var(--surface-2);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-pill); padding: 3px;
+  overflow: hidden; /* το thumb δεν ξεφεύγει ποτέ από το περίγραμμα */
+}
+.langsw__thumb {
+  position: absolute; top: 3px; bottom: 3px; left: 3px;
+  width: calc(50% - 3px);
+  background: var(--primary); border-radius: var(--r-pill);
+  transition: transform 220ms cubic-bezier(.3,.8,.3,1);
+}
+.langsw__thumb[data-lang="el"] { transform: translateX(0); }
+.langsw__thumb[data-lang="en"] { transform: translateX(100%); }
+.langsw__b {
+  position: relative; z-index: 1;
+  background: none; border: 0; border-radius: var(--r-pill);
+  min-width: 46px; min-height: 44px; padding: 0 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 1.2px; color: var(--ink-subtle);
+  transition: color 180ms ease;
+}
+.langsw__b--on { color: var(--on-primary); }
+.langsw__b:not(.langsw__b--on):hover { color: var(--ink); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Σελίδες: Απόρρητο & 404
+   ═══════════════════════════════════════════════════════════════════════════ */
+.shell--center { display: flex; flex-direction: column; }
+.page { padding-bottom: var(--s-xl); }
+.page__title {
+  font-family: var(--font-display); font-size: clamp(30px, 8vw, 44px);
+  font-weight: 700; line-height: 1.05; letter-spacing: -0.8px;
+  margin: var(--s-xs) 0 var(--s-sm);
+}
+.page__intro { margin: 0 0 var(--s-xl); color: var(--ink-muted); max-width: 62ch; }
+.page__body { display: grid; gap: var(--s-sm); margin-bottom: var(--s-xl); }
+.page__section { padding: var(--s-md); }
+.page__h2 {
+  margin: 0 0 var(--s-xs); font-size: 15px; font-weight: 600; color: var(--ink);
+}
+.page__p { margin: 0; font-size: 14px; color: var(--ink-subtle); line-height: 1.6; max-width: 68ch; }
+
+.notfound {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; gap: var(--s-xs); padding: var(--s-xxl) 0;
+}
+.notfound__code {
+  font-family: var(--font-display);
+  font-size: clamp(72px, 22vw, 128px); font-weight: 700;
+  line-height: 0.86; letter-spacing: -2px; color: var(--signal); margin: 0;
+}
+.notfound__title {
+  font-family: var(--font-display); font-size: 24px;
+  font-weight: 600; margin: var(--s-sm) 0 0;
+}
+.notfound__sub {
+  margin: 0 0 var(--s-lg); color: var(--ink-subtle); max-width: 42ch;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Ρυθμίσεις: επιβεβαίωση μηδενισμού
+   ═══════════════════════════════════════════════════════════════════════════ */
+.set__confirm {
+  display: flex; align-items: center; gap: var(--s-xs); flex-wrap: wrap;
+}
+.set__confirm-q {
+  flex: 1 1 100%; font-size: 13px; color: var(--ink-muted); margin-bottom: 2px;
+}
+.btn--sm { padding: 8px 12px; font-size: 13px; min-height: 44px; }
+.btn--secondary {
+  background: var(--surface-2); color: var(--ink);
+  border-color: var(--hairline-strong);
+}
+.btn--secondary:hover { background: var(--surface-3); }
+
+.foot { display: flex; flex-direction: column; gap: var(--s-sm); align-items: flex-start; }
+.foot__link {
+  background: none; border: 0; padding: 0;
+  font-size: 12px; color: var(--ink-subtle);
+  text-decoration: underline; text-underline-offset: 3px;
+  min-height: 44px; display: inline-flex; align-items: center;
+}
+.foot__link:hover { color: var(--ink); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Λογαριασμός / σύνδεση
+   ═══════════════════════════════════════════════════════════════════════════ */
+.acc { display: grid; gap: var(--s-sm); }
+.acc__title { margin: 0; font-size: 15px; font-weight: 600; color: var(--ink); }
+.acc__body { margin: 0 0 var(--s-xs); font-size: 13px; color: var(--ink-subtle); line-height: 1.55; }
+.acc__muted { margin: 0; font-size: 13px; color: var(--ink-tertiary); }
+
+.acc__field { display: grid; gap: 2px; }
+.acc__field .input { margin-top: 4px; }
+
+.btn--google {
+  display: flex; align-items: center; justify-content: center; gap: var(--s-sm);
+  background: var(--ink); color: #1f1f1f;
+  border-color: var(--ink); width: 100%; font-weight: 600;
+}
+.btn--google:hover:not(:disabled) { background: #fff; }
+
+.acc__or {
+  display: flex; align-items: center; gap: var(--s-sm);
+  margin: var(--s-xs) 0;
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 1.2px; color: var(--ink-tertiary);
+}
+.acc__or::before, .acc__or::after {
+  content: ''; flex: 1; height: 1px; background: var(--hairline);
+}
+
+.acc__links {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  margin-top: var(--s-xs); padding-top: var(--s-sm);
+  border-top: 1px solid var(--hairline);
+}
+.acc__link {
+  background: none; border: 0; padding: 0; min-height: 44px;
+  display: inline-flex; align-items: center;
+  font-size: 13px; color: var(--ink-subtle);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.acc__link:hover:not(:disabled) { color: var(--ink); }
+.acc__link:disabled { opacity: .5; }
+
+/* Συνδεδεμένη κατάσταση */
+.acc__who { display: flex; align-items: flex-start; gap: var(--s-sm); min-width: 0; }
+.acc__dot {
+  flex: 0 0 auto; width: 8px; height: 8px; margin-top: 6px;
+  border-radius: 50%; background: var(--success);
+}
+.acc__label {
+  margin: 0; font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 1.2px; color: var(--ink-tertiary);
+}
+.acc__id {
+  margin: 2px 0 0; font-size: 15px; color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.acc__via { margin: 2px 0 0; font-size: 12px; color: var(--ink-subtle); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Αρχική οθόνη καλωσορίσματος
+   ═══════════════════════════════════════════════════════════════════════════ */
+.welcome { padding-top: var(--s-lg); }
+.welcome__head { text-align: center; margin-bottom: var(--s-xl); }
+.welcome__logo { display: block; margin: 0 auto var(--s-md); border-radius: 12px; }
+.welcome__title {
+  font-family: var(--font-display); font-size: clamp(30px, 8vw, 44px);
+  font-weight: 700; line-height: 1.05; letter-spacing: -0.8px; margin: 0 0 var(--s-sm);
+}
+.welcome__sub {
+  margin: 0 auto; color: var(--ink-subtle); max-width: 44ch; font-size: 15px;
+}
+.welcome__skip {
+  margin-top: var(--s-lg); padding-top: var(--s-lg);
+  border-top: 1px solid var(--hairline);
+}
+.welcome__note {
+  margin: var(--s-sm) 0 0; text-align: center;
+  font-size: 12px; color: var(--ink-tertiary); line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Widget εγκατάστασης — εμφανίζεται πάνω από τα tabs
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ib {
+  position: fixed; z-index: 40;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(76px + max(var(--s-md), env(safe-area-inset-bottom)));
+  width: min(460px, calc(100vw - 20px));
+  animation: ib-in 320ms cubic-bezier(.2,.9,.3,1);
+}
+.ib__card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--s-sm) var(--s-sm);
+  background: var(--surface-1);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-lg);
+  padding: var(--s-md);
+  box-shadow: 0 12px 32px rgb(0 0 0 / .55);
+}
+.ib__icon { border-radius: 10px; grid-row: span 1; }
+.ib__text { min-width: 0; }
+.ib__title { margin: 0; font-size: 15px; font-weight: 600; color: var(--ink); }
+.ib__body { margin: 2px 0 0; font-size: 13px; color: var(--ink-subtle); line-height: 1.45; }
+.ib__x {
+  align-self: start; justify-self: end;
+  background: none; border: 0; color: var(--ink-tertiary);
+  font-size: 22px; line-height: 1; min-width: 44px; min-height: 44px;
+  margin: -10px -8px 0 0;
+}
+.ib__x:hover { color: var(--ink); }
+.ib__actions {
+  grid-column: 1 / -1; display: flex; gap: var(--s-xs);
+}
+.ib__actions .btn { flex: 1; }
+.ib__note {
+  margin: var(--s-xs) 0 0; text-align: center;
+  font-size: 11px; color: var(--ink-tertiary);
+}
+@keyframes ib-in {
+  from { opacity: 0; transform: translate(-50%, 14px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ── Οδηγός εγκατάστασης ────────────────────────────────────────────────── */
+.ig__head { text-align: center; margin-bottom: var(--s-lg); }
+.ig__logo { display: block; margin: 0 auto var(--s-md); border-radius: 14px; }
+.ig__head .page__intro { margin-left: auto; margin-right: auto; }
+.ig__done {
+  margin: var(--s-sm) 0 0; font-size: 13px; color: var(--success);
+  font-family: var(--font-mono); letter-spacing: .6px;
+}
+.ig__cta { margin-bottom: var(--s-lg); }
+
+.ig__tabs {
+  display: flex; gap: 2px; padding: 4px;
+  background: var(--surface-1); border: 1px solid var(--hairline);
+  border-radius: var(--r-pill); margin-bottom: var(--s-xs);
+}
+.ig__tab {
+  flex: 1; background: none; border: 0; border-radius: var(--r-pill);
+  min-height: 44px; padding: 0 8px; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: .8px; color: var(--ink-subtle);
+}
+.ig__tab--on { background: var(--surface-3); color: var(--ink); }
+.ig__auto {
+  margin: 0 0 var(--s-lg); font-size: 12px;
+  color: var(--ink-tertiary); text-align: center;
+}
+
+.ig__steps { list-style: none; margin: 0 0 var(--s-xl); padding: 0; display: grid; gap: var(--s-sm); }
+.ig__step { display: block; padding: var(--s-md); }
+.ig__num {
+  flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface-3); border: 1px solid var(--hairline-strong);
+  font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--primary);
+}
+.ig__h { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: var(--ink); }
+.ig__p { margin: 0; font-size: 13px; color: var(--ink-subtle); line-height: 1.6; }
+
+.ig__section {
+  font-family: var(--font-display); font-size: 20px; font-weight: 600;
+  margin: 0 0 var(--s-md);
+}
+.ig__benefits { display: grid; gap: var(--s-sm); margin-bottom: var(--s-lg); }
+.ig__remove {
+  margin: 0 0 var(--s-lg); font-size: 12px;
+  color: var(--ink-tertiary); line-height: 1.6;
+}
+
+.foot__links { display: flex; gap: var(--s-md); flex-wrap: wrap; }
+
+@media (max-width: 380px) {
+  .ig__tab { font-size: 10px; letter-spacing: .4px; padding: 0 4px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Μικρογραφίες συσκευής στον οδηγό εγκατάστασης
+   Το μόνο τονισμένο στοιχείο είναι πάντα αυτό που πρέπει να πατηθεί.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.mk {
+  position: relative; width: 100%; max-width: 210px; margin: var(--s-md) auto 0;
+  aspect-ratio: 9 / 17;
+  border: 2px solid var(--hairline-strong); border-radius: 22px;
+  background: var(--canvas); padding: 6px; overflow: hidden;
+}
+.mk--wide { aspect-ratio: 16 / 11; max-width: 250px; border-radius: 10px; }
+.mk__screen {
+  position: relative; width: 100%; height: 100%; overflow: hidden;
+  border-radius: 15px; background: var(--surface-2);
+  display: flex; flex-direction: column;
+}
+.mk--wide .mk__screen { border-radius: 5px; }
+
+/* Σκελετός περιεχομένου */
+.mk__body { flex: 1; padding: 8px; display: flex; flex-direction: column; gap: 5px; min-height: 0; }
+.mk__row { display: flex; align-items: center; gap: 5px; }
+.mk__sq { width: 12px; height: 12px; border-radius: 3px; background: var(--primary); opacity: .8; flex: 0 0 auto; }
+.mk__bar { height: 5px; border-radius: 3px; background: var(--hairline-strong); }
+.mk__bar--45 { width: 45%; } .mk__bar--60 { width: 60%; }
+.mk__bar--70 { width: 70%; } .mk__bar--80 { width: 80%; }
+.mk__block { height: 34px; border-radius: 5px; background: var(--surface-3); }
+.mk__block--sm { height: 22px; }
+
+.mk__dim { flex: 1; opacity: .35; display: flex; min-height: 0; }
+.mk__dim--sm { flex: 0 0 40%; }
+.mk__dim > .mk__body { flex: 1; }
+
+/* Chrome του browser */
+.mk__chrome { padding: 5px 6px 6px; background: var(--surface-1); border-top: 1px solid var(--hairline); }
+.mk__url {
+  background: var(--surface-3); border-radius: 5px; padding: 3px 6px;
+  font-size: 6.5px; color: var(--ink-subtle); text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mk__url--flex { flex: 1; text-align: left; }
+.mk__tools { display: flex; justify-content: space-around; align-items: center; margin-top: 5px; }
+.mk__ico {
+  display: grid; place-items: center; width: 18px; height: 18px;
+  font-size: 9px; color: var(--ink-tertiary); border-radius: 4px;
+}
+.mk__ico--hi {
+  color: var(--signal); border: 1px solid var(--signal);
+  box-shadow: 0 0 0 3px rgb(217 164 65 / .16);
+}
+.mk__topbar {
+  display: flex; align-items: center; gap: 5px; padding: 6px;
+  background: var(--surface-1); border-bottom: 1px solid var(--hairline);
+}
+.mk__wintop {
+  display: flex; align-items: center; gap: 4px; padding: 5px 6px;
+  background: var(--surface-1); border-bottom: 1px solid var(--hairline);
+}
+.mk__wintop--app { gap: 5px; }
+.mk__dot { width: 5px; height: 5px; border-radius: 50%; background: var(--hairline-strong); flex: 0 0 auto; }
+.mk__winname { font-size: 7px; color: var(--ink-muted); font-weight: 600; }
+.mk__caption {
+  margin: 0; padding: 4px 6px 6px; font-size: 6.5px;
+  color: var(--ink-tertiary); text-align: center;
+}
+
+/* Φύλλο κοινοποίησης iOS */
+.mk__sheet {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: var(--surface-1); border-top: 1px solid var(--hairline-strong);
+  border-radius: 12px 12px 0 0; padding: 5px 7px 8px;
+}
+.mk__grab { display: block; width: 24px; height: 3px; border-radius: 2px; background: var(--hairline-strong); margin: 0 auto 6px; }
+.mk__app { display: flex; align-items: center; gap: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--hairline); }
+.mk__appicon { border-radius: 5px; flex: 0 0 auto; }
+.mk__appname { margin: 0; font-size: 7.5px; font-weight: 600; color: var(--ink); }
+.mk__appurl { margin: 0; font-size: 6.5px; color: var(--ink-tertiary); }
+.mk__list, .mk__menu { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; }
+.mk__list li, .mk__menu li {
+  font-size: 7px; color: var(--ink-muted); padding: 4px 5px; border-radius: 4px;
+}
+.mk__menu {
+  position: absolute; right: 6px; top: 26px; width: 62%;
+  background: var(--surface-1); border: 1px solid var(--hairline-strong);
+  border-radius: 6px; padding: 4px; margin: 0;
+}
+.mk__hi {
+  color: var(--signal) !important;
+  border: 1px solid var(--signal); background: rgb(217 164 65 / .10);
+  font-weight: 600;
+}
+
+/* Το banner της εφαρμογής μέσα στη μικρογραφία */
+.mk__banner {
+  position: absolute; left: 6px; right: 6px; bottom: 8px;
+  display: flex; align-items: center; gap: 5px;
+  background: var(--surface-1); border: 1px solid var(--hairline-strong);
+  border-radius: 7px; padding: 6px;
+}
+.mk__btext { flex: 1; min-width: 0; }
+.mk__bt {
+  margin: 0; font-size: 6.5px; font-weight: 600; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mk__bbtn { font-size: 6.5px; padding: 3px 6px; border-radius: 4px; flex: 0 0 auto; }
+
+/* Διάλογοι */
+.mk__dialog {
+  position: absolute; left: 6px; right: 6px; top: 14%;
+  background: var(--surface-1); border: 1px solid var(--hairline-strong);
+  border-radius: 8px; padding: 6px;
+}
+.mk__dtop { display: flex; align-items: center; gap: 4px; }
+.mk__dcancel { font-size: 6px; color: var(--ink-tertiary); flex: 0 0 auto; }
+.mk__dtitle {
+  flex: 1; min-width: 0; text-align: center;
+  font-size: 6px; font-weight: 600; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mk__dgo { font-size: 6px; padding: 2px 5px; border-radius: 4px; flex: 0 0 auto; }
+.mk__dbody { display: flex; align-items: center; gap: 6px; margin-top: 7px; }
+.mk__field {
+  flex: 1; background: var(--surface-3); border: 1px solid var(--hairline-strong);
+  border-radius: 4px; padding: 4px 5px; font-size: 7px; color: var(--ink);
+}
+.mk__durl { margin: 5px 0 0 40px; font-size: 6px; color: var(--ink-tertiary); }
+
+.mk__adialog {
+  position: absolute; left: 10px; right: 10px; bottom: 12%;
+  background: var(--surface-1); border: 1px solid var(--hairline-strong);
+  border-radius: 10px; padding: 10px; text-align: center;
+}
+.mk__adialog .mk__appicon { margin: 0 auto 6px; display: block; }
+.mk__atitle { margin: 0; font-size: 8px; font-weight: 600; color: var(--ink); }
+.mk__aurl { margin: 2px 0 0; font-size: 6.5px; color: var(--ink-tertiary); }
+.mk__abtns { display: flex; justify-content: flex-end; gap: 6px; margin-top: 9px; }
+.mk__abtns span { font-size: 7px; color: var(--ink-subtle); padding: 3px 6px; border-radius: 4px; }
+
+.mk__ddialog {
+  position: absolute; left: 8px; right: 8px; top: 22px;
+  display: grid; grid-template-columns: auto 1fr; gap: 6px;
+  background: var(--surface-1); border: 1px solid var(--hairline-strong);
+  border-radius: 8px; padding: 8px;
+}
+.mk__ddialog .mk__abtns { grid-column: 1 / -1; }
+.mk__dtext { min-width: 0; text-align: left; }
+
+/* Τα βήματα γίνονται στήλες όταν υπάρχει χώρος, όπως στο πρότυπο. */
+.ig__stephead { display: flex; gap: var(--s-md); align-items: flex-start; }
+@media (min-width: 700px) {
+  .ig__steps { grid-template-columns: repeat(3, 1fr); align-items: stretch; }
+  .ig__step { display: flex; flex-direction: column; height: 100%; }
+  /* Σπρώχνει τη μικρογραφία στη βάση, ώστε οι τρεις συσκευές να
+     ευθυγραμμίζονται παρότι τα κείμενα έχουν διαφορετικό μήκος. */
+  .ig__step > .mk { margin-top: auto; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Ταμείο
+   ═══════════════════════════════════════════════════════════════════════════ */
+.clock--olive .clock__num { color: var(--ink); }
+/* Δύο ρητές γραμμές — ετικέτες πάνω, ποσά κάτω — ώστε τα ποσά να
+   ευθυγραμμίζονται ακόμη κι όταν μια ετικέτα σπάει σε δύο γραμμές. */
+.mn__split {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: var(--s-sm); row-gap: 4px; margin-top: var(--s-lg);
+  padding-top: var(--s-md); border-top: 1px solid var(--hairline);
+}
+.mn__split span { display: contents; }
+.mn__split em { grid-row: 1; align-self: end; }
+.mn__split strong { grid-row: 2; }
+.mn__split em {
+  font-style: normal; font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 1px; color: var(--ink-tertiary);
+}
+.mn__split strong { font-size: 15px; font-weight: 600; color: var(--ink-muted); }
+
+.mn__warn {
+  border: 1px solid var(--signal-dim); border-left-width: 3px;
+  background: rgb(217 164 65 / .07);
+  border-radius: var(--r-md); padding: var(--s-md); margin-bottom: var(--s-xxl);
+}
+.mn__warnt { margin: 0; font-size: 14px; font-weight: 600; color: var(--signal); }
+.mn__warnb { margin: 4px 0 0; font-size: 13px; color: var(--ink-subtle); line-height: 1.55; }
+.tile__value--warn { color: var(--danger); }
+
+.mn__starthint { margin: 0 0 var(--s-sm); font-size: 12px; color: var(--ink-tertiary); }
+.mn__startnow {
+  margin: 0 0 var(--s-sm);
+  font-family: var(--font-display); font-size: 30px; font-weight: 700;
+  line-height: 1; color: var(--ink);
+}
+.mn__startrow { display: flex; align-items: stretch; gap: var(--s-xs); }
+.mn__startrow .input--sm { flex: 1 1 auto; max-width: none; min-width: 0; }
+.mn__startrow .btn { flex: 0 0 auto; }
+
+.mn__add { display: grid; gap: var(--s-sm); }
+.mn__addrow { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-sm); }
+.mn__f { display: grid; gap: 4px; min-width: 0; }
+.mn__f .input { margin-top: 0; }
+
+.mn__cats { display: grid; gap: var(--s-sm); }
+.mn__cat { display: grid; gap: 5px; }
+.mn__catrow {
+  display: flex; justify-content: space-between; gap: var(--s-sm);
+  font-size: 13px; color: var(--ink-subtle);
+}
+.mn__catrow strong { color: var(--ink); }
+
+.mn__empty { margin: 0; font-size: 13px; color: var(--ink-tertiary); line-height: 1.6; }
+.mn__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-xs); }
+.mn__item {
+  display: flex; align-items: center; gap: var(--s-sm);
+  padding: var(--s-sm) var(--s-md);
+}
+.mn__itext { flex: 1; min-width: 0; }
+.mn__icat { margin: 0; font-size: 14px; color: var(--ink); }
+.mn__imeta {
+  margin: 2px 0 0; font-size: 11px; color: var(--ink-tertiary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mn__iamt { font-size: 15px; font-weight: 600; color: var(--signal); flex: 0 0 auto; }
+.mn__idel {
+  flex: 0 0 auto; background: none; border: 0; color: var(--ink-tertiary);
+  font-size: 20px; line-height: 1; min-width: 44px; min-height: 44px;
+  margin-right: -8px;
+}
+.mn__idel:hover { color: var(--danger); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Προφίλ
+   ═══════════════════════════════════════════════════════════════════════════ */
+.pf { display: grid; gap: var(--s-lg); }
+.pf__head { display: flex; align-items: center; gap: var(--s-md); min-width: 0; }
+.pf__badge {
+  flex: 0 0 auto; width: 52px; height: 52px; border-radius: var(--r-md);
+  display: grid; place-items: center;
+  background: var(--surface-3); border: 1px solid var(--hairline-strong);
+  font-family: var(--font-display); font-size: 20px; font-weight: 700;
+  color: var(--primary); letter-spacing: .5px;
+}
+.pf__id { min-width: 0; }
+.pf__name {
+  margin: 0; font-family: var(--font-display); font-size: 24px;
+  font-weight: 600; letter-spacing: -.3px; color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.pf__tier { display: flex; align-items: center; gap: var(--s-xs); flex-wrap: wrap; margin: 5px 0 0; }
+.badge--signal { border-color: var(--signal-dim); color: var(--signal); }
+.pf__unit {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px;
+  color: var(--ink-tertiary);
+}
+.pf__prog { display: grid; gap: 5px; }
+.pf__progmeta {
+  display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-sm);
+  font-size: 12px; color: var(--ink-subtle);
+}
+.pf__rows { margin: 0; display: grid; gap: 0; }
+.pf__row {
+  display: flex; justify-content: space-between; gap: var(--s-md);
+  padding: 9px 0; border-bottom: 1px solid var(--hairline);
+  font-size: 14px;
+}
+.pf__row:last-child { border-bottom: 0; }
+.pf__row dt { color: var(--ink-subtle); }
+.pf__row dd { margin: 0; color: var(--ink); text-align: right; }
+.pf__edit {
+  display: grid; gap: var(--s-sm);
+  padding-top: var(--s-md); border-top: 1px solid var(--hairline);
+}
+
+@media (max-width: 420px) {
+  .mn__addrow { grid-template-columns: 1fr; }
+  .clock--olive .clock__num, .clock--signal .clock__num { font-size: clamp(40px, 13vw, 72px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Άδειες με ημερομηνίες, υπηρεσίες, πάγια, ειδοποιήσεις, κοινοποίηση
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Υπότιτλος κάτω από τον μεγάλο αριθμό — και η περίπτωση «τίποτα ακόμη». */
+.clock__sub {
+  margin: var(--s-sm) 0 0; font-size: 14px; color: var(--ink-muted);
+  line-height: 1.5;
+}
+.clock__sub--empty {
+  margin-top: var(--s-md); font-size: 14px; color: var(--ink-tertiary);
+}
+
+/* Σήμανση «σε εξέλιξη / σήμερα» δίπλα σε εγγραφή λίστας. */
+.tag {
+  display: inline-block; margin-left: var(--s-xs);
+  padding: 2px 7px; border-radius: var(--r-pill);
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px;
+  vertical-align: middle;
+}
+.tag--live {
+  background: rgb(124 139 63 / .16); color: var(--primary);
+  border: 1px solid var(--primary-dim);
+}
+
+.mn__fhint { font-size: 11px; color: var(--ink-tertiary); line-height: 1.5; }
+
+/* Επεξεργασία εξόδου μέσα στη γραμμή της λίστας. */
+.mn__edit { flex: 1; display: grid; gap: var(--s-sm); min-width: 0; }
+.mn__iedit {
+  flex: 0 0 auto; background: none; border: 0; color: var(--ink-tertiary);
+  font-size: 15px; line-height: 1; min-width: 44px; min-height: 44px;
+}
+.mn__iedit:hover { color: var(--primary); }
+
+/* Πάγια έξοδα. */
+.mn__rec { display: grid; gap: var(--s-sm); justify-items: start; }
+.mn__reclist {
+  list-style: none; margin: 0; padding: 0; width: 100%;
+  display: grid; gap: 0;
+}
+.mn__recitem {
+  display: flex; align-items: center; gap: var(--s-sm);
+  padding: var(--s-xs) 0; border-bottom: 1px solid var(--hairline);
+}
+.mn__recitem:last-child { border-bottom: 0; }
+.mn__rectotal {
+  display: flex; justify-content: space-between; width: 100%; margin: 0;
+  padding-top: var(--s-sm); border-top: 1px solid var(--hairline);
+  font-size: 13px; color: var(--ink-subtle);
+}
+.mn__rectotal strong { color: var(--signal); }
+.mn__recform {
+  display: grid; gap: var(--s-sm); width: 100%;
+  padding-top: var(--s-sm); border-top: 1px solid var(--hairline);
+}
+.mn__recbtns { display: flex; gap: var(--s-xs); flex-wrap: wrap; }
+
+/* Ειδοποιήσεις. */
+.nt { display: grid; gap: var(--s-sm); justify-items: start; }
+.nt__head { display: flex; align-items: center; gap: var(--s-xs); }
+.nt__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--ink-tertiary);
+}
+.nt__dot--on { background: var(--primary); box-shadow: 0 0 0 3px rgb(124 139 63 / .18); }
+.nt__state {
+  margin: 0; font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 1px; color: var(--ink-muted);
+}
+.nt__body { margin: 0; font-size: 13px; color: var(--ink-subtle); line-height: 1.6; }
+.nt__warn { margin: 0; font-size: 12px; color: var(--signal); line-height: 1.6; }
+
+/* Κάρτα κοινοποίησης. */
+.sh {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s-md); flex-wrap: wrap;
+}
+.sh__text { flex: 1 1 200px; min-width: 0; }
+.sh__hint { margin: 0; font-size: 13px; color: var(--ink-subtle); line-height: 1.6; }
+
+/* Διαγραφή λογαριασμού. */
+.acc__danger {
+  width: 100%; display: grid; gap: var(--s-xs); justify-items: start;
+  padding-top: var(--s-md); border-top: 1px solid var(--hairline);
+}
+
+/* Αντίγραφο ασφαλείας. */
+.set__data {
+  display: grid; gap: var(--s-xs);
+  padding-top: var(--s-md); border-top: 1px solid var(--hairline);
+}
+.set__databtns { display: flex; gap: var(--s-xs); flex-wrap: wrap; }
+.set__hint { margin: 0; font-size: 12px; color: var(--ink-tertiary); line-height: 1.6; }
+
+/* Το κρυφό <input type="file"> πρέπει να παραμένει προσβάσιμο από πληκτρολόγιο.
+   Το font-size δεν φαίνεται πουθενά, αλλά κρατά τον κανόνα «κάθε input ≥16px»
+   αληθινό — στο iOS οτιδήποτε μικρότερο κάνει zoom στο focus. */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  font-size: 16px;
+}
+
+/* Πέντε καρτέλες: στα στενά κινητά η γραμμή πρέπει να χωρά ολόκληρη — αν
+   κρυφτεί μια καρτέλα, ο χρήστης δεν μαθαίνει ποτέ ότι υπάρχει. */
+@media (max-width: 400px) {
+  .tabs { gap: 0; padding: 3px; }
+  .tabs__b { padding: 9px 8px; font-size: 10px; letter-spacing: 0.2px; }
+}
+@media (max-width: 350px) {
+  .tabs__b { padding: 9px 6px; font-size: 9px; letter-spacing: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Ημερολόγιο — αντικαθιστά το <input type="date">
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Στις Ρυθμίσεις το πεδίο κάθεται δεξιά, όπως τα υπόλοιπα χειριστήρια. */
+.set__ctl { flex: 0 0 auto; max-width: 55%; }
+.set__ctl .datef { min-height: 44px; padding: 8px var(--s-sm); }
+
+/* Το πεδίο μοιάζει με input, αλλά είναι κουμπί που ανοίγει το φύλλο. */
+.datef {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-xs);
+  width: 100%; min-height: 48px; padding: 11px var(--s-sm);
+  background: var(--surface-2); color: var(--ink);
+  border: 1px solid var(--hairline-strong); border-radius: var(--r-sm);
+  font-size: 16px; text-align: left;
+}
+.datef:hover { border-color: var(--primary-dim); }
+.datef:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.datef--empty .datef__v { color: var(--ink-tertiary); }
+.datef__v { font-family: var(--font-mono); font-size: 15px; letter-spacing: .4px; }
+.datef__ico { color: var(--ink-tertiary); font-size: 11px; }
+/* Στο Onboarding το πεδίο ακολουθεί ετικέτα, όπως το .input που αντικατέστησε. */
+.field__or + .datef { margin-top: var(--s-xs); }
+
+/* Φύλλο πάνω από τη σελίδα: κάτω στο κινητό, κεντραρισμένο σε μεγάλη οθόνη. */
+.calsheet {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgb(3 4 6 / .72);
+  padding: 0;
+  animation: calfade .14s ease-out;
+}
+@keyframes calfade { from { opacity: 0 } to { opacity: 1 } }
+
+.cal {
+  width: 100%; max-width: 420px;
+  background: var(--surface-1);
+  border: 1px solid var(--hairline-strong); border-bottom: 0;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  padding: var(--s-md) var(--s-xs)
+           max(var(--s-md), env(safe-area-inset-bottom)) var(--s-xs);
+  animation: calrise .18s ease-out;
+}
+@keyframes calrise { from { transform: translateY(14px) } to { transform: none } }
+
+.cal__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s-xs); padding: 0 var(--s-xs) var(--s-sm);
+}
+.cal__month {
+  margin: 0; flex: 1; text-align: center;
+  font-family: var(--font-display); font-size: 18px; font-weight: 600;
+  color: var(--ink); letter-spacing: .2px;
+}
+.cal__nav {
+  flex: 0 0 auto; width: 44px; height: 44px;
+  background: transparent; border: 1px solid var(--hairline);
+  border-radius: var(--r-pill); color: var(--ink-muted);
+  font-size: 20px; line-height: 1;
+}
+.cal__nav:hover:not(:disabled) { border-color: var(--primary-dim); color: var(--ink); }
+.cal__nav:disabled { opacity: .3; cursor: not-allowed; }
+
+.cal__week {
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
+  padding-bottom: 6px;
+}
+.cal__week span {
+  text-align: center;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .6px;
+  color: var(--ink-tertiary);
+}
+
+/* Χωρίς gap: το κελί είναι ολόκληρο ο στόχος αφής, ενώ ο κύκλος από μέσα
+   είναι μικρότερος. Στα 320px βγαίνουν 7 × ~43px χωρίς νεκρές ζώνες. */
+.cal__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.cal__day {
+  display: grid; place-items: center;
+  min-height: 46px; padding: 1px;
+  background: transparent; border: 0; color: var(--ink-muted);
+}
+.cal__dot {
+  display: grid; place-items: center;
+  width: min(40px, 100%); aspect-ratio: 1;
+  border-radius: 50%; border: 1px solid transparent;
+  font-size: 14px; line-height: 1;
+  transition: background-color .12s ease, color .12s ease, border-color .12s ease;
+}
+.cal__day:hover:not(:disabled) .cal__dot { background: var(--surface-3); color: var(--ink); }
+.cal__day:focus-visible { outline: 0; }
+.cal__day:focus-visible .cal__dot { outline: 2px solid var(--primary); outline-offset: 1px; }
+.cal__day--out .cal__dot { color: var(--ink-tertiary); opacity: .55; }
+.cal__day--today .cal__dot { border-color: var(--primary-dim); color: var(--ink); }
+.cal__day--on .cal__dot {
+  background: var(--primary); border-color: var(--primary);
+  color: var(--on-primary); font-weight: 600;
+}
+.cal__day:disabled { cursor: not-allowed; }
+.cal__day:disabled .cal__dot { color: var(--ink-tertiary); opacity: .25; }
+
+.cal__foot {
+  display: flex; gap: var(--s-xs); justify-content: space-between;
+  padding: var(--s-sm) var(--s-xs) 0; margin-top: var(--s-xs);
+  border-top: 1px solid var(--hairline);
+}
+
+/* Σε μεγάλη οθόνη το φύλλο δεν έχει λόγο να κολλά στο κάτω μέρος. */
+@media (min-width: 700px) {
+  .calsheet { align-items: center; padding: var(--s-md); }
+  .cal {
+    border-bottom: 1px solid var(--hairline-strong);
+    border-radius: var(--r-lg);
+    padding-bottom: var(--s-md);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calsheet, .cal { animation: none; }
+  .cal__dot { transition: none; }
+}

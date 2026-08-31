@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="el">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- maximum-scale/user-scalable κλειδώνουν το pinch-zoom κατόπιν αιτήματος.
+         Για να μη χρειάζεται ζουμ, το κείμενο ξεκινά από 15px, τα πεδία είναι
+         16px (αλλιώς το iOS Safari κάνει αυτόματο zoom στο focus) και οι
+         στόχοι αφής είναι τουλάχιστον 44px. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#06070A" />
+    <meta name="color-scheme" content="dark" />
+
+    <title>Army Apolele — Μέτρηση Στρατιωτικής Θητείας</title>
+    <meta name="description" content="Μέτρησε τις μέρες μέχρι το απολυτήριο. Υπολογισμός θητείας, αδειών και οροσήμων με βάση το ισχύον πλαίσιο (Ν. 5265/2026). Δωρεάν, χωρίς λογαριασμό, χωρίς παρακολούθηση." />
+    <meta name="keywords" content="στρατός, θητεία, απολυτήριο, φαντάρος, ΕΣΣΟ, άδειες, Greek army, military service, countdown" />
+    <meta name="author" content="army_app" />
+    <meta name="robots" content="index, follow" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Army Apolele — Μέτρηση Στρατιωτικής Θητείας" />
+    <meta property="og:description" content="Μέτρησε τις μέρες μέχρι το απολυτήριο. Θητεία, άδειες και ορόσημα με βάση το ισχύον πλαίσιο." />
+    <meta property="og:locale" content="el_GR" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:image" content="/icon.svg" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Army Apolele — Μέτρηση Στρατιωτικής Θητείας" />
+    <meta name="twitter:description" content="Μέτρησε τις μέρες μέχρι το απολυτήριο." />
+
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Apolele" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Roboto Condensed/Mono: καλύπτουν ελληνικά ΚΑΙ λατινικά. Το Oswald και το
+         IBM Plex Mono δεν έχουν ελληνικά glyphs και έκαναν σιωπηλό fallback. -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      Χρειάζεται JavaScript για τη λειτουργία της εφαρμογής.
+      &nbsp;·&nbsp; This app requires JavaScript.
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

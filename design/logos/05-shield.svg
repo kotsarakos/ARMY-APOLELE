@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Shield">
+  <rect width="64" height="64" rx="14" fill="#06070A"/>
+  <rect x=".5" y=".5" width="63" height="63" rx="13.5" fill="none" stroke="#212429"/>
+  <path d="M32 12 48 19v14c0 9-7 15-16 19-9-4-16-10-16-19V19Z"
+        fill="none" stroke="#7C8B3F" stroke-width="3.4" stroke-linejoin="round"/>
+  <path d="m24 32 6 6 11-13" fill="none" stroke="#D9A441" stroke-width="4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
