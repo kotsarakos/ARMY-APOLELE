@@ -64,6 +64,28 @@ export async function fetchRemoteProfile(uid: string): Promise<Profile | null> {
   return { ...DEFAULT_PROFILE, ...(snap.data() as Partial<Profile>) }
 }
 
+/**
+ * Ανεβάζει και λέει αν το γράψιμο **έφτασε όντως** στον διακομιστή.
+ *
+ * Το `pushProfile` επιστρέφει την επιτυχία της τοπικής εγγραφής και καταπίνει
+ * το σφάλμα δικτύου, που είναι σωστό για την κανονική ροή. Πριν όμως σβήσουμε
+ * τα τοπικά δεδομένα στην αποσύνδεση, πρέπει να ξέρουμε αν υπάρχει αντίγραφο —
+ * αλλιώς ό,τι γράφτηκε εκτός δικτύου χάνεται σιωπηλά.
+ */
+export async function pushRemoteOnly(profile: Profile, uid: string): Promise<boolean> {
+  if (!isFirebaseConfigured()) return false
+  try {
+    const db = await getDb()
+    if (!db) return false
+    const { doc, setDoc } = await import('firebase/firestore')
+    await setDoc(doc(db, COLLECTION, uid), { ...profile, updatedAt: Date.now() })
+    return true
+  } catch (err) {
+    console.warn('[army_app] final sync before sign-out failed', err)
+    return false
+  }
+}
+
 /** Σβήνει οριστικά το έγγραφο του χρήστη. Καλείται πριν τη διαγραφή λογαριασμού. */
 export async function deleteRemoteProfile(uid: string): Promise<void> {
   if (!isFirebaseConfigured()) return

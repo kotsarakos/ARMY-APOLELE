@@ -25,6 +25,8 @@ import { addDays, daysBetween, formatShort, parseISO, toISO } from './dates'
 
 export const PLAN_CACHE = 'army-notify-plan'
 export const PLAN_URL = '/__notify-plan'
+/** Ο service worker κρατά δικό του σύνολο· σβήνεται μαζί με τα υπόλοιπα. */
+const SHOWN_CACHE = 'army-notify-shown'
 const SHOWN_KEY = 'army_app.notify.shown.v1'
 const ENABLED_KEY = 'army_app.notify.enabled.v1'
 
@@ -190,6 +192,36 @@ export function setBadge(days: number): void {
     if (days > 0) void nav.setAppBadge?.(days)
     else void nav.clearAppBadge?.()
   } catch { /* δεν υποστηρίζεται */ }
+}
+
+/**
+ * Σβήνει κάθε ίχνος ειδοποιήσεων από τη συσκευή.
+ *
+ * Δεν είναι διακοσμητικό: το πρόγραμμα περιέχει τις **ημερομηνίες αδειών, τις
+ * υπηρεσίες και την ημερομηνία απόλυσης** του χρήστη, σε μεταφρασμένο κείμενο.
+ * Αν έμενε πίσω μετά την αποσύνδεση, ο επόμενος που θα άνοιγε τη συσκευή θα
+ * έπαιρνε ειδοποιήσεις για τη θητεία κάποιου άλλου.
+ */
+export async function clearNotifications(): Promise<void> {
+  try {
+    localStorage.removeItem(SHOWN_KEY)
+    localStorage.removeItem(ENABLED_KEY)
+  } catch { /* ιδιωτική περιήγηση */ }
+
+  if (typeof caches !== 'undefined') {
+    try {
+      await Promise.all([caches.delete(PLAN_CACHE), caches.delete(SHOWN_CACHE)])
+    } catch { /* δεν είναι κρίσιμο */ }
+  }
+
+  // Και οι ειδοποιήσεις που είναι ήδη στην μπάρα.
+  try {
+    const reg = await navigator.serviceWorker?.getRegistration()
+    const open = await reg?.getNotifications()
+    open?.forEach((n) => n.close())
+  } catch { /* δεν υποστηρίζεται */ }
+
+  setBadge(0)
 }
 
 /** Ζητά από τον browser να ξυπνά τον service worker μία φορά την ημέρα. */

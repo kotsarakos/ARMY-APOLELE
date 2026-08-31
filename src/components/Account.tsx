@@ -1,18 +1,21 @@
 import { useState } from 'react'
 import { deleteAccount, signOutUser, AuthError } from '../firebase/auth'
-import { deleteRemoteProfile } from '../firebase/sync'
+import { deleteRemoteProfile, pushRemoteOnly } from '../firebase/sync'
+import { wipeDevice } from '../lib/wipe'
+import type { Profile } from '../lib/types'
 import { AuthForm } from './AuthForm'
 import { useAuth } from '../hooks/useAuth'
 import { useI18n } from '../hooks/useI18n'
 import { useToast } from '../hooks/useToast'
 import { upperGreek as caps } from '../lib/greek'
 
-export function Account({ syncing }: { syncing: boolean }) {
+export function Account({ syncing, profile }: { syncing: boolean; profile: Profile | null }) {
   const { t } = useI18n()
   const toast = useToast()
   const { user, ready, enabled } = useAuth()
   const [busy, setBusy] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [unsynced, setUnsynced] = useState(false)
 
   if (!enabled) return null
 
@@ -28,10 +31,33 @@ export function Account({ syncing }: { syncing: boolean }) {
 
 
 
-  const out = () => withBusy(async () => {
+  /**
+   * Η αποσύνδεση καθαρίζει τη συσκευή.
+   *
+   * Χωρίς αυτό, ο επόμενος που άνοιγε την εφαρμογή έβλεπε ολόκληρο το προφίλ
+   * του προηγούμενου — σε κοινόχρηστο κινητό αυτό είναι διαρροή, όχι ευκολία.
+   *
+   * Πρώτα όμως ένα τελευταίο ανέβασμα: αν ο χρήστης έγραψε κάτι εκτός δικτύου,
+   * το σβήσιμο θα το εξαφάνιζε. Αν δεν φτάσει, ζητάμε επιβεβαίωση αντί να
+   * αποφασίσουμε εμείς για λογαριασμό του.
+   */
+  const finish = async () => {
     await signOutUser()
+    await wipeDevice()
     toast.success(t.account.okSignedOut)
+    // Πλήρες reload: κανένα υπόλειμμα του προηγούμενου χρήστη στη μνήμη.
+    setTimeout(() => window.location.reload(), 700)
+  }
+
+  const out = () => withBusy(async () => {
+    if (user && profile) {
+      const landed = await pushRemoteOnly(profile, user.uid)
+      if (!landed) { setUnsynced(true); return }
+    }
+    await finish()
   })
+
+  const outAnyway = () => withBusy(finish)
 
   // Πρώτα το έγγραφο, μετά ο χρήστης: μετά τη διαγραφή του λογαριασμού οι
   // κανόνες του Firestore δεν επιτρέπουν πια εγγραφή και θα έμενε ορφανό.
@@ -67,9 +93,27 @@ export function Account({ syncing }: { syncing: boolean }) {
               </p>
             </div>
           </div>
-          <button className="btn btn--secondary" onClick={out} disabled={busy}>
-            {busy ? t.account.working : t.account.signOut}
-          </button>
+          {unsynced ? (
+            <div className="acc__warn" role="alert">
+              <p className="acc__warnt">{t.account.signOutOffline}</p>
+              <p className="acc__body">{t.account.signOutOfflineBody}</p>
+              <div className="set__confirm">
+                <button className="btn btn--danger btn--sm" onClick={outAnyway} disabled={busy}>
+                  {busy ? t.account.working : t.account.signOutAnyway}
+                </button>
+                <button className="btn btn--ghost btn--sm" onClick={() => setUnsynced(false)}>
+                  {t.account.signOutCancel}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <button className="btn btn--secondary" onClick={out} disabled={busy}>
+                {busy ? t.account.working : t.account.signOut}
+              </button>
+              <p className="acc__note">{t.account.signOutNote}</p>
+            </>
+          )}
 
           <div className="acc__danger">
             <p className="acc__label">{caps(t.account.deleteTitle)}</p>

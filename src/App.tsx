@@ -6,7 +6,7 @@ import { useToast } from './hooks/useToast'
 import { useAuth } from './hooks/useAuth'
 import { useRoute } from './hooks/useRoute'
 import { computeService, milestones } from './lib/service'
-import { clearProfile } from './lib/storage'
+import { wipeDevice } from './lib/wipe'
 import { Onboarding } from './components/Onboarding'
 import { Countdown } from './components/Countdown'
 import { Stats } from './components/Stats'
@@ -150,13 +150,16 @@ export default function App() {
   }
 
   const reset = () => {
-    const ok = clearProfile()
-    if (!ok) {
-      toast.error(t.errors.storage)
-      return
-    }
-    toast.success(t.settings.okReset)
-    setTimeout(() => window.location.reload(), 700)
+    // Καθαρίζει και τις ειδοποιήσεις: το πρόγραμμά τους κρατά ημερομηνίες
+    // αδειών και υπηρεσιών, που είναι εξίσου προσωπικά με το προφίλ.
+    void wipeDevice().then((ok) => {
+      if (!ok) {
+        toast.error(t.errors.storage)
+        return
+      }
+      toast.success(t.settings.okReset)
+      setTimeout(() => window.location.reload(), 700)
+    })
   }
 
   return (
@@ -182,7 +185,7 @@ export default function App() {
         <>
           <ProfileCard profile={profile} service={state} update={update} />
           <Notifications />
-          <Account syncing={syncing} />
+          <Account syncing={syncing} profile={profile} />
           <Settings
             profile={profile}
             update={update}
