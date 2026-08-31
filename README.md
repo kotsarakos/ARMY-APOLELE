@@ -10,6 +10,10 @@
 </p>
 
 <p align="center">
+  Designed and built by <strong>Konstantinos Kotsaras</strong>
+</p>
+
+<p align="center">
   <img src="docs/screenshots/counter.png" width="30%" alt="Counter screen showing days until discharge">
   <img src="docs/screenshots/leave.png" width="30%" alt="Leave screen with a countdown to the next leave">
   <img src="docs/screenshots/money.png" width="30%" alt="Money screen with balance and projections">
@@ -215,6 +219,16 @@ Without an account, no data leaves the device: no tracking, no analytics, no
 advertising. Signing in stores the profile in Firestore in a document readable
 only by that account. The full text is at `/privacy` in the app, in both
 languages.
+
+## Author
+
+**Konstantinos Kotsaras** — [@kotsarakos](https://github.com/kotsarakos)
+
+Written while waiting for my own call-up papers, which is why the app answers the
+questions a conscript actually asks rather than the ones a calendar would.
+
+No licence is granted. The source is public so that the calculations can be
+checked against the law, not so that the app can be republished.
 
 ## Disclaimer
 

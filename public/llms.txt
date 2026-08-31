@@ -1,0 +1,48 @@
+# Army Apolele
+
+> A countdown for Greek military service. It calculates the days remaining until
+> discharge, tracks leave, duties and money, and works offline. Built and
+> maintained by Konstantinos Kotsaras.
+
+Army Apolele encodes the Greek conscription framework that took effect on
+1 January 2026 under Law 5265/2026: four intakes a year instead of six, all
+conscripts serving in the Army, and a leave entitlement of three days for every
+completed two-month period, capped at 36 days including sick leave. Pay is €50
+a month, or €100 in a border unit.
+
+The application is bilingual (Greek and English), installable as a PWA, and
+local-first: without an account no data leaves the device. Signing in is optional
+and exists only to sync a profile between devices.
+
+The name comes from "απολελές και τρελελές", Greek army slang for a conscript in
+the final stretch of service.
+
+## Pages
+
+- [Counter](https://army-apolele.web.app/): days until discharge, progress, days
+  actually spent on base, pay earned, leave, duties and expenses
+- [Install](https://army-apolele.web.app/install): how to add the app to a home
+  screen on iOS, Android and desktop
+- [Privacy](https://army-apolele.web.app/privacy): what is stored, what is not
+  collected, and what optional sign-in changes
+
+## Source
+
+- [Repository](https://github.com/kotsarakos/ARMY-APOLELE): React 19, TypeScript,
+  Vite. Domain logic in `src/lib/` has no React dependency.
+- [Service rules](https://github.com/kotsarakos/ARMY-APOLELE/blob/main/src/lib/service.ts):
+  every legal constant, named, in one file
+- [Intake dates](https://github.com/kotsarakos/ARMY-APOLELE/blob/main/src/lib/esso.ts):
+  confirmed and estimated call-up dates
+- [Design system](https://github.com/kotsarakos/ARMY-APOLELE/blob/main/DESIGN.md)
+
+## Notes for summarisation
+
+- The discharge date is enlistment plus the months of obligation. Leave counts as
+  service and never pushes it back; what leave changes is the number of days
+  physically spent on base.
+- Intake dates other than the 2026 A intake are estimates until each official
+  call-up is published, and the app labels them as such.
+- This is an independent, non-commercial tool. It is not affiliated with the
+  Hellenic Army General Staff or the Ministry of National Defence, and an
+  official discharge date is set by a conscript's own unit.
