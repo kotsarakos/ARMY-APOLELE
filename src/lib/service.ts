@@ -2,7 +2,9 @@ import type { Profile } from './types'
 import {
   addDays, addMonths, daysBetween, fullMonthsBetween, parseISO, today,
 } from './dates'
-import { regularDaysTaken, splitRegularDays, totalLeaveDays } from './leave'
+import {
+  regularDaysTaken, sickExtensionDays, splitRegularDays, totalLeaveDays,
+} from './leave'
 
 /* ── Σταθερές θητείας (ισχύουν από 1/1/2026, Ν. 5265/2026) ────────────────── */
 
@@ -22,6 +24,10 @@ export const PAY_PER_MONTH_BORDER = 100
 export interface ServiceState {
   enlist: Date
   discharge: Date
+  /** Η απόλυση χωρίς την παράταση της αναρρωτικής — «κατάταξη + μήνες». */
+  baseDischarge: Date
+  /** Μέρες που πρόσθεσε η αναρρωτική πέρα από το όριο· 0 στη συνηθισμένη θητεία. */
+  sickExtension: number
   now: Date
   /** Συνολικές ημέρες θητείας από κατάταξη έως απόλυση. */
   totalDays: number
@@ -76,10 +82,21 @@ export interface PayState {
   daysToPay: number
 }
 
-/** Ημερομηνία απόλυσης = κατάταξη + μήνες υποχρέωσης.
- *  Η κανονική άδεια υπηρετείται, οπότε δεν μεταθέτει το απολυτήριο. */
-export function dischargeDate(profile: Profile): Date {
+/** Απόλυση χωρίς προσαυξήσεις: κατάταξη + μήνες υποχρέωσης. */
+export function baseDischargeDate(profile: Profile): Date {
   return addMonths(parseISO(profile.enlistDate), profile.months)
+}
+
+/**
+ * Ημερομηνία απόλυσης.
+ *
+ * Η κανονική άδεια υπηρετείται, οπότε δεν μεταθέτει το απολυτήριο — αυτό είναι
+ * το σημείο που παρεξηγείται πιο συχνά. Η αναρρωτική όμως, πέρα από το όριο
+ * του `SICK_LEAVE_FREE_DAYS`, δεν μετράει ως χρόνος υπηρεσίας και σπρώχνει
+ * την απόλυση ισόποσα.
+ */
+export function dischargeDate(profile: Profile): Date {
+  return addDays(baseDischargeDate(profile), sickExtensionDays(profile.leaves))
 }
 
 function computeLeave(profile: Profile, monthsServed: number, now: Date, enlist: Date): LeaveState {
@@ -125,7 +142,9 @@ function computeLeave(profile: Profile, monthsServed: number, now: Date, enlist:
 
 export function computeService(profile: Profile, now: Date = today()): ServiceState {
   const enlist = parseISO(profile.enlistDate)
-  const discharge = dischargeDate(profile)
+  const baseDischarge = baseDischargeDate(profile)
+  const sickExtension = sickExtensionDays(profile.leaves)
+  const discharge = addDays(baseDischarge, sickExtension)
 
   const totalDays = daysBetween(enlist, discharge)
   const rawServed = daysBetween(enlist, now)
@@ -160,6 +179,8 @@ export function computeService(profile: Profile, now: Date = today()): ServiceSt
   return {
     enlist,
     discharge,
+    baseDischarge,
+    sickExtension,
     now,
     totalDays,
     daysServed,
@@ -179,6 +200,78 @@ export function computeService(profile: Profile, now: Date = today()): ServiceSt
       daysToPay: Math.max(0, daysBetween(now, nextPayDate)),
     },
   }
+}
+
+/* ── Πρόβλεψη αδείας ──────────────────────────────────────────────────────── */
+
+export interface AccrualPoint {
+  /** Η μέρα που κλείνει το δίμηνο και πιστώνονται οι μέρες. */
+  date: Date
+  daysAway: number
+  /** Πόσες μέρες πιστώνονται τότε. */
+  credit: number
+  /** Πόσες θα είναι διαθέσιμες μετά την πίστωση, με τα δεσμευμένα αφαιρεμένα. */
+  available: number
+}
+
+/**
+ * Πότε πιστώνεται η επόμενη άδεια, και πόση θα υπάρχει τότε.
+ *
+ * Η εφαρμογή απαντούσε μόνο «πόσες έχω σήμερα». Η ερώτηση που κάνει όμως
+ * κανείς είναι η αντίστροφη: «θέλω πέντε μέρες τον Οκτώβρη — τις έχω;». Οι
+ * πιστώσεις είναι ντετερμινιστικές (3 μέρες κάθε πλήρες δίμηνο), οπότε
+ * βγαίνουν όλες μπροστά.
+ *
+ * Ό,τι είναι ήδη κλεισμένο μετράει ως ξοδεμένο: αν έχεις κλείσει άδεια για
+ * τον Νοέμβρη, δεν μπορείς να δώσεις τις ίδιες μέρες και αλλού.
+ */
+export function leaveForecast(profile: Profile, s: ServiceState): AccrualPoint[] {
+  const blocks = Math.floor(profile.months / 2)
+  const doneBlocks = Math.floor(s.monthsServed / 2)
+  const out: AccrualPoint[] = []
+
+  let previous = s.leave.earned
+  for (let k = doneBlocks + 1; k <= blocks; k++) {
+    const date = addMonths(s.enlist, k * 2)
+    if (date.getTime() <= s.now.getTime()) continue
+
+    const earned = Math.min(k * LEAVE_DAYS_PER_TWO_MONTHS, s.leave.totalEntitlement)
+    // Η τιμητική παραμεθορίου τρέχει κι αυτή με τους μήνες, οπότε μεγαλώνει
+    // μαζί· η αιμοδοσία είναι σταθερή.
+    const bonus = profile.borderUnit
+      ? Math.min(profile.bloodDonations, MAX_BLOOD_DONATIONS) * BLOOD_LEAVE_DAYS +
+        k * 2 * BORDER_LEAVE_PER_MONTH
+      : s.leave.bonusHonorary
+
+    out.push({
+      date,
+      daysAway: daysBetween(s.now, date),
+      credit: earned - previous,
+      available: Math.max(0, earned + bonus - s.leave.committed),
+    })
+    previous = earned
+  }
+
+  return out
+}
+
+export interface LeaveAvailability {
+  /** Η πρώτη μέρα που οι διαθέσιμες φτάνουν το ζητούμενο, ή null αν ποτέ. */
+  date: Date | null
+  daysAway: number
+  /** true αν οι μέρες υπάρχουν ήδη σήμερα. */
+  already: boolean
+}
+
+/** «Πότε θα έχω N μέρες;» — διαβάζει την πρόβλεψη και βρίσκει το πρώτο σημείο. */
+export function whenAvailable(
+  s: ServiceState, forecast: AccrualPoint[], wanted: number,
+): LeaveAvailability {
+  if (wanted <= s.leave.available) return { date: s.now, daysAway: 0, already: true }
+  const hit = forecast.find((p) => p.available >= wanted)
+  return hit
+    ? { date: hit.date, daysAway: hit.daysAway, already: false }
+    : { date: null, daysAway: -1, already: false }
 }
 
 /* ── Ορόσημα ──────────────────────────────────────────────────────────────── */

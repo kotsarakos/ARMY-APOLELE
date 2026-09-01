@@ -29,6 +29,42 @@ export const PLAN_URL = '/__notify-plan'
 const SHOWN_CACHE = 'army-notify-shown'
 const SHOWN_KEY = 'army_app.notify.shown.v1'
 const ENABLED_KEY = 'army_app.notify.enabled.v1'
+const HOUR_KEY = 'army_app.notify.hour.v1'
+
+/**
+ * Η ώρα που χτυπούν οι ειδοποιήσεις.
+ *
+ * Οι προεπιλογή είναι το βράδυ: η ειδοποίηση «αύριο έχεις σκοπιά» έχει αξία
+ * όσο προλαβαίνεις να ετοιμαστείς, όχι στις εφτά το πρωί της ίδιας μέρας.
+ */
+export const DEFAULT_NOTIFY_HOUR = 20
+/** Οι ώρες που προσφέρονται· πιο κοντά από ώρα σε ώρα δεν αλλάζει τίποτα. */
+export const NOTIFY_HOURS = [7, 8, 9, 12, 17, 19, 20, 21, 22]
+
+/** Το πρόγραμμα ξαναχτίζεται όταν αλλάξει η ώρα — δες το App. */
+export const NOTIFY_HOUR_EVENT = 'army:notify-hour'
+
+export function notifyHour(): number {
+  try {
+    const raw = localStorage.getItem(HOUR_KEY)
+    // Ο έλεγχος για `null` πρέπει να είναι ρητός: το `Number(null)` δίνει 0,
+    // που περνάει άνετα το εύρος 0-23 και θα έστελνε ειδοποιήσεις μεσάνυχτα
+    // σε όποιον δεν έχει διαλέξει ποτέ ώρα.
+    if (raw === null) return DEFAULT_NOTIFY_HOUR
+    const h = Number(raw)
+    return Number.isInteger(h) && h >= 0 && h <= 23 ? h : DEFAULT_NOTIFY_HOUR
+  } catch {
+    return DEFAULT_NOTIFY_HOUR
+  }
+}
+
+export function setNotifyHour(hour: number): void {
+  try { localStorage.setItem(HOUR_KEY, String(hour)) } catch { /* ιδιωτική περιήγηση */ }
+  // Η ώρα ζει μέσα στο αποθηκευμένο πρόγραμμα, γιατί ο service worker δεν
+  // βλέπει localStorage. Χωρίς αυτή την ειδοποίηση το πρόγραμμα θα έμενε με
+  // την παλιά ώρα μέχρι την επόμενη αλλαγή του προφίλ.
+  try { window.dispatchEvent(new Event(NOTIFY_HOUR_EVENT)) } catch { /* SSR */ }
+}
 
 export interface PlanItem {
   /** Σταθερό id ανά γεγονός — δεν ξαναδείχνεται ποτέ. */
@@ -43,6 +79,11 @@ export interface Plan {
   items: PlanItem[]
   /** Ημέρες που απομένουν — για το σήμα στο εικονίδιο. */
   badge: number
+  /**
+   * Η ώρα που επιτρέπεται να χτυπήσει ό,τι ωριμάζει **σήμερα**. Μπαίνει μέσα
+   * στο πρόγραμμα γιατί ο service worker δεν βλέπει localStorage.
+   */
+  hour: number
 }
 
 export type NotifyState = 'unsupported' | 'default' | 'granted' | 'denied'
@@ -124,6 +165,7 @@ export function buildPlan(profile: Profile, s: ServiceState, t: Dict): Plan {
   return {
     items: items.filter((i) => daysBetween(s.now, parseISO(i.date)) >= 0),
     badge: s.daysLeft,
+    hour: notifyHour(),
   }
 }
 
@@ -163,10 +205,17 @@ export async function flushDue(plan: Plan, now: Date): Promise<number> {
 
   const seen = shownIds()
   const iso = toISO(now)
+  // Το `now` είναι στο τοπικό μεσημέρι (δες dates.ts), οπότε δεν λέει τίποτα
+  // για την ώρα· η ώρα διαβάζεται από το πραγματικό ρολόι.
+  const clock = new Date().getHours()
+  const hour = plan.hour ?? DEFAULT_NOTIFY_HOUR
   let count = 0
 
   for (const item of plan.items) {
     if (item.date > iso || seen.has(item.id)) continue
+    // Ό,τι ωριμάζει σήμερα περιμένει την ώρα που διάλεξε ο χρήστης. Τα
+    // περασμένα εμφανίζονται αμέσως — έχουν ήδη αργήσει.
+    if (item.date === iso && clock < hour) continue
     await reg.showNotification(item.title, {
       body: item.body,
       icon: '/icon-192.png',
@@ -206,6 +255,7 @@ export async function clearNotifications(): Promise<void> {
   try {
     localStorage.removeItem(SHOWN_KEY)
     localStorage.removeItem(ENABLED_KEY)
+    localStorage.removeItem(HOUR_KEY)
   } catch { /* ιδιωτική περιήγηση */ }
 
   if (typeof caches !== 'undefined') {

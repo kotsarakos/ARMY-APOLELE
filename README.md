@@ -15,8 +15,8 @@
 
 <p align="center">
   <img src="docs/screenshots/counter.png" width="30%" alt="Counter screen showing days until discharge">
-  <img src="docs/screenshots/leave.png" width="30%" alt="Leave screen with a countdown to the next leave">
-  <img src="docs/screenshots/money.png" width="30%" alt="Money screen with balance and projections">
+  <img src="docs/screenshots/month.png" width="30%" alt="Monthly calendar with leave, duties and pay on one grid">
+  <img src="docs/screenshots/money.png" width="30%" alt="Money screen with balance, projections and a monthly limit">
 </p>
 
 ---
@@ -34,20 +34,23 @@ between devices. The screenshots above and below show the English interface.
 
 | | |
 |---|---|
-| **Counter** | Days until discharge, progress, days actually on base, pay earned, and a rank tier that goes from *Newbie* to *Short-timer* |
-| **Leave** | Entitlement accrual, leave recorded by date with type, a countdown to the next one, and days taken kept separate from days booked |
+| **Counter** | Days until discharge, days actually on base, pay earned, and a rank tier that runs from *Rookie* to *Short-timer*. On the final day it switches to counting hours. |
+| **Your month** | One grid carrying leave, duties, paydays, leave credits and spending together — the three tabs below, answered as *what have I got in October* |
+| **Timeline** | Progress and milestones as a single rail, with a marker for where today sits between them |
+| **Leave** | Entitlement accrual, leave by date and type, days taken kept separate from days booked, and a **forecast**: pick how many days you want and it names the date they become yours |
 | **Duties** | Guard shifts and fatigues with time and length, next-duty countdown, totals per type, and an average per month |
-| **Money** | Allowance, expenses by category, recurring charges that post themselves, a projection to discharge and a daily limit |
-| **Profile** | Service record at a glance, local notifications, JSON backup, and optional cross-device sync |
+| **Money** | Allowance, expenses by category, recurring charges that post themselves, a projection to discharge, and a monthly limit you set yourself |
+| **Profile** | Service record, posting history from training centre to current unit, local notifications at an hour you choose, JSON backup, `.ics` calendar export, and optional cross-device sync |
 
 <p align="center">
+  <img src="docs/screenshots/leave.png" width="30%" alt="Leave screen with entitlement and a when-am-I-entitled forecast">
   <img src="docs/screenshots/duty.png" width="30%" alt="Duties screen with the next guard shift">
-  <img src="docs/screenshots/calendar.png" width="30%" alt="Custom date picker with circular day buttons">
-  <img src="docs/screenshots/profile.png" width="30%" alt="Profile screen with the service record">
+  <img src="docs/screenshots/profile.png" width="30%" alt="Profile screen with the service record and posting history">
 </p>
 
-Alongside those: a privacy page, a custom 404, success and error messaging on
-every action, and a confirmation step before anything is deleted.
+Alongside those: light and dark themes that follow the system by default, home-screen
+shortcuts that open straight into a form, undo on every deletion, a privacy page, a
+custom 404, and a confirmation step before anything irreversible.
 
 ## Quick start
 
@@ -81,10 +84,15 @@ that a change in the law is a change in one place:
 - **Pay** — €50 a month, €100 in a border unit.
 - **Training** — 10 weeks of basic training, 14 weeks in total before posting.
 
+- **Sick leave** — the first 30 days do not touch the term; beyond that the time
+  is not counted as service and discharge moves back by the same number of days.
+
 One consequence is worth stating because it surprises people: the discharge date
-is `enlistment + months of obligation`. **Leave counts as service**, so it never
-pushes discharge back. What it moves is the number of days you are physically on
-base — which is why that appears as its own figure.
+is `enlistment + months of obligation`. **Ordinary leave counts as service**, so it
+never pushes discharge back. What it moves is the number of days you are physically
+on base — which is why that appears as its own figure. Sick leave past the limit is
+the one exception, and the app shows the original date alongside the new one rather
+than silently moving it.
 
 ## Engineering notes
 
@@ -111,8 +119,32 @@ this wrong, so every capitalisation goes through
 `text-transform: uppercase` rule.
 
 **Syncing merges lists instead of overwriting them.** Two devices editing offline
-would lose entries under last-write-wins, so lists are merged by `id` and
-deletions leave tombstones — see [`src/lib/merge.ts`](src/lib/merge.ts).
+would lose entries under last-write-wins, so lists are merged by `id` and deletions
+leave tombstones — see [`src/lib/merge.ts`](src/lib/merge.ts). One rule there is
+easy to miss: a tombstone does **not** beat a record the more recently written
+device still holds. Without it, undoing a deletion would be a local illusion — the
+deletion has already synced, so the tombstone exists elsewhere and the next merge
+would delete the row again.
+
+**Undo hands back a builder, not a snapshot.** `deletion()` returns the delete patch
+plus a `restore(current)` function. Between the tap and the undo, something else may
+have been added; a patch built from the old profile would erase it.
+
+**Both themes are defined in full.** Every colour has its value on bare `:root`, and
+the light theme redefines the same names in two places — a `prefers-color-scheme`
+block guarded so an explicit choice still wins, and a `[data-theme]` block. A colour
+defined only inside a media query does not exist in the other theme, which is the
+usual way a two-theme stylesheet breaks. The text values were picked against the
+contrast ratio rather than by eye: the previous `--ink-tertiary` measured 2.9:1 and
+carried every hint in the interface.
+
+**The notification hour lives inside the saved plan.** A service worker cannot read
+`localStorage`, so the hour travels in the JSON the main thread writes to the Cache
+API — the same place the notification text already lives.
+
+**The calendar export is a snapshot, not a subscription.** A live `webcal` feed
+needs a server, and a server would mean the data leaves the device. The `.ics` is
+generated in the browser and downloaded directly.
 
 **The date picker is custom.** A native `<input type="date">` renders month/day
 order according to the browser's locale rather than the page's, so Chrome on
@@ -139,23 +171,29 @@ wide.
 
 ```bash
 npm test           # domain logic, formatting, merge behaviour, dictionaries
-npm run audit      # six browser suites
+npm run audit      # seven browser suites
 ```
 
 The browser suites run against a production build in headless Chromium and cover
 mobile layout at five widths, end-to-end interaction, Greek glyph coverage, PWA
-installability and offline start-up, scrolling, and notifications, share cards and
-backups. Details in [`scripts/README.md`](scripts/README.md).
+installability and offline start-up, scrolling, theme switching, notifications,
+share cards and exports, and profiles written by older versions of the app.
+Details in [`scripts/README.md`](scripts/README.md).
 
-The font suite exists because of a real failure: Oswald has no Greek glyphs and
-fell back silently, so a Greek heading rendered in a serif nobody chose.
+Two of them exist because of real failures. The font suite: Oswald has no Greek
+glyphs and fell back silently, so a Greek heading rendered in a serif nobody chose.
+The legacy-profile suite: unit fixtures are always built from the current
+`DEFAULT_PROFILE`, so nothing in the test run can catch a field added this week
+being read from a profile saved last month — which shows up not as a broken
+component but as a white screen.
 
 ## Project layout
 
 ```
 src/lib/          domain logic, no React — dates, service, leave, duty, money,
-                  merge, notify, share, backup, calendar, greek, i18n
-src/components/   UI, including Privacy, NotFound, Toasts, ErrorBoundary
+                  postings, agenda, merge, notify, share, backup, ics, calendar,
+                  theme, haptics, greek, i18n
+src/components/   UI, including Agenda, Timeline, Privacy, NotFound, Toasts
 src/hooks/        useI18n, useToast, useProfile, useAuth, useRoute, useToday
 src/firebase/     config, auth, sync — inert until credentials are supplied
 src/styles/       tokens, global, app
@@ -210,6 +248,11 @@ See [DESIGN.md](DESIGN.md). The system mixes two references from
 accent — and the **voice** of SpaceX, one enormous numeral per screen above
 tracked uppercase microtext. Linear's lavender is replaced by field olive, with an
 amber signal reserved for the final phase of service.
+
+There are two themes. Dark is the original and still the default; light exists
+because a dark app is hard to read outdoors at midday, which is where this one gets
+used. It is not an inversion — the olive is darkened, since a colour tuned to glow
+on black falls to 2.6:1 on white. Every text token clears WCAG AA in both.
 
 Typefaces are Roboto Condensed and Roboto Mono because they **must cover Greek**.
 

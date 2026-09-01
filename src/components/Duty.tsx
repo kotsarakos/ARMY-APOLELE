@@ -2,19 +2,24 @@ import { useState } from 'react'
 import type { DutyKind, Profile } from '../lib/types'
 import type { ServiceState } from '../lib/service'
 import { DEFAULT_HOURS, DUTY_KINDS, computeDuties, newDuty } from '../lib/duty'
-import { withDeletion } from '../lib/merge'
+import { deletion } from '../lib/merge'
 import { formatShort, parseISO, toISO, today } from '../lib/dates'
+import { focusSection } from '../lib/scroll'
 import { DateField } from './DateField'
 import { useI18n } from '../hooks/useI18n'
 import { useToast } from '../hooks/useToast'
 import { upperGreek as caps } from '../lib/greek'
 
+/** Μια υπηρεσία σήμερα ή αύριο αξίζει να ξεχωρίζει χρωματικά. */
+const SOON_DAYS = 1
+
 export function Duty({
-  profile, service, update,
+  profile, service, update, updateWith,
 }: {
   profile: Profile
   service: ServiceState
   update: (patch: Partial<Profile>) => void
+  updateWith: (build: (prev: Profile) => Partial<Profile>) => void
 }) {
   const { t, lang } = useI18n()
   const toast = useToast()
@@ -49,8 +54,9 @@ export function Duty({
   }
 
   const remove = (id: string) => {
-    update(withDeletion(profile, id))
-    toast.success(t.duty.okDeleted)
+    const del = deletion(profile, [id])
+    update(del.patch)
+    toast.undoable(t.duty.okDeleted, t.common.undo, () => updateWith(del.restore))
   }
 
   const row = (id: string, k: DutyKind, dateISO: string, startAt: string | undefined, h: number, n: string | undefined, live: boolean) => (
@@ -76,7 +82,7 @@ export function Duty({
 
   return (
     <>
-      <section className={`clock ${d.next && d.daysToNext === 0 ? 'clock--signal' : ''}`}>
+      <section className={`clock ${d.next && d.daysToNext <= SOON_DAYS ? 'clock--signal' : ''}`}>
         <p className="eyebrow">{caps(t.duty.next)}</p>
         {d.next ? (
           <>
@@ -115,7 +121,7 @@ export function Duty({
         </div>
       </section>
 
-      <section className="band">
+      <section className="band" id="add-duty">
         <p className="eyebrow band__label">{caps(t.duty.addTitle)}</p>
         <div className="panel mn__add">
           <label className="mn__f">
@@ -187,7 +193,13 @@ export function Duty({
       <section className="band">
         <p className="eyebrow band__label">{caps(t.duty.past)}</p>
         {d.past.length === 0 ? (
-          <div className="panel"><p className="mn__empty">{t.duty.empty}</p></div>
+          <div className="panel empty">
+            <p className="empty__text">{t.duty.empty}</p>
+            <button className="btn btn--secondary btn--sm"
+                    onClick={() => focusSection('add-duty')}>
+              {t.duty.emptyCta}
+            </button>
+          </div>
         ) : (
           <ul className="mn__list">
             {d.past.slice(0, 30).map((x) => row(x.id, x.kind, x.date, x.start, x.hours, x.note, false))}

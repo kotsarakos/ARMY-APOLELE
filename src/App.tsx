@@ -11,7 +11,8 @@ import { Onboarding } from './components/Onboarding'
 import { Countdown } from './components/Countdown'
 import { Stats } from './components/Stats'
 import { Leave } from './components/Leave'
-import { Milestones } from './components/Milestones'
+import { Timeline } from './components/Timeline'
+import { Agenda } from './components/Agenda'
 import { Settings } from './components/Settings'
 import { Account } from './components/Account'
 import { Welcome } from './components/Welcome'
@@ -25,25 +26,51 @@ import { InstallGuide } from './components/InstallGuide'
 import { Privacy } from './components/Privacy'
 import { NotFound } from './components/NotFound'
 import { upperGreek as caps } from './lib/greek'
-import { buildPlan, flushDue, savePlan, setBadge } from './lib/notify'
+import { TAB_ICONS } from './components/icons'
+import { focusSection } from './lib/scroll'
+import { NOTIFY_HOUR_EVENT, buildPlan, flushDue, savePlan, setBadge } from './lib/notify'
 
 type Tab = 'clock' | 'leave' | 'duty' | 'money' | 'profile'
 
 export default function App() {
   const { t, lang, setLang } = useI18n()
   const { route, navigate } = useRoute()
-  const { profile, setProfile, update, loading, syncing } = useProfile()
+  const { profile, setProfile, update, updateWith, loading, syncing } = useProfile()
   const toast = useToast()
   const now = useToday()
   const [tab, setTab] = useState<Tab>('clock')
   const { user, ready: authReady, enabled: authEnabled } = useAuth()
   const [skippedAuth, setSkippedAuth] = useState(false)
 
+  // Οι συντομεύσεις του εικονιδίου (long-press στο Android) ανοίγουν την
+  // εφαρμογή σε `/?add=duty`. Διαβάζονται μία φορά και η παράμετρος
+  // αφαιρείται, ώστε ένα refresh να μη σε ξαναπετάει στη φόρμα.
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('add')
+    const map: Record<string, Tab> = { duty: 'duty', leave: 'leave', money: 'money' }
+    const target = wanted ? map[wanted] : undefined
+    if (!target) return
+    setTab(target)
+    window.history.replaceState(null, '', window.location.pathname)
+    // Η φόρμα υπάρχει μόλις αποδοθεί η καρτέλα.
+    const id = setTimeout(() => focusSection(`add-${target}`), 120)
+    return () => clearTimeout(id)
+  }, [])
+
   const state = useMemo(
     () => (profile?.enlistDate ? computeService(profile, now) : null),
     [profile, now],
   )
   const ms = useMemo(() => (state ? milestones(state) : []), [state])
+
+  // Η ώρα των ειδοποιήσεων είναι προτίμηση συσκευής και ζει εκτός React·
+  // αυτός ο μετρητής ξαναχτίζει το πρόγραμμα όταν αλλάξει.
+  const [hourTick, setHourTick] = useState(0)
+  useEffect(() => {
+    const bump = () => setHourTick((n) => n + 1)
+    window.addEventListener(NOTIFY_HOUR_EVENT, bump)
+    return () => window.removeEventListener(NOTIFY_HOUR_EVENT, bump)
+  }, [])
 
   // Το εικονίδιο δείχνει τις μέρες που μένουν, και ό,τι ειδοποίηση ωρίμασε
   // εμφανίζεται τώρα. Το πρόγραμμα γράφεται ώστε να το βρει και ο service
@@ -54,7 +81,7 @@ export default function App() {
     const plan = buildPlan(profile, state, t)
     void savePlan(plan)
     void flushDue(plan, now)
-  }, [profile, state, t, now])
+  }, [profile, state, t, now, hourTick])
 
   const header = (
     <header className="topbar">
@@ -169,24 +196,35 @@ export default function App() {
         <>
           <Countdown state={state} name={profile.name} />
           <Stats state={state} />
+          <Agenda profile={profile} state={state} />
+          <Timeline items={ms} months={profile.months} state={state} />
           <ShareCard profile={profile} state={state} />
-          <Milestones items={ms} months={profile.months} />
         </>
       )}
 
-      {tab === 'leave' && <Leave state={state} profile={profile} update={update} />}
+      {tab === 'leave' && (
+        <Leave state={state} profile={profile} update={update} updateWith={updateWith} />
+      )}
 
-      {tab === 'duty' && <Duty profile={profile} service={state} update={update} />}
+      {tab === 'duty' && (
+        <Duty profile={profile} service={state} update={update} updateWith={updateWith} />
+      )}
 
-      {tab === 'money' && <Money profile={profile} service={state} update={update} />}
+      {tab === 'money' && (
+        <Money profile={profile} service={state} update={update} updateWith={updateWith} />
+      )}
 
       {tab === 'profile' && (
         <>
-          <ProfileCard profile={profile} service={state} update={update} />
+          <ProfileCard
+            profile={profile} service={state}
+            update={update} updateWith={updateWith}
+          />
           <Notifications />
           <Account syncing={syncing} profile={profile} />
           <Settings
             profile={profile}
+            service={state}
             update={update}
             onReset={reset}
             onRestore={setProfile}
@@ -195,17 +233,21 @@ export default function App() {
       )}
 
       <nav className="tabs" aria-label={t.tabsNav}>
-        {(['clock', 'leave', 'duty', 'money', 'profile'] as Tab[]).map((k) => (
-          <button
-            key={k}
-            data-tab={k}
-            className={tab === k ? 'tabs__b tabs__b--on' : 'tabs__b'}
-            aria-current={tab === k ? 'page' : undefined}
-            onClick={() => setTab(k)}
-          >
-            {caps(t.tabs[k])}
-          </button>
-        ))}
+        {(['clock', 'leave', 'duty', 'money', 'profile'] as Tab[]).map((k) => {
+          const Icon = TAB_ICONS[k]
+          return (
+            <button
+              key={k}
+              data-tab={k}
+              className={tab === k ? 'tabs__b tabs__b--on' : 'tabs__b'}
+              aria-current={tab === k ? 'page' : undefined}
+              onClick={() => setTab(k)}
+            >
+              <Icon />
+              <span className="tabs__t">{caps(t.tabs[k])}</span>
+            </button>
+          )
+        })}
       </nav>
 
       {footer}

@@ -1,23 +1,31 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { ServiceState } from '../lib/service'
-import { BLOOD_LEAVE_DAYS, MAX_BLOOD_DONATIONS } from '../lib/service'
+import {
+  BLOOD_LEAVE_DAYS, MAX_BLOOD_DONATIONS, leaveForecast, whenAvailable,
+} from '../lib/service'
 import type { LeaveKind, Profile } from '../lib/types'
 import {
-  LEAVE_KINDS, leaveDays, leaveTimeline, newLeave, sortLeaves, validateLeave,
+  LEAVE_KINDS, SICK_LEAVE_FREE_DAYS, leaveDays, leaveTimeline, newLeave,
+  sickDays, sortLeaves, validateLeave,
 } from '../lib/leave'
-import { withDeletion } from '../lib/merge'
-import { formatShort, parseISO, toISO, today } from '../lib/dates'
+import { deletion } from '../lib/merge'
+import { formatDate, formatShort, parseISO, toISO, today } from '../lib/dates'
+import { focusSection } from '../lib/scroll'
 import { DateField } from './DateField'
 import { useI18n } from '../hooks/useI18n'
 import { useToast } from '../hooks/useToast'
 import { upperGreek as caps } from '../lib/greek'
 
+/** Πόσο κοντά είναι «κοντά»: τρεις μέρες, όσο κρατά ένα σαββατοκύριακο έξω. */
+const SOON_DAYS = 3
+
 export function Leave({
-  state, profile, update,
+  state, profile, update, updateWith,
 }: {
   state: ServiceState
   profile: Profile
   update: (patch: Partial<Profile>) => void
+  updateWith: (build: (prev: Profile) => Partial<Profile>) => void
 }) {
   const { t } = useI18n()
   const toast = useToast()
@@ -29,10 +37,17 @@ export function Leave({
   const [from, setFrom] = useState(iso)
   const [to, setTo] = useState(iso)
   const [note, setNote] = useState('')
+  const [want, setWant] = useState(3)
+
+  const forecast = useMemo(() => leaveForecast(profile, state), [profile, state])
+  const answer = whenAvailable(state, forecast, want)
 
   const usedPct = leave.totalEntitlement > 0
     ? Math.min(100, Math.round((leave.committed / leave.totalEntitlement) * 100))
     : 0
+
+  const sick = sickDays(profile.leaves)
+  const soon = tl.next !== null && tl.daysToNext <= SOON_DAYS
 
   const addLeave = () => {
     if (!from || !to) return toast.error(t.leave.errDates)
@@ -48,8 +63,9 @@ export function Leave({
   }
 
   const removeLeave = (id: string) => {
-    update(withDeletion(profile, id))
-    toast.success(t.leave.okDeleted)
+    const del = deletion(profile, [id])
+    update(del.patch)
+    toast.undoable(t.leave.okDeleted, t.common.undo, () => updateWith(del.restore))
   }
 
   const changeBlood = (delta: number) => {
@@ -63,7 +79,7 @@ export function Leave({
   return (
     <>
       {/* Η ερώτηση που κάνει όντως ο φαντάρος: πότε ξαναβγαίνω. */}
-      <section className={`clock ${tl.current ? 'clock--olive' : ''}`}>
+      <section className={`clock ${tl.current ? 'clock--olive' : soon ? 'clock--signal' : ''}`}>
         <p className="eyebrow">
           {caps(tl.current ? t.leave.onLeaveTitle : t.leave.nextTitle)}
         </p>
@@ -155,8 +171,70 @@ export function Leave({
         </div>
       </section>
 
-      {/* Καταχώρηση άδειας — οι μέρες βγαίνουν από τις ημερομηνίες. */}
+      {/* «Θέλω πέντε μέρες τον Οκτώβρη — τις έχω;» */}
       <section className="band">
+        <p className="eyebrow band__label">{caps(t.leave.forecastTitle)}</p>
+        <div className="panel fc">
+          <p className="fc__hint">{t.leave.forecastHint}</p>
+
+          <div className="fc__ask">
+            <span className="eyebrow">{caps(t.leave.forecastWant)}</span>
+            <div className="stepper__row">
+              <button className="btn btn--ghost" onClick={() => setWant(Math.max(1, want - 1))}
+                      aria-label={`${t.leave.decrease}: ${t.leave.forecastWant}`}>−</button>
+              <span className="stepper__val num">{want}</span>
+              <button className="btn btn--ghost"
+                      onClick={() => setWant(Math.min(leave.cap, want + 1))}
+                      aria-label={`${t.leave.increase}: ${t.leave.forecastWant}`}>+</button>
+            </div>
+          </div>
+
+          <p className={`fc__answer ${answer.date ? '' : 'fc__answer--no'}`} aria-live="polite">
+            {answer.already
+              ? t.leave.forecastAlready(leave.available)
+              : answer.date
+                ? t.leave.forecastOn(formatDate(answer.date, t), answer.daysAway)
+                : t.leave.forecastNever}
+          </p>
+
+          {forecast.length > 0 && (
+            <>
+              <p className="eyebrow fc__next">{caps(t.leave.forecastNext)}</p>
+              <ul className="fc__list">
+                {forecast.slice(0, 4).map((p) => (
+                  <li key={p.date.toISOString()}>
+                    <span className="num">{formatShort(p.date)}</span>
+                    <span className="fc__credit num">{t.leave.forecastCredit(p.credit)}</span>
+                    <span className="fc__total num">{p.available}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* Η αναρρωτική είναι το μόνο είδος που μπορεί να μετακινήσει την απόλυση. */}
+      {sick > 0 && (
+        <section className="band">
+          <p className="eyebrow band__label">{caps(t.leave.sickTitle)}</p>
+          <div className={`panel sk ${state.sickExtension > 0 ? 'sk--over' : ''}`}>
+            <p className="sk__body">{t.leave.sickBody(sick, SICK_LEAVE_FREE_DAYS)}</p>
+            {state.sickExtension > 0 && (
+              <p className="sk__warn">
+                {t.leave.sickExtends(state.sickExtension)}{' '}
+                <span className="num">{formatShort(state.baseDischarge)}</span>
+                {' → '}
+                <strong className="num">{formatShort(state.discharge)}</strong>
+              </p>
+            )}
+            <p className="sk__check">{t.leave.sickCheck}</p>
+          </div>
+        </section>
+      )}
+
+      {/* Καταχώρηση άδειας — οι μέρες βγαίνουν από τις ημερομηνίες. */}
+      <section className="band" id="add-leave">
         <p className="eyebrow band__label">{caps(t.leave.addTitle)}</p>
         <div className="panel mn__add">
           <label className="mn__f">
@@ -199,7 +277,13 @@ export function Leave({
       <section className="band">
         <p className="eyebrow band__label">{caps(t.leave.history)}</p>
         {profile.leaves.length === 0 ? (
-          <div className="panel"><p className="mn__empty">{t.leave.empty}</p></div>
+          <div className="panel empty">
+            <p className="empty__text">{t.leave.empty}</p>
+            <button className="btn btn--secondary btn--sm"
+                    onClick={() => focusSection('add-leave')}>
+              {t.leave.emptyCta}
+            </button>
+          </div>
         ) : (
           <ul className="mn__list">
             {sortLeaves(profile.leaves).map((l) => (

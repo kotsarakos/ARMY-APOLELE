@@ -16,5 +16,51 @@
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Νέα υπηρεσία",
+      "short_name": "Υπηρεσία",
+      "description": "Καταχώρηση σκοπιάς ή αγγαρείας",
+      "url": "/?add=duty",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Νέα άδεια",
+      "short_name": "Άδεια",
+      "description": "Καταχώρηση άδειας με ημερομηνίες",
+      "url": "/?add=leave",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Νέο έξοδο",
+      "short_name": "Έξοδο",
+      "description": "Καταγραφή εξόδου στο ταμείο",
+      "url": "/?add=money",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/counter.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Ο μετρητής: μέρες μέχρι το απολυτήριο"
+    },
+    {
+      "src": "/screenshots/month.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Ο μήνας: άδειες, υπηρεσίες και μισθός μαζί"
+    },
+    {
+      "src": "/screenshots/money.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Ταμείο: έξοδα, πάγια και μηνιαίο όριο"
+    }
   ]
 }

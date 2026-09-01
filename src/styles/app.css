@@ -112,6 +112,20 @@
 .tile__value--text { font-size: 21px; letter-spacing: -0.3px; overflow-wrap: normal; }
 .tile__hint { margin: 6px 0 0; font-size: 12px; color: var(--ink-tertiary); line-height: 1.4; }
 
+/* Δύο βαθμίδες πλακιδίων. Έξι ίδια πλακίδια δεν έχουν ιεραρχία: το μάτι δεν
+   ξέρει πού να πάει πρώτα. Τα δύο που απαντούν στην καθημερινή ερώτηση —
+   «πόσο ακόμη μέσα» και «πότε» — παίρνουν μεγαλύτερο νούμερο και τόνο. */
+.tiles--lead { margin-bottom: var(--s-sm); }
+.tiles--lead .tile { border-color: var(--hairline-strong); }
+.tile--lead .tile__value { font-size: 40px; letter-spacing: -1px; }
+.tile--lead .tile__value--text { font-size: 27px; letter-spacing: -0.5px; }
+.tiles--rest .tile { background: transparent; padding: var(--s-sm) var(--s-md); }
+.tiles--rest .tile__value { font-size: 21px; }
+
+/* Το χρυσό σημαίνει «κάτι πλησιάζει» — παντού στην εφαρμογή, όχι μόνο στο tier. */
+.tile--soon { border-color: var(--signal-dim); }
+.tile--soon .tile__value { color: var(--signal); }
+
 /* ── Άδειες ─────────────────────────────────────────────────────────────── */
 .leave__head {
   display: flex; justify-content: space-between; gap: var(--s-lg);
@@ -275,14 +289,22 @@
   background: var(--surface-1); border: 1px solid var(--hairline-strong);
   border-radius: var(--r-pill);
 }
+/* Εικονίδιο πάνω από ετικέτα: πέντε ελληνικές λέξεις στα 320px δεν χωρούν
+   αναγνώσιμες, και το σχήμα διαβάζεται πριν τη λέξη — και στις δύο γλώσσες,
+   όπου τα μήκη αλλάζουν. */
 .tabs__b {
-  background: transparent; border: 0; border-radius: var(--r-pill);
-  padding: 9px 16px; min-height: 44px; white-space: nowrap;
-  font-family: var(--font-mono); font-size: 11px;
-  font-weight: 500; letter-spacing: 1.2px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: transparent; border: 0; border-radius: var(--r-lg);
+  padding: 6px 12px; min-height: 52px; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 10px;
+  font-weight: 500; letter-spacing: 0.8px;
   color: var(--ink-subtle);
+  transition: color 140ms ease, background 140ms ease;
 }
+.tabs__b svg { display: block; }
+.tabs__t { line-height: 1; }
 .tabs__b--on { background: var(--surface-3); color: var(--ink); }
+.tabs__b:not(.tabs__b--on):hover { color: var(--ink-muted); }
 
 .foot {
   padding-top: var(--s-lg); border-top: 1px solid var(--hairline);
@@ -324,24 +346,33 @@
 .toasts {
   position: fixed; z-index: 50;
   left: 50%; transform: translateX(-50%);
-  bottom: calc(76px + max(var(--s-md), env(safe-area-inset-bottom)));
+  bottom: calc(92px + max(var(--s-md), env(safe-area-inset-bottom)));
   display: flex; flex-direction: column; gap: var(--s-xs);
   width: min(440px, calc(100vw - 24px));
   pointer-events: none;
 }
+/* Το μήνυμα είναι πλέον δοχείο με δύο στόχους: το σώμα το κλείνει, το κουμπί
+   εκτελεί την αναίρεση. Κουμπί μέσα σε κουμπί δεν είναι έγκυρο HTML. */
 .toast {
-  display: flex; align-items: flex-start; gap: var(--s-sm);
+  display: flex; align-items: stretch;
   width: 100%; text-align: left; pointer-events: auto;
   background: var(--surface-2); color: var(--ink);
   border: 1px solid var(--hairline-strong);
   border-left-width: 3px;
   border-radius: var(--r-md);
-  padding: 12px var(--s-md);
   font-size: 14px; line-height: 1.45;
   animation: toast-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  overflow: hidden;
 }
 .toast--success { border-left-color: var(--primary); }
 .toast--error   { border-left-color: var(--danger); }
+.toast__body {
+  flex: 1; min-width: 0;
+  display: flex; align-items: flex-start; gap: var(--s-sm);
+  background: transparent; border: 0; text-align: left;
+  padding: 12px var(--s-md);
+  font-size: 14px; line-height: 1.45; color: inherit;
+}
 .toast__icon {
   flex: 0 0 auto; width: 18px; height: 18px; margin-top: 1px;
   display: grid; place-items: center;
@@ -349,8 +380,19 @@
   font-family: var(--font-mono);
 }
 .toast--success .toast__icon { background: var(--primary); color: var(--on-primary); }
-.toast--error   .toast__icon { background: var(--danger); color: #fff; }
+/* Λευκό πάνω στο πιο ανοιχτό κόκκινο του σκοτεινού θέματος έβγαζε 3.97:1.
+   Το `--on-primary` είναι εξ ορισμού το χρώμα που διαβάζεται πάνω σε γέμισμα,
+   και δουλεύει και στα δύο θέματα. */
+.toast--error   .toast__icon { background: var(--danger); color: var(--on-primary); }
 .toast__text { flex: 1; min-width: 0; }
+.toast__action {
+  flex: 0 0 auto; background: transparent; border: 0;
+  border-left: 1px solid var(--hairline);
+  padding: 0 var(--s-md);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 1px; color: var(--primary);
+}
+.toast__action:hover { background: var(--surface-3); color: var(--primary-hover); }
 
 @keyframes toast-in {
   from { opacity: 0; transform: translateY(8px); }
@@ -471,12 +513,15 @@
 .acc__field { display: grid; gap: 2px; }
 .acc__field .input { margin-top: 4px; }
 
+/* Το κουμπί της Google είναι σήμα κατατεθέν και δεν ακολουθεί τα tokens: με
+   `background: var(--ink)` γινόταν μαύρο πάνω σε μαύρο κείμενο στο φωτεινό
+   θέμα. Λευκό πάντα, με περίγραμμα για να ξεχωρίζει από τον λευκό καμβά. */
 .btn--google {
   display: flex; align-items: center; justify-content: center; gap: var(--s-sm);
-  background: var(--ink); color: #1f1f1f;
-  border-color: var(--ink); width: 100%; font-weight: 600;
+  background: #ffffff; color: #1f1f1f;
+  border-color: var(--hairline-strong); width: 100%; font-weight: 600;
 }
-.btn--google:hover:not(:disabled) { background: #fff; }
+.btn--google:hover:not(:disabled) { background: #f1f3f4; }
 
 .acc__or {
   display: flex; align-items: center; gap: var(--s-sm);
@@ -546,7 +591,7 @@
 .ib {
   position: fixed; z-index: 40;
   left: 50%; transform: translateX(-50%);
-  bottom: calc(76px + max(var(--s-md), env(safe-area-inset-bottom)));
+  bottom: calc(92px + max(var(--s-md), env(safe-area-inset-bottom)));
   width: min(460px, calc(100vw - 20px));
   animation: ib-in 320ms cubic-bezier(.2,.9,.3,1);
 }
@@ -830,8 +875,10 @@
   font-family: var(--font-display); font-size: 30px; font-weight: 700;
   line-height: 1; color: var(--ink);
 }
-.mn__startrow { display: flex; align-items: stretch; gap: var(--s-xs); }
-.mn__startrow .input--sm { flex: 1 1 auto; max-width: none; min-width: 0; }
+/* Το `wrap` δεν είναι διακοσμητικό: στο μηνιαίο όριο η σειρά έχει πεδίο και
+   δύο κουμπιά, που στα 320px δεν χωρούν και έσπρωχναν το panel εκτός οθόνης. */
+.mn__startrow { display: flex; align-items: stretch; gap: var(--s-xs); flex-wrap: wrap; }
+.mn__startrow .input--sm { flex: 1 1 120px; max-width: none; min-width: 0; }
 .mn__startrow .btn { flex: 0 0 auto; }
 
 .mn__add { display: grid; gap: var(--s-sm); }
@@ -1161,4 +1208,223 @@
 .acc__note {
   margin: var(--s-xs) 0 0; font-size: 12px; color: var(--ink-tertiary);
   line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Χρονολόγιο θητείας — πρόοδος και ορόσημα σε ένα
+   ═══════════════════════════════════════════════════════════════════════════ */
+.tl {
+  background: var(--surface-1); border: 1px solid var(--hairline);
+  border-radius: var(--r-lg); padding: var(--s-lg);
+}
+.tl__meta {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--s-sm); margin-bottom: var(--s-xs);
+}
+.tl__pct { font-family: var(--font-mono); font-size: 13px; color: var(--ink-muted); }
+.tl__counts {
+  margin: var(--s-xs) 0 var(--s-lg);
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.6px; color: var(--ink-tertiary);
+}
+.tl .ms { margin: 0; }
+.tl .ms > li { list-style: none; }
+.tl .ms > li:last-child .ms__item:last-child { padding-bottom: 0; }
+
+/* Η σειρά του «τώρα»: η μόνη με γεμάτη κουκκίδα σε χρώμα σήματος, ώστε να
+   βρίσκεται με μια ματιά μέσα σε οκτώ ορόσημα. */
+.ms__item--now .ms__label {
+  color: var(--signal);
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 1.2px;
+}
+.ms__dot--now {
+  background: var(--signal); border-color: var(--signal);
+  box-shadow: 0 0 0 3px rgb(217 164 65 / .16);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Ημερολόγιο μήνα — άδειες, υπηρεσίες, μισθός και έξοδα μαζί
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ag { display: grid; gap: var(--s-md); }
+.ag__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s-sm);
+}
+.ag__month {
+  margin: 0; font-family: var(--font-display); font-size: 18px;
+  font-weight: 600; color: var(--ink);
+}
+.ag__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.ag__cell {
+  position: relative; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; min-height: 46px; padding: 4px 0;
+  background: transparent; border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: var(--ink-muted);
+}
+.ag__cell:hover { background: var(--surface-2); }
+.ag__cell--out { color: var(--ink-tertiary); opacity: 0.55; }
+.ag__cell--off .ag__n { text-decoration: line-through; opacity: 0.5; }
+.ag__cell--today { border-color: var(--hairline-strong); }
+.ag__cell--today .ag__n { color: var(--ink); font-weight: 600; }
+.ag__cell--on { background: var(--surface-3); border-color: var(--primary); }
+.ag__n { font-family: var(--font-mono); font-size: 12px; line-height: 1; }
+
+/* Έως τρεις κουκκίδες: παραπάνω σε πλάτος 44px γίνονται μουτζούρα. */
+.ag__dots { display: flex; gap: 2px; min-height: 5px; align-items: center; }
+.ag__dot {
+  display: inline-block; width: 5px; height: 5px;
+  border-radius: 50%; flex: 0 0 auto;
+}
+.ag__dot--leave     { background: var(--primary); }
+.ag__dot--duty      { background: var(--signal); }
+.ag__dot--pay       { background: var(--success); }
+.ag__dot--accrual   { background: var(--primary-dim); }
+.ag__dot--milestone { background: var(--ink-subtle); }
+.ag__dot--spend     { background: var(--danger); }
+
+.ag__back { display: flex; justify-content: center; }
+.ag__legend {
+  display: flex; flex-wrap: wrap; gap: var(--s-xs) var(--s-md);
+  list-style: none; margin: 0; padding: var(--s-sm) 0 0;
+  border-top: 1px solid var(--hairline);
+  font-size: 12px; color: var(--ink-subtle);
+}
+.ag__legend li { display: flex; align-items: center; gap: 6px; }
+
+.ag__day {
+  border-top: 1px solid var(--hairline); padding-top: var(--s-sm);
+  display: grid; gap: var(--s-xs);
+}
+.ag__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ag__list li { display: flex; align-items: center; gap: var(--s-xs); font-size: 13px; }
+.ag__etext { color: var(--ink-muted); min-width: 0; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Πρόβλεψη αδείας
+   ═══════════════════════════════════════════════════════════════════════════ */
+.fc { display: grid; gap: var(--s-md); }
+.fc__hint { margin: 0; font-size: 13px; color: var(--ink-tertiary); line-height: 1.6; }
+.fc__ask { display: grid; gap: var(--s-xs); }
+.fc__answer {
+  margin: 0; padding: var(--s-sm) var(--s-md);
+  background: var(--surface-2); border-left: 3px solid var(--primary);
+  border-radius: var(--r-sm);
+  font-size: 14px; color: var(--ink); line-height: 1.5;
+}
+.fc__answer--no { border-left-color: var(--signal); color: var(--ink-muted); }
+.fc__next { margin: 0; }
+.fc__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.fc__list li {
+  display: grid; grid-template-columns: 1fr auto auto; gap: var(--s-sm);
+  align-items: baseline;
+  font-family: var(--font-mono); font-size: 12px; color: var(--ink-tertiary);
+}
+.fc__credit { color: var(--primary); }
+.fc__total { color: var(--ink); min-width: 2.5ch; text-align: right; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Αναρρωτική — το μόνο είδος που μετακινεί την απόλυση
+   ═══════════════════════════════════════════════════════════════════════════ */
+.sk { display: grid; gap: var(--s-xs); }
+.sk--over { border-color: var(--signal-dim); border-left: 3px solid var(--signal); }
+.sk__body { margin: 0; font-size: 14px; color: var(--ink-muted); line-height: 1.6; }
+.sk__warn { margin: 0; font-size: 14px; color: var(--signal); line-height: 1.6; }
+.sk__warn strong { color: var(--ink); }
+.sk__check { margin: 0; font-size: 12px; color: var(--ink-tertiary); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Μηνιαίο όριο εξόδων
+   ═══════════════════════════════════════════════════════════════════════════ */
+.bd { display: grid; gap: var(--s-sm); }
+.bd--over { border-color: var(--danger); }
+.bd__nums { display: flex; justify-content: space-between; gap: var(--s-md); flex-wrap: wrap; }
+.bd__right { text-align: right; }
+.bd__big {
+  margin: 2px 0 0; font-family: var(--font-display);
+  font-size: 28px; font-weight: 600; line-height: 1.1; color: var(--ink);
+}
+.bd__big--over { color: var(--danger); }
+.bd__note { margin: 0; font-size: 13px; color: var(--ink-tertiary); line-height: 1.6; }
+.progress__fill--over { background: var(--danger); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Ιστορικό μονάδων
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ps { display: grid; gap: var(--s-sm); }
+.ps__list { list-style: none; margin: 0; padding: 0; }
+.ps__item {
+  position: relative; display: flex; align-items: flex-start; gap: var(--s-sm);
+  padding: 0 0 var(--s-md) var(--s-lg);
+}
+.ps__item::before {
+  content: ''; position: absolute; left: 5px; top: 14px; bottom: 0;
+  width: 1px; background: var(--hairline);
+}
+.ps__item:last-child { padding-bottom: 0; }
+.ps__item:last-child::before { display: none; }
+.ps__dot {
+  position: absolute; left: 0; top: 6px;
+  width: 11px; height: 11px; border-radius: 50%;
+  border: 1px solid var(--hairline-strong); background: var(--canvas);
+}
+.ps__item--now .ps__dot { background: var(--primary); border-color: var(--primary); }
+.ps__body { flex: 1; min-width: 0; }
+.ps__unit {
+  margin: 0; font-weight: 500; color: var(--ink);
+  display: flex; align-items: center; gap: var(--s-xs); flex-wrap: wrap;
+}
+.ps__meta {
+  margin: 2px 0 0; font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.4px; color: var(--ink-tertiary);
+}
+.ps__note { font-family: var(--font-body); letter-spacing: 0; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Τμηματικός επιλογέας (θέμα) & κενές καταστάσεις
+   ═══════════════════════════════════════════════════════════════════════════ */
+.seg {
+  display: flex; flex: 0 0 auto;
+  border: 1px solid var(--hairline-strong); border-radius: var(--r-md);
+  overflow: hidden;
+}
+.seg__b {
+  background: transparent; border: 0;
+  padding: 8px 12px; min-height: 44px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.6px;
+  color: var(--ink-subtle);
+}
+.seg__b + .seg__b { border-left: 1px solid var(--hairline); }
+.seg__b--on { background: var(--surface-3); color: var(--ink); }
+.seg__b:not(.seg__b--on):hover { color: var(--ink-muted); }
+.set__row--seg { align-items: center; }
+.set__hint--row { margin: -6px 0 var(--s-xs); }
+
+/* Μια κενή λίστα χωρίς διέξοδο αφήνει τον χρήστη να ψάχνει τη φόρμα. */
+.empty { display: grid; gap: var(--s-sm); justify-items: start; }
+.empty__text { margin: 0; font-size: 13px; color: var(--ink-tertiary); line-height: 1.6; }
+
+/* Ώρα ειδοποιήσεων */
+.nt__hour { display: grid; gap: var(--s-xs); }
+.nt__hourhint { font-size: 12px; color: var(--ink-tertiary); line-height: 1.5; }
+
+@media (max-width: 420px) {
+  .tile--lead .tile__value { font-size: 34px; }
+  .tile--lead .tile__value--text { font-size: 23px; }
+
+  /* Στα 320px πέντε ετικέτες δεν χωρούν μέσα σε αιωρούμενο pill: η γραμμή
+     γίνεται πλήρους πλάτους και τα κουμπιά μοιράζονται τον χώρο ισομερώς. */
+  .tabs {
+    left: 0; right: 0; transform: none;
+    bottom: 0; max-width: 100%; width: 100%;
+    padding: 4px 0 max(4px, env(safe-area-inset-bottom));
+    border-radius: 0; border-left: 0; border-right: 0; border-bottom: 0;
+    justify-content: space-around;
+  }
+  .tabs__b {
+    flex: 1 1 0; min-width: 0; padding: 6px 2px;
+    font-size: 9px; letter-spacing: 0.2px;
+  }
+  .tabs__t { overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 }

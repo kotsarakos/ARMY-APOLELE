@@ -180,11 +180,16 @@ const before = (await page.$$('.mn__item')).length
 await page.click('.mn__rec .btn--secondary')
 await page.waitForSelector('.mn__recform')
 await page.fill('.mn__recform .mn__f--amt input', '15')
+// Η μέρα χρέωσης πρέπει να είναι μελλοντική **μέσα στον μήνα**, αλλιώς ο
+// έλεγχος εξαρτάται από το πότε τρέχει. Με προεπιλογή «1» και σημερινή μέρα
+// την 1η του μήνα, η χρέωση όντως ωριμάζει σήμερα και ο έλεγχος αποτυγχάνει
+// χωρίς να υπάρχει σφάλμα στην εφαρμογή.
+const dom = new Date().getDate()
+await page.fill('.mn__recform input[type=number]', String(dom < 28 ? 28 : 1))
 await page.click('.mn__recform .btn--primary')
 await page.waitForSelector('.mn__recitem')
 check('recurring added', (await page.$$('.mn__recitem')).length === 1)
-// Ημέρα 1 του μήνα με έναρξη σήμερα: η μέρα έχει ήδη περάσει, οπότε δεν
-// πρέπει να μπει αναδρομική χρέωση για μήνα που δεν παρακολουθούσε ο χρήστης.
+// Καμία αναδρομική χρέωση για μήνα που δεν παρακολουθούσε ο χρήστης.
 await page.reload({ waitUntil: 'networkidle' })
 await page.click('[data-tab="money"]')
 await page.waitForSelector('.mn__item')
@@ -215,6 +220,137 @@ check('profile has the new collections',
   backup && Array.isArray(backup.leaves) && Array.isArray(backup.duties)
     && Array.isArray(backup.recurring) && Array.isArray(backup.deletedIds))
 check('deleting leaves tombstones behind', backup.deletedIds.length > 0)
+
+
+/* ── Ενιαίο ημερολόγιο μήνα ─────────────────────────────────────────────── */
+
+await page.click('[data-tab="clock"]')
+await page.waitForSelector('.ag__grid')
+check('agenda renders 42 cells', (await page.$$('.ag__cell')).length === 42)
+check('agenda marks today', (await page.$$('.ag__cell--today')).length === 1)
+// Η άδεια και η υπηρεσία που καταχωρήθηκαν παραπάνω πρέπει να φαίνονται εδώ:
+// αυτός είναι όλος ο λόγος ύπαρξης της οθόνης.
+check('agenda shows entries from other tabs',
+  (await page.$$('.ag__dot--duty, .ag__dot--leave')).length > 0)
+check('agenda has a legend', await page.isVisible('.ag__legend'))
+
+const monthBefore = await page.textContent('.ag__month')
+await page.click('.ag__head .cal__nav >> nth=1')
+await page.waitForTimeout(150)
+check('agenda moves to the next month',
+  (await page.textContent('.ag__month')) !== monthBefore)
+check('a way back to the current month appears', await page.isVisible('.ag__back .btn'))
+await page.click('.ag__back .btn')
+await page.waitForTimeout(150)
+check('and it returns', (await page.textContent('.ag__month')) === monthBefore)
+
+// Πάτημα μέρας ανοίγει τη λίστα της, χωρίς να φύγει από τη σελίδα.
+const dutyCell = await page.$('.ag__cell:has(.ag__dot--duty)')
+if (dutyCell) {
+  await dutyCell.click()
+  await page.waitForTimeout(150)
+  check('tapping a day opens its list', await page.isVisible('.ag__day'))
+  check('the list names the entry', (await page.textContent('.ag__list')).length > 0)
+} else {
+  check('tapping a day opens its list', false, 'no duty cell found')
+}
+
+/* ── Χρονολόγιο: πρόοδος και ορόσημα σε ένα ─────────────────────────────── */
+
+check('timeline replaces the duplicated progress bar',
+  (await page.$$('.clock .progress__track')).length === 0)
+check('timeline carries the progress bar', await page.isVisible('.tl .progress__track'))
+check('timeline lists milestones', (await page.$$('.tl .ms__item')).length > 0)
+check('timeline marks where you are now', (await page.$$('.ms__item--now')).length === 1)
+
+/* ── Μηνιαίο όριο εξόδων ────────────────────────────────────────────────── */
+
+await page.click('[data-tab="money"]')
+await page.waitForSelector('.bd')
+check('budget starts unset', (await page.textContent('.bd')).includes('No limit'))
+await page.fill('.bd input', '50')
+await page.click('.bd .btn--secondary')
+await page.waitForTimeout(250)
+check('budget can be set', await page.isVisible('.bd__big'))
+check('budget counts only this month', (await page.$$('.bd__nums > div')).length === 2)
+
+// Ένα έξοδο πάνω από το όριο πρέπει να το δηλώνει, όχι να το κρύβει.
+await page.fill('.mn__add .mn__f--amt input', '80')
+await page.click('.mn__add .btn--primary')
+await page.waitForTimeout(300)
+check('going over the limit is flagged', await page.isVisible('.bd--over'))
+check('and the bar does not overflow its track',
+  await page.evaluate(() => {
+    const fill = document.querySelector('.bd .progress__fill')
+    const track = fill?.parentElement
+    return !!fill && fill.getBoundingClientRect().width <= track.getBoundingClientRect().width + 1
+  }))
+await page.click('.bd .btn--ghost')
+await page.waitForTimeout(250)
+check('budget can be removed', !(await page.isVisible('.bd__big')))
+
+/* ── Αναίρεση διαγραφής ─────────────────────────────────────────────────── */
+
+const beforeUndo = (await page.$$('.mn__item')).length
+await page.click('.mn__item .mn__idel >> nth=0')
+await page.waitForSelector('.toast__action')
+check('deleting offers an undo', await page.isVisible('.toast__action'))
+check('the row is gone meanwhile', (await page.$$('.mn__item')).length === beforeUndo - 1)
+await page.click('.toast__action')
+await page.waitForTimeout(300)
+check('undo brings the row back', (await page.$$('.mn__item')).length === beforeUndo)
+check('and the toast closes', !(await page.isVisible('.toast__action')))
+// Η ταφόπλακα πρέπει να φύγει, αλλιώς η επόμενη συγχώνευση θα το ξανάσβηνε.
+const tombstones = await page.evaluate(() =>
+  JSON.parse(localStorage.getItem('army_app.profile.v1')).deletedIds)
+const ids = await page.evaluate(() =>
+  JSON.parse(localStorage.getItem('army_app.profile.v1')).expenses.map((e) => e.id))
+check('undo also removes the tombstone', ids.every((id) => !tombstones.includes(id)))
+
+/* ── Ιστορικό μονάδων ───────────────────────────────────────────────────── */
+
+await page.click('[data-tab="profile"]')
+await page.waitForSelector('.ps')
+check('postings start empty', (await page.textContent('.ps')).includes('No postings'))
+await page.click('.ps > .btn--secondary')
+await page.waitForSelector('.ps .mn__recform')
+await page.fill('.ps .mn__recform input[type=text] >> nth=0', 'Sparta Training Centre')
+await page.click('.ps .mn__recform .btn--primary')
+await page.waitForSelector('.ps__item')
+check('posting recorded', (await page.$$('.ps__item')).length === 1)
+check('the current posting is marked', await page.isVisible('.ps__item--now .tag--live'))
+check('and it shows in the profile header',
+  (await page.textContent('.pf__unit')) === 'Sparta Training Centre')
+
+await page.click('.ps__item .mn__idel')
+await page.waitForTimeout(300)
+check('posting deleted', (await page.$$('.ps__item')).length === 0)
+await page.click('.toast__action')
+await page.waitForTimeout(300)
+check('posting deletion can be undone', (await page.$$('.ps__item')).length === 1)
+
+/* ── Συντομεύσεις του εικονιδίου ────────────────────────────────────────── */
+
+// Το manifest δηλώνει /?add=duty· η εφαρμογή πρέπει να ανοίγει στη φόρμα.
+await page.goto(BASE + '/?add=duty', { waitUntil: 'networkidle' })
+await page.waitForTimeout(400)
+check('shortcut opens the duty tab',
+  (await page.getAttribute('[data-tab="duty"]', 'aria-current')) === 'page')
+check('shortcut cleans the URL so a refresh does not repeat it',
+  page.url() === BASE + '/')
+await page.goto(BASE + '/?add=leave', { waitUntil: 'networkidle' })
+await page.waitForTimeout(400)
+check('shortcut opens the leave tab',
+  (await page.getAttribute('[data-tab="leave"]', 'aria-current')) === 'page')
+await page.goto(BASE + '/?add=nonsense', { waitUntil: 'networkidle' })
+await page.waitForTimeout(300)
+check('an unknown shortcut is ignored',
+  (await page.getAttribute('[data-tab="clock"]', 'aria-current')) === 'page')
+
+/* ── Εικονίδια στις ενότητες ────────────────────────────────────────────── */
+
+check('every tab has an icon', (await page.$$('.tabs__b svg')).length === 5)
+check('and keeps its label', (await page.$$('.tabs__t')).length === 5)
 
 // 8. Προφίλ + επιβεβαίωση μηδενισμού
 await page.click('[data-tab="profile"]')

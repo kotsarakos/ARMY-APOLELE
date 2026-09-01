@@ -63,6 +63,22 @@ export interface Duty {
   note?: string
 }
 
+/**
+ * Τοποθέτηση σε μονάδα.
+ *
+ * Το προφίλ κρατούσε μόνο ένα `unit` ως κείμενο, οπότε η πρώτη μετάθεση
+ * έσβηνε το ΚΕΝ. Η λίστα κρατά τη διαδρομή· το `unit` μένει ως η μονάδα που
+ * φαίνεται τώρα στην μπάρα.
+ */
+export interface Posting {
+  id: string
+  /** Όνομα μονάδας ή ΚΕΝ. */
+  unit: string
+  /** ISO 'YYYY-MM-DD', πρώτη μέρα παρουσίας εκεί. */
+  from: string
+  note?: string
+}
+
 export interface Profile {
   /** Ονοματεπώνυμο ή ψευδώνυμο — μόνο για εμφάνιση. */
   name: string
@@ -72,8 +88,10 @@ export interface Profile {
   months: ServiceMonths
   /** Μονάδα σε παραμεθόριο (Θράκη, νησιά Αν. Αιγαίου, Δωδεκάνησα, ΕΛΔΥΚ). */
   borderUnit: boolean
-  /** Προαιρετικό: όνομα μονάδας/ΚΕΝ για εμφάνιση. */
+  /** Προαιρετικό: όνομα μονάδας/ΚΕΝ για εμφάνιση — η μονάδα του **τώρα**. */
   unit?: string
+  /** Ιστορικό τοποθετήσεων, από το ΚΕΝ μέχρι τη σημερινή μονάδα. */
+  postings: Posting[]
   /**
    * Ημέρες άδειας που έχουν ήδη καταναλωθεί.
    * **Παλιό πεδίο.** Πλέον η πηγή αλήθειας είναι το `leaves`· μένει μόνο για
@@ -96,6 +114,11 @@ export interface Profile {
   /** Πάγια μηνιαία έξοδα. */
   recurring: Recurring[]
   /**
+   * Προσωπικό όριο εξόδων ανά ημερολογιακό μήνα, σε **λεπτά**. Το 0 σημαίνει
+   * «χωρίς όριο» — δεν είναι κανόνας του στρατού, είναι δική του απόφαση.
+   */
+  monthlyBudget: number
+  /**
    * Ταφόπλακες: id που έχει σβήσει ο χρήστης.
    *
    * Χωρίς αυτές, η συγχώνευση δύο συσκευών θα ανάσταινε ό,τι έσβησες στη μία
@@ -112,6 +135,7 @@ export const DEFAULT_PROFILE: Profile = {
   months: 12,
   borderUnit: false,
   unit: '',
+  postings: [],
   leaveTaken: 0,
   leaves: [],
   duties: [],
@@ -120,6 +144,7 @@ export const DEFAULT_PROFILE: Profile = {
   startingBalance: 0,
   expenses: [],
   recurring: [],
+  monthlyBudget: 0,
   deletedIds: [],
   updatedAt: 0,
 }

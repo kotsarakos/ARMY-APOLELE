@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
-  notifyEnabled, notifyState, registerDailySync, requestNotifications, setNotifyEnabled,
+  NOTIFY_HOURS, notifyEnabled, notifyHour, notifyState, registerDailySync,
+  requestNotifications, setNotifyEnabled, setNotifyHour,
 } from '../lib/notify'
 import type { NotifyState } from '../lib/notify'
 import { useI18n } from '../hooks/useI18n'
@@ -20,11 +21,13 @@ export function Notifications() {
   const [perm, setPerm] = useState<NotifyState>('default')
   const [on, setOn] = useState(false)
   const [installed, setInstalled] = useState(true)
+  const [hour, setHour] = useState(20)
 
   useEffect(() => {
     setPerm(notifyState())
     setOn(notifyEnabled())
     setInstalled(isStandalone())
+    setHour(notifyHour())
   }, [])
 
   if (perm === 'unsupported') {
@@ -52,6 +55,13 @@ export function Notifications() {
     toast.success(t.notify.okDisabled)
   }
 
+  /** Η ώρα μπαίνει στο πρόγραμμα με το επόμενο render του App — δες buildPlan. */
+  const pickHour = (h: number) => {
+    setNotifyHour(h)
+    setHour(h)
+    toast.success(t.notify.okHour(h))
+  }
+
   return (
     <section className="band">
       <p className="eyebrow band__label">{caps(t.notify.label)}</p>
@@ -63,6 +73,21 @@ export function Notifications() {
         <p className="nt__body">{t.notify.body}</p>
         {perm === 'denied' && <p className="nt__warn">{t.notify.denied}</p>}
         {!installed && <p className="nt__warn">{t.notify.installFirst}</p>}
+        {on && perm === 'granted' && (
+          <label className="nt__hour">
+            <span className="eyebrow">{caps(t.notify.hourLabel)}</span>
+            <select
+              className="input input--sm"
+              value={hour}
+              onChange={(e) => pickHour(Number(e.target.value))}
+            >
+              {NOTIFY_HOURS.map((h) => (
+                <option key={h} value={h}>{t.notify.hourValue(h)}</option>
+              ))}
+            </select>
+            <span className="nt__hourhint">{t.notify.hourHint}</span>
+          </label>
+        )}
         {on && perm === 'granted' ? (
           <button className="btn btn--ghost" onClick={disable}>{t.notify.disable}</button>
         ) : (

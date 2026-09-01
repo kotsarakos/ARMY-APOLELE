@@ -71,6 +71,30 @@ export function splitRegularDays(leaves: LeaveEntry[], now: Date = today()): Day
   return { past, future }
 }
 
+/* ── Αναρρωτική ──────────────────────────────────────────────────────────── */
+
+/**
+ * Πόσες μέρες αναρρωτικής «χωράνε» μέσα στη θητεία χωρίς να την παρατείνουν.
+ *
+ * Πέρα από αυτό το όριο, ο χρόνος δεν λογίζεται ως πραγματική στρατιωτική
+ * υπηρεσία και η απόλυση μετατίθεται ισόποσα. Είναι ο πιο συχνός λόγος που η
+ * ημερομηνία απόλυσης δεν βγαίνει «κατάταξη + μήνες», και μέχρι τώρα η
+ * εφαρμογή τον αγνοούσε τελείως — έδειχνε δηλαδή λάθος μέρα σε όποιον είχε
+ * μακρά αναρρωτική.
+ *
+ * Η τελική ημερομηνία βγαίνει πάντα από τη μονάδα· εδώ δίνουμε την εκτίμηση.
+ */
+export const SICK_LEAVE_FREE_DAYS = 30
+
+export function sickDays(leaves: LeaveEntry[]): number {
+  return totalLeaveDays(leaves, ['sick'])
+}
+
+/** Μέρες που προστίθενται στη θητεία λόγω αναρρωτικής πέρα από το όριο. */
+export function sickExtensionDays(leaves: LeaveEntry[]): number {
+  return Math.max(0, sickDays(leaves) - SICK_LEAVE_FREE_DAYS)
+}
+
 export function sortLeaves(leaves: LeaveEntry[]): LeaveEntry[] {
   return [...(leaves ?? [])].sort((a, b) => (a.from < b.from ? 1 : a.from > b.from ? -1 : 0))
 }

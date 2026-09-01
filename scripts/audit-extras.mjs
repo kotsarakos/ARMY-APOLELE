@@ -114,6 +114,80 @@ if (backup) {
     backup.suggestedFilename())
 }
 
+
+/* ── Εξαγωγή σε ημερολόγιο (.ics) ───────────────────────────────────────── */
+
+const [ics] = await Promise.all([
+  page.waitForEvent('download', { timeout: 10000 }).catch(() => null),
+  page.click('.set__databtns .btn >> nth=2'),
+])
+check('το αρχείο ημερολογίου κατεβαίνει', ics !== null)
+if (ics) {
+  check('είναι .ics με σωστό όνομα',
+    /^army-apolele-\d{4}-\d{2}-\d{2}\.ics$/.test(ics.suggestedFilename()),
+    ics.suggestedFilename())
+  const stream = await ics.createReadStream()
+  let text = ''
+  for await (const chunk of stream) text += chunk
+  check('είναι έγκυρο VCALENDAR',
+    text.startsWith('BEGIN:VCALENDAR') && text.trimEnd().endsWith('END:VCALENDAR'))
+  check('περιέχει την απόλυση ως γεγονός', /UID:discharge-/.test(text))
+  check('χρησιμοποιεί CRLF όπως ορίζει το RFC 5545',
+    text.includes('\r\n') && !/[^\r]\n/.test(text))
+  check('καμία γραμμή πάνω από 75 οκτάδες',
+    text.split('\r\n').every((l) => new TextEncoder().encode(l).length <= 75))
+}
+
+/* ── Θέμα εμφάνισης ─────────────────────────────────────────────────────── */
+
+// Χωρίς ρητή επιλογή δεν μπαίνει `data-theme`: δουλεύει το prefers-color-scheme.
+check('χωρίς επιλογή το θέμα ακολουθεί τη συσκευή',
+  (await page.getAttribute('html', 'data-theme')) === null)
+
+await page.click('.seg__b >> nth=1')          // Φωτεινό
+await page.waitForTimeout(150)
+check('η ρητή επιλογή γράφεται στο <html>',
+  (await page.getAttribute('html', 'data-theme')) === 'light')
+check('ο καμβάς άλλαξε πραγματικά χρώμα',
+  (await page.evaluate(() => getComputedStyle(document.body).backgroundColor))
+    === 'rgb(251, 251, 249)')
+check('συγχρονίζεται και το theme-color της μπάρας',
+  (await page.getAttribute('meta[name=theme-color]', 'content')) === '#FBFBF9')
+
+// Το κείμενο πρέπει να μένει αναγνώσιμο: αν κάποιο χρώμα οριζόταν μόνο μέσα
+// στο σκοτεινό μπλοκ, εδώ θα έβγαινε σχεδόν λευκό πάνω σε λευκό.
+const inkLight = await page.evaluate(() =>
+  getComputedStyle(document.documentElement).getPropertyValue('--ink').trim())
+check('τα tokens του κειμένου ξαναορίστηκαν', inkLight === '#14161A', inkLight)
+
+await page.reload({ waitUntil: 'domcontentloaded' })
+check('το θέμα επιβιώνει του reload χωρίς αναλαμπή',
+  (await page.getAttribute('html', 'data-theme')) === 'light')
+
+await page.click('[data-tab="profile"]')
+await page.click('.seg__b >> nth=0')          // Αυτόματο
+await page.waitForTimeout(150)
+check('η επιστροφή στο αυτόματο αφαιρεί το data-theme',
+  (await page.getAttribute('html', 'data-theme')) === null)
+
+/* ── Ώρα ειδοποιήσεων ───────────────────────────────────────────────────── */
+
+check('η ώρα εμφανίζεται μόνο όταν είναι ενεργές', await page.isVisible('.nt__hour'))
+await page.selectOption('.nt__hour select', '9')
+await page.waitForTimeout(200)
+check('η ώρα αποθηκεύεται ανά συσκευή',
+  (await page.evaluate(() => localStorage.getItem('army_app.notify.hour.v1'))) === '9')
+
+// Ο service worker δεν βλέπει localStorage, οπότε η ώρα πρέπει να ταξιδεύει
+// μέσα στο ίδιο το πρόγραμμα.
+const planWithHour = await page.evaluate(async () => {
+  const cache = await caches.open('army-notify-plan')
+  const res = await cache.match('/__notify-plan')
+  return res ? await res.json() : null
+})
+check('η ώρα μπαίνει στο πρόγραμμα για τον service worker',
+  planWithHour?.hour === 9, String(planWithHour?.hour))
+
 check('χωρίς σφάλματα κονσόλας', errors.length === 0, errors.slice(0, 3).join(' | '))
 
 await browser.close()

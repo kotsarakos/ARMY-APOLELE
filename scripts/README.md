@@ -13,10 +13,11 @@ npm run audit
 | Script | What it checks |
 |---|---|
 | `audit-mobile.mjs` | Horizontal overflow at 320/360/390/414/768px on every screen, input font size ≥16px (below that iOS Safari zooms on focus), tap targets ≥44px |
-| `audit-functional.mjs` | Language detection and switching, meta title and description updates, success and error messaging, data persistence across reloads, leave and duty entry with validation, recurring charges, expense editing, 404 and privacy routes, zoom lock |
+| `audit-functional.mjs` | Language detection and switching, meta title and description updates, success and error messaging, data persistence across reloads, leave and duty entry with validation, recurring charges, expense editing, the monthly calendar and the milestone timeline, the spending limit, undo on deletion, posting history, home-screen shortcut URLs, 404 and privacy routes, zoom lock |
 | `audit-fonts.mjs` | That the display and mono typefaces actually cover **Greek** glyphs rather than falling back silently |
 | `audit-pwa.mjs` | Manifest fields, icon sizes including maskable, a PNG apple-touch-icon (iOS ignores SVG), service worker registration and activation, app shell precaching, and that the app **opens with the network down** |
-| `audit-extras.mjs` | The notification plan written to the Cache API, its translation following the UI language, the notification toggle persisting per device, share-card PNG generation and JSON backup download |
+| `audit-extras.mjs` | The notification plan written to the Cache API, its translation following the UI language, the toggle and the chosen hour persisting per device, the light/dark theme surviving a reload with the tokens actually redefined, share-card PNG generation, and the JSON backup and `.ics` calendar downloads |
+| `audit-legacy.mjs` | That a profile written by an **older version** — missing whole collections — still opens, renders every tab and migrates rather than crashing |
 | `audit-scroll.mjs` | That every screen scrolls with a mouse wheel at desktop window sizes, including short ones |
 
 ## Why some of these exist
@@ -33,8 +34,19 @@ Firebase Hosting sends `Vary: Origin` while Vite marks module scripts
 `crossorigin`, so `caches.match` missed every asset and the app opened offline to
 a white screen. Hence `{ ignoreVary: true }` in the service worker.
 
-**Tap targets.** Measurement has caught undersized controls three separate times,
-including ones added while fixing the previous two.
+**Tap targets.** Measurement has caught undersized controls four separate times,
+including ones added while fixing the previous three.
+
+**Old profiles.** Unit-test fixtures are always built from the current
+`DEFAULT_PROFILE`, so they can never catch the bug where a field added this week is
+read from a profile saved last month. That bug does not produce a broken screen; it
+produces a white one, for somebody who did nothing wrong. This suite loads the
+shapes previous releases actually wrote.
+
+**Themes.** A colour defined only inside a `prefers-color-scheme` block does not
+exist in the other theme, and nothing in the build catches it. The suite reads the
+computed `--ink` after switching, so a token that failed to redefine shows up as a
+value rather than as a screenshot somebody has to look at.
 
 ## Other scripts
 

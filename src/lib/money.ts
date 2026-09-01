@@ -51,6 +51,54 @@ export interface MoneyState {
   count: number
   /** Άθροισμα των πάγιων ανά μήνα. */
   recurringMonthly: number
+  budget: BudgetState
+}
+
+export interface BudgetState {
+  /** Το όριο σε λεπτά· 0 σημαίνει ότι δεν έχει οριστεί. */
+  limit: number
+  set: boolean
+  /** Ξοδεμένα μέσα στον τρέχοντα ημερολογιακό μήνα. */
+  spent: number
+  /** Όσα απομένουν από το όριο· μπορεί να είναι αρνητικό. */
+  left: number
+  /** 0..1 του ορίου — κόβεται στο 1 για τη μπάρα. */
+  share: number
+  over: boolean
+  /** Μέρες που απομένουν στον μήνα, μαζί με τη σημερινή. */
+  daysLeftInMonth: number
+  /** Πόσα αντέχει την ημέρα ώστε να μη σπάσει το όριο μέχρι το τέλος του μήνα. */
+  perDay: number
+}
+
+/** Έξοδα μέσα στον ημερολογιακό μήνα της `now`. */
+export function spentInMonth(expenses: Expense[], now: Date): number {
+  const prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  return (expenses ?? [])
+    .filter((e) => e.date.startsWith(prefix))
+    .reduce((sum, e) => sum + e.amount, 0)
+}
+
+function computeBudget(profile: Profile, now: Date): BudgetState {
+  const limit = Math.max(0, profile.monthlyBudget ?? 0)
+  const spent = spentInMonth(profile.expenses, now)
+  const left = limit - spent
+
+  // Μέρες που μένουν στον μήνα, με τη σημερινή να μετράει: αν είναι 28 Απριλίου,
+  // έχει ακόμη τρεις μέρες να ξοδέψει (28, 29, 30).
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+  const daysLeftInMonth = lastDay - now.getDate() + 1
+
+  return {
+    limit,
+    set: limit > 0,
+    spent,
+    left,
+    share: limit > 0 ? Math.min(1, spent / limit) : 0,
+    over: limit > 0 && spent > limit,
+    daysLeftInMonth,
+    perDay: limit > 0 ? Math.max(0, Math.floor(left / daysLeftInMonth)) : 0,
+  }
 }
 
 export function totalSpent(expenses: Expense[]): number {
@@ -100,6 +148,7 @@ export function computeMoney(profile: Profile, service: ServiceState): MoneyStat
     byCategory,
     count: (profile.expenses ?? []).length,
     recurringMonthly: (profile.recurring ?? []).reduce((s, r) => s + r.amount, 0),
+    budget: computeBudget(profile, service.now),
   }
 }
 

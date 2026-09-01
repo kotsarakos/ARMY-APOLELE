@@ -1,4 +1,21 @@
-/* Design tokens — βλ. DESIGN.md (Linear structure × SpaceX voice, field olive) */
+/* Design tokens — βλ. DESIGN.md (Linear structure × SpaceX voice, field olive)
+ *
+ * Δύο θέματα. Το σκοτεινό είναι το προεπιλεγμένο και ορίζεται ολόκληρο στο
+ * `:root`· το φωτεινό ξαναγράφει **μόνο τα χρώματα** σε δύο σημεία:
+ *
+ *   1. `@media (prefers-color-scheme: light)` για όποιον δεν έχει διαλέξει,
+ *      φραγμένο με `:root:not([data-theme="dark"])` ώστε η ρητή επιλογή
+ *      «σκοτεινό» να κερδίζει το λειτουργικό.
+ *   2. `:root[data-theme="light"]` για τη ρητή επιλογή.
+ *
+ * Κάθε χρώμα έχει την αρχική του τιμή εδώ. Χρώμα που ορίζεται μόνο μέσα σε
+ * media query δεν υπάρχει στο άλλο θέμα, και αυτό είναι το πιο συνηθισμένο
+ * σφάλμα σε διπλά θέματα.
+ *
+ * Οι τιμές του κειμένου είναι επιλεγμένες ώστε να περνούν το WCAG AA (4.5:1)
+ * πάνω στον καμβά ΚΑΙ πάνω στα panel. Το παλιό `--ink-tertiary` έβγαζε 2.9:1,
+ * που σε κινητό στον ήλιο ήταν πρακτικά αόρατο.
+ */
 :root {
   color-scheme: dark;
 
@@ -12,7 +29,8 @@
   --ink: #F4F5F3;
   --ink-muted: #C9CCC4;
   --ink-subtle: #84887E;
-  --ink-tertiary: #585B54;
+  /* 4.86:1 στον καμβά, 4.56:1 στα panel. */
+  --ink-tertiary: #7A7E74;
 
   --canvas: #06070A;
   --surface-1: #0F1113;
@@ -22,7 +40,11 @@
   --hairline-strong: #31353B;
 
   --success: #4E9A51;
-  --danger: #B4533F;
+  /* 5.08:1 στον καμβά — το παλιό #B4533F έμενε στο 4.08:1. */
+  --danger: #C9614A;
+
+  /* Ένταση του πλέγματος στο βάθος· το φωτεινό θέμα το θέλει πιο ήσυχο. */
+  --grid-opacity: 0.28;
 
   --r-xs: 4px;
   --r-sm: 6px;
@@ -43,4 +65,64 @@
   --font-display: 'Roboto Condensed', 'DIN Alternate', 'Arial Narrow', sans-serif;
   --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   --font-mono: 'Roboto Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+/* Το ίδιο σύνολο χρωμάτων, φωτεινή εκδοχή. Το λαδί σκουραίνει: το #7C8B3F
+   είναι φτιαγμένο να λάμπει πάνω σε μαύρο και πέφτει στο 2.6:1 πάνω σε λευκό. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+
+    --primary: #5A6630;
+    --primary-hover: #4A5528;
+    --primary-dim: #A8B183;
+    --on-primary: #FFFFFF;
+    --signal: #8A6410;
+    --signal-dim: #D8C48A;
+
+    --ink: #14161A;
+    --ink-muted: #3D4148;
+    --ink-subtle: #5E6369;
+    --ink-tertiary: #64696F;
+
+    --canvas: #FBFBF9;
+    --surface-1: #FFFFFF;
+    --surface-2: #F7F7F4;
+    --surface-3: #EFEFEA;
+    --hairline: #E4E4DE;
+    --hairline-strong: #C6C6BE;
+
+    --success: #2F6B33;
+    --danger: #A33B26;
+
+    --grid-opacity: 0.5;
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --primary: #5A6630;
+  --primary-hover: #4A5528;
+  --primary-dim: #A8B183;
+  --on-primary: #FFFFFF;
+  --signal: #8A6410;
+  --signal-dim: #D8C48A;
+
+  --ink: #14161A;
+  --ink-muted: #3D4148;
+  --ink-subtle: #5E6369;
+  --ink-tertiary: #64696F;
+
+  --canvas: #FBFBF9;
+  --surface-1: #FFFFFF;
+  --surface-2: #F7F7F4;
+  --surface-3: #EFEFEA;
+  --hairline: #E4E4DE;
+  --hairline-strong: #C6C6BE;
+
+  --success: #2F6B33;
+  --danger: #A33B26;
+
+  --grid-opacity: 0.5;
 }

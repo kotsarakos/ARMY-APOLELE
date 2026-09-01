@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: Apolytirio-design-system
-description: "A mission-countdown design language for Greek conscription. Structurally it is Linear — a near-black #06070A canvas, charcoal panels at #0F1113 with 1px hairlines, dense technical rhythm, one chromatic accent used sparingly and never decoratively. Its voice is SpaceX — all-caps eyebrow microtext with positive tracking, and enormous tight-leading numerals that read as a launch clock rather than a dashboard stat. Linear's lavender is replaced by field olive #7C8B3F, with a signal amber for the final stretch of service. The result should feel engineered and issued, not designed: an instrument panel a conscript checks every morning."
+description: "A mission-countdown design language for Greek conscription. Structurally it is Linear — a near-black #06070A canvas, charcoal panels at #0F1113 with 1px hairlines, dense technical rhythm, one chromatic accent used sparingly and never decoratively. Its voice is SpaceX — all-caps eyebrow microtext with positive tracking, and enormous tight-leading numerals that read as a launch clock rather than a dashboard stat. Linear's lavender is replaced by field olive #7C8B3F, with a signal amber for the final stretch of service. The result should feel engineered and issued, not designed: an instrument panel a conscript checks every morning. A light theme carries the same system for daylight use, with the olive darkened so it keeps its contrast on white."
 inspired_by: ["linear.app", "spacex"]
 
 colors:
@@ -14,7 +14,7 @@ colors:
   ink: "#F4F5F3"
   ink-muted: "#C9CCC4"
   ink-subtle: "#84887E"
-  ink-tertiary: "#585B54"
+  ink-tertiary: "#7A7E74"
   canvas: "#06070A"
   surface-1: "#0F1113"
   surface-2: "#141618"
@@ -22,7 +22,30 @@ colors:
   hairline: "#212429"
   hairline-strong: "#31353B"
   semantic-success: "#4E9A51"
-  semantic-danger: "#B4533F"
+  semantic-danger: "#C9614A"
+
+# Το ίδιο σύστημα σε φωτεινό. Δεν είναι ανεστραμμένο: το λαδί σκουραίνει, γιατί
+# το #7C8B3F είναι φτιαγμένο να λάμπει πάνω σε μαύρο και πέφτει στο 2.6:1 πάνω
+# σε λευκό. Κάθε τιμή κειμένου περνά το WCAG AA (4.5:1) και στα δύο θέματα.
+colors-light:
+  primary: "#5A6630"
+  primary-hover: "#4A5528"
+  primary-dim: "#A8B183"
+  on-primary: "#FFFFFF"
+  signal: "#8A6410"
+  signal-dim: "#D8C48A"
+  ink: "#14161A"
+  ink-muted: "#3D4148"
+  ink-subtle: "#5E6369"
+  ink-tertiary: "#64696F"
+  canvas: "#FBFBF9"
+  surface-1: "#FFFFFF"
+  surface-2: "#F7F7F4"
+  surface-3: "#EFEFEA"
+  hairline: "#E4E4DE"
+  hairline-strong: "#C6C6BE"
+  semantic-success: "#2F6B33"
+  semantic-danger: "#A33B26"
 
 typography:
   clock:

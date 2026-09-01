@@ -147,10 +147,15 @@ async function showDue() {
   // σε localStorage. Το `tag` εμποδίζει τη διπλή εμφάνιση αν συμπέσουν.
   const shown = new Set(await readJSON(SHOWN_CACHE, SHOWN_URL, []))
   const iso = todayISO()
+  // Η ώρα που διάλεξε ο χρήστης ταξιδεύει μέσα στο πρόγραμμα: εδώ δεν υπάρχει
+  // localStorage για να τη διαβάσουμε.
+  const hour = Number.isInteger(plan.hour) ? plan.hour : 20
+  const clock = new Date().getHours()
   let changed = false
 
   for (const item of plan.items) {
     if (item.date > iso || shown.has(item.id)) continue
+    if (item.date === iso && clock < hour) continue
     await self.registration.showNotification(item.title, {
       body: item.body,
       icon: '/icon-192.png',

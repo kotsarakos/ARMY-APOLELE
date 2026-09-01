@@ -12,15 +12,19 @@ a month, or €100 in a border unit.
 
 The application is bilingual (Greek and English), installable as a PWA, and
 local-first: without an account no data leaves the device. Signing in is optional
-and exists only to sync a profile between devices.
+and exists only to sync a profile between devices. It offers light and dark
+themes, local notifications at an hour the user chooses, a JSON backup and an
+.ics calendar export — both generated on the device, neither passing through a
+server.
 
 The name comes from "απολελές και τρελελές", Greek army slang for a conscript in
 the final stretch of service.
 
 ## Pages
 
-- [Counter](https://army-apolele.web.app/): days until discharge, progress, days
-  actually spent on base, pay earned, leave, duties and expenses
+- [Counter](https://army-apolele.web.app/): days until discharge, days actually
+  spent on base, pay earned, a monthly calendar carrying leave, duties, paydays
+  and spending together, and a timeline of service milestones
 - [Install](https://army-apolele.web.app/install): how to add the app to a home
   screen on iOS, Android and desktop
 - [Privacy](https://army-apolele.web.app/privacy): what is stored, what is not
@@ -38,9 +42,11 @@ the final stretch of service.
 
 ## Notes for summarisation
 
-- The discharge date is enlistment plus the months of obligation. Leave counts as
-  service and never pushes it back; what leave changes is the number of days
-  physically spent on base.
+- The discharge date is enlistment plus the months of obligation. Ordinary leave
+  counts as service and never pushes it back; what leave changes is the number of
+  days physically spent on base. The single exception is sick leave: the first 30
+  days do not affect the term, and anything beyond that moves discharge back by
+  the same number of days.
 - Intake dates other than the 2026 A intake are estimates until each official
   call-up is published, and the app labels them as such.
 - This is an independent, non-commercial tool. It is not affiliated with the

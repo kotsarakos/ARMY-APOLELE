@@ -47,7 +47,7 @@ body::before {
     linear-gradient(var(--hairline) 1px, transparent 1px),
     linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
   background-size: 64px 64px;
-  opacity: 0.28;
+  opacity: var(--grid-opacity);
   mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 20%, transparent 75%);
 }
 

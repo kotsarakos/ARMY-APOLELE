@@ -5,19 +5,24 @@ import {
   CATEGORIES, computeMoney, formatMoney, isFromRecurring, newExpense,
   newRecurring, parseAmount, recentFirst,
 } from '../lib/money'
-import { withDeletion, withDeletions } from '../lib/merge'
+import { deletion } from '../lib/merge'
 import { formatShort, parseISO, toISO, today } from '../lib/dates'
+import { focusSection } from '../lib/scroll'
 import { DateField } from './DateField'
 import { upperGreek as caps } from '../lib/greek'
 import { useI18n } from '../hooks/useI18n'
 import { useToast } from '../hooks/useToast'
 
+/** Η πληρωμή μέσα σε τρεις μέρες αξίζει να ξεχωρίζει. */
+const SOON_DAYS = 3
+
 export function Money({
-  profile, service, update,
+  profile, service, update, updateWith,
 }: {
   profile: Profile
   service: ServiceState
   update: (patch: Partial<Profile>) => void
+  updateWith: (build: (prev: Profile) => Partial<Profile>) => void
 }) {
   const { t, lang } = useI18n()
   const toast = useToast()
@@ -29,6 +34,7 @@ export function Money({
   const [note, setNote] = useState('')
   const [date, setDate] = useState(iso)
   const [startingDraft, setStartingDraft] = useState('')
+  const [budgetDraft, setBudgetDraft] = useState('')
 
   // Επεξεργασία υπάρχοντος εξόδου, ένα τη φορά.
   const [editing, setEditing] = useState<string | null>(null)
@@ -53,8 +59,9 @@ export function Money({
   }
 
   const removeExpense = (id: string) => {
-    update(withDeletion(profile, id))
-    toast.success(t.money.okDeleted)
+    const del = deletion(profile, [id])
+    update(del.patch)
+    toast.undoable(t.money.okDeleted, t.common.undo, () => updateWith(del.restore))
   }
 
   const startEdit = (e: Expense) => {
@@ -104,8 +111,23 @@ export function Money({
   /** Το πάγιο φεύγει μαζί με ό,τι χρέωσε — αλλιώς μένουν ορφανές εγγραφές. */
   const removeRecurring = (id: string) => {
     const ids = [id, ...profile.expenses.filter((e) => isFromRecurring(e, id)).map((e) => e.id)]
-    update(withDeletions(profile, ids))
-    toast.success(t.money.okRecurringDeleted)
+    const del = deletion(profile, ids)
+    update(del.patch)
+    toast.undoable(t.money.okRecurringDeleted, t.common.undo, () => updateWith(del.restore))
+  }
+
+  const saveBudget = () => {
+    const cents = parseAmount(budgetDraft)
+    if (cents === null) return toast.error(t.money.errAmount)
+    update({ monthlyBudget: cents })
+    setBudgetDraft('')
+    toast.success(cents > 0 ? t.money.okBudget : t.money.okBudgetCleared)
+  }
+
+  const clearBudget = () => {
+    update({ monthlyBudget: 0 })
+    setBudgetDraft('')
+    toast.success(t.money.okBudgetCleared)
   }
 
   return (
@@ -150,7 +172,7 @@ export function Money({
             <p className="tile__value num">{money(m.dailyBurn)}</p>
             <p className="tile__hint">{t.money.monthlyBurn}: {money(m.monthlyBurn)}</p>
           </div>
-          <div className="tile">
+          <div className={`tile ${service.pay.daysToPay <= SOON_DAYS ? 'tile--soon' : ''}`}>
             <p className="eyebrow">{caps(t.money.payday)}</p>
             <p className="tile__value num">{money(service.pay.perMonth * 100)}</p>
             <p className="tile__hint">
@@ -183,8 +205,70 @@ export function Money({
         </div>
       </section>
 
-      {/* Νέο έξοδο */}
+      {/* Μηνιαίο όριο — δική του απόφαση, όχι κανόνας του στρατού. */}
       <section className="band">
+        <p className="eyebrow band__label">{caps(t.money.budgetTitle)}</p>
+        <div className={`panel bd ${m.budget.over ? 'bd--over' : ''}`}>
+          <p className="mn__starthint">{t.money.budgetHint}</p>
+
+          {m.budget.set ? (
+            <>
+              <div className="bd__nums">
+                <div>
+                  <p className="eyebrow">{caps(t.money.budgetSpent)}</p>
+                  <p className="bd__big num">{money(m.budget.spent)}</p>
+                </div>
+                <div className="bd__right">
+                  <p className="eyebrow">
+                    {caps(m.budget.over ? t.money.budgetOver : t.money.budgetLeft)}
+                  </p>
+                  <p className={`bd__big num ${m.budget.over ? 'bd__big--over' : ''}`}>
+                    {money(Math.abs(m.budget.left))}
+                  </p>
+                </div>
+              </div>
+
+              <div className="progress__track" role="presentation">
+                <div
+                  className={`progress__fill ${m.budget.over ? 'progress__fill--over' : 'progress__fill--signal'}`}
+                  style={{ width: `${Math.round(m.budget.share * 100)}%` }}
+                />
+              </div>
+
+              <p className="bd__note">
+                {m.budget.over
+                  ? t.money.budgetOverBody(money(-m.budget.left))
+                  : t.money.budgetPerDay(money(m.budget.perDay), m.budget.daysLeftInMonth)}
+              </p>
+            </>
+          ) : (
+            <p className="mn__empty">{t.money.budgetNone}</p>
+          )}
+
+          <div className="mn__startrow">
+            <input
+              className="input input--sm"
+              type="text" inputMode="decimal"
+              placeholder={t.money.amountPlaceholder}
+              value={budgetDraft}
+              onChange={(e) => setBudgetDraft(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && saveBudget()}
+              aria-label={t.money.budgetSet}
+            />
+            <button className="btn btn--secondary btn--sm" onClick={saveBudget}>
+              {t.money.budgetSet}
+            </button>
+            {m.budget.set && (
+              <button className="btn btn--ghost btn--sm" onClick={clearBudget}>
+                {t.money.budgetClear}
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Νέο έξοδο */}
+      <section className="band" id="add-money">
         <p className="eyebrow band__label">{caps(t.money.addTitle)}</p>
         <div className="panel mn__add">
           <div className="mn__addrow">
@@ -335,7 +419,13 @@ export function Money({
       <section className="band">
         <p className="eyebrow band__label">{caps(t.money.recent)}</p>
         {profile.expenses.length === 0 ? (
-          <div className="panel"><p className="mn__empty">{t.money.empty}</p></div>
+          <div className="panel empty">
+            <p className="empty__text">{t.money.empty}</p>
+            <button className="btn btn--secondary btn--sm"
+                    onClick={() => focusSection('add-money')}>
+              {t.money.emptyCta}
+            </button>
+          </div>
         ) : (
           <ul className="mn__list">
             {recentFirst(profile.expenses).slice(0, 20).map((e) => (

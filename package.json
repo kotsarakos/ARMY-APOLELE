@@ -13,11 +13,12 @@
     "audit:mobile": "node scripts/audit-mobile.mjs",
     "audit:func": "node scripts/audit-functional.mjs",
     "audit:fonts": "node scripts/audit-fonts.mjs",
-    "audit": "npm run audit:mobile && npm run audit:func && npm run audit:fonts && npm run audit:pwa && npm run audit:extras && node scripts/audit-scroll.mjs",
+    "audit": "npm run audit:mobile && npm run audit:func && npm run audit:fonts && npm run audit:pwa && npm run audit:extras && npm run audit:legacy && node scripts/audit-scroll.mjs",
     "audit:pwa": "node scripts/audit-pwa.mjs",
     "test:core": "esbuild tests/service.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp-test.mjs --log-level=error && node node_modules/.tmp-test.mjs",
     "test:features": "esbuild tests/features.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp-feat.mjs --log-level=error && node node_modules/.tmp-feat.mjs",
-    "audit:extras": "node scripts/audit-extras.mjs"
+    "audit:extras": "node scripts/audit-extras.mjs",
+    "audit:legacy": "node scripts/audit-legacy.mjs"
   },
   "dependencies": {
     "firebase": "^12.18.0",

@@ -71,6 +71,7 @@ export function parseBackup(text: string): ImportResult {
       duties: Array.isArray(p.duties) ? p.duties : [],
       expenses: Array.isArray(p.expenses) ? p.expenses : [],
       recurring: Array.isArray(p.recurring) ? p.recurring : [],
+      postings: Array.isArray(p.postings) ? p.postings : [],
       deletedIds: Array.isArray(p.deletedIds) ? p.deletedIds : [],
       updatedAt: Date.now(),
     },

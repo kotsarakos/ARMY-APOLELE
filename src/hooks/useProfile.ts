@@ -3,6 +3,7 @@ import type { Profile } from '../lib/types'
 import { fetchProfile, pushProfile, mergeOnSignIn } from '../firebase/sync'
 import type { MergeOutcome } from '../firebase/sync'
 import { migrateLegacyLeave } from '../lib/leave'
+import { migrateLegacyUnit } from '../lib/postings'
 import { dueRecurring } from '../lib/money'
 import { toISO } from '../lib/dates'
 import { useToast } from './useToast'
@@ -83,8 +84,9 @@ export function useProfile() {
     persist(next)
   }, [persist])
 
-  // Δύο εργασίες συντήρησης: μεταφορά του παλιού μετρητή αδείας σε εγγραφή με
-  // ημερομηνίες, και χρέωση των πάγιων εξόδων που ωρίμασαν.
+  // Τρεις εργασίες συντήρησης: μεταφορά του παλιού μετρητή αδείας σε εγγραφή
+  // με ημερομηνίες, μεταφορά της σκέτης μονάδας σε τοποθέτηση, και χρέωση των
+  // πάγιων εξόδων που ωρίμασαν.
   //
   // Τρέχουν μία φορά ανά ημερολογιακή μέρα, όχι μία φορά ανά φόρτωση: η
   // εφαρμογή είναι PWA και μπορεί να μείνει ανοιχτή για βδομάδες, οπότε τα
@@ -95,7 +97,7 @@ export function useProfile() {
     if (loading || !profile || maintainedFor.current === day) return
     maintainedFor.current = day
 
-    const migrated = migrateLegacyLeave(profile, t.leave.legacyNote, now)
+    const migrated = migrateLegacyUnit(migrateLegacyLeave(profile, t.leave.legacyNote, now))
     const due = dueRecurring(migrated, now)
     if (migrated === profile && due.length === 0) return
 
@@ -115,5 +117,21 @@ export function useProfile() {
     })
   }, [persist])
 
-  return { profile, setProfile, update, loading, syncing }
+  /**
+   * Ενημέρωση που υπολογίζει το patch από το **τρέχον** προφίλ.
+   *
+   * Το χρειάζεται η αναίρεση διαγραφής: ανάμεσα στο σβήσιμο και στο πάτημα του
+   * «Αναίρεση» μπορεί να έχει προστεθεί άλλη εγγραφή, και ένα patch φτιαγμένο
+   * από παλιό στιγμιότυπο θα την έσβηνε.
+   */
+  const updateWith = useCallback((build: (prev: Profile) => Partial<Profile>) => {
+    setProfileState((prev) => {
+      if (!prev) return prev
+      const next = { ...prev, ...build(prev) }
+      persist(next)
+      return next
+    })
+  }, [persist])
+
+  return { profile, setProfile, update, updateWith, loading, syncing }
 }
