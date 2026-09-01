@@ -1,0 +1,57 @@
+# Κατεβάζει τις ανακοινώσεις της Στρατολογίας μία φορά την ημέρα.
+#
+# Γιατί εδώ και όχι σε διακομιστή: το feed δεν στέλνει CORS headers, οπότε ο
+# browser δεν μπορεί να το διαβάσει μόνος του, και μια Cloud Function θα
+# απαιτούσε αναβάθμιση σε πληρωμένο πλάνο για κάτι που τρέχει 365 φορές τον
+# χρόνο. Ένα GitHub Action σε δημόσιο repo το κάνει δωρεάν, και το αποτέλεσμα
+# είναι ένα στατικό αρχείο — καμία υποδομή που να μπορεί να πέσει.
+#
+# Το commit δεν κάνει από μόνο του deploy. Η εφαρμογή διαβάζει το αρχείο απευθείας
+# από το raw.githubusercontent.com (που στέλνει `access-control-allow-origin: *`),
+# οπότε μια νέα ανακοίνωση φτάνει στους χρήστες χωρίς να χρειαστεί build.
+name: Ανακοινώσεις στρατολογίας
+
+on:
+  schedule:
+    # 05:00 UTC — νωρίς το πρωί σε ελληνική ώρα, πριν τη χρήση της ημέρας.
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+# Το μόνο δικαίωμα που χρειάζεται: να γράψει το αρχείο πίσω στο repo.
+permissions:
+  contents: write
+
+concurrency:
+  group: announcements
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Πρώτα ο parser σε αποθηκευμένο feed: αν έχει σπάσει, δεν έχει νόημα
+      # να γράψουμε σκουπίδια στο repo.
+      - name: Έλεγχος parser
+        run: node scripts/fetch-announcements.mjs --selftest
+
+      # Καμία εξάρτηση: το script χρησιμοποιεί μόνο το fetch του Node.
+      - name: Ανάκτηση feed
+        run: node scripts/fetch-announcements.mjs
+
+      - name: Commit αν άλλαξε κάτι
+        run: |
+          if git diff --quiet -- public/announcements.json; then
+            echo "Καμία αλλαγή στις ανακοινώσεις."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/announcements.json
+          git commit -m "Update announcements from stratologia.gr"
+          git push

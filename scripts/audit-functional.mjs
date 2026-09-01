@@ -15,7 +15,14 @@ const ctx = await browser.newContext({ viewport:{width:390,height:844}, isMobile
 const page = await ctx.newPage()
 const errs = []
 page.on('pageerror', e => errs.push(e.message))
-page.on('console', m => { if (m.type()==='error') errs.push(m.text()) })
+// Η διεύθυνση ενός σφάλματος δικτύου υπάρχει μόνο στο `location()` — το
+// κείμενο λέει σκέτο «Failed to load resource». Χωρίς αυτήν δεν ξεχωρίζει
+// ένα αναμενόμενο 404 από πραγματικό σφάλμα.
+page.on('console', m => {
+  if (m.type() !== 'error') return
+  const at = m.location()?.url
+  errs.push(at ? `${m.text()} @ ${at}` : m.text())
+})
 
 await page.goto(BASE + '/', { waitUntil:'networkidle' })
 // 0. Η αρχική οθόνη προσφέρει σύνδεση πριν από οτιδήποτε άλλο.
@@ -379,7 +386,11 @@ check('404 back button returns home', page.url() === BASE + '/')
 const vp = await page.getAttribute('meta[name=viewport]','content')
 check('viewport locks zoom', vp.includes('user-scalable=no') && vp.includes('maximum-scale=1'), vp)
 
-check('no console/page errors', errs.length === 0, errs.slice(0,3).join(' | '))
+// Το ζωντανό αρχείο ανακοινώσεων στο GitHub μπορεί να λείπει — πριν τρέξει
+// το Action για πρώτη φορά, ή σε ένα fork. Η εφαρμογή το αντέχει σιωπηλά
+// (ελέγχεται στο audit-extras)· ο browser όμως γράφει το 404 μόνος του.
+const unexpected = errs.filter(e => !e.includes('raw.githubusercontent.com'))
+check('no console/page errors', unexpected.length === 0, unexpected.slice(0,3).join(' | '))
 
 // Στιγμιότυπα
 await page.goto(BASE + '/', { waitUntil:'networkidle' })

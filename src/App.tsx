@@ -20,6 +20,7 @@ import { Money } from './components/Money'
 import { Duty } from './components/Duty'
 import { ShareCard } from './components/ShareCard'
 import { Notifications } from './components/Notifications'
+import { Announcements } from './components/Announcements'
 import { ProfileCard } from './components/ProfileCard'
 import { InstallBanner } from './components/InstallBanner'
 import { InstallGuide } from './components/InstallGuide'
@@ -28,6 +29,7 @@ import { NotFound } from './components/NotFound'
 import { upperGreek as caps } from './lib/greek'
 import { TAB_ICONS } from './components/icons'
 import { focusSection } from './lib/scroll'
+import { localAnnouncements, unreadCount } from './lib/announcements'
 import { NOTIFY_HOUR_EVENT, buildPlan, flushDue, savePlan, setBadge } from './lib/notify'
 
 type Tab = 'clock' | 'leave' | 'duty' | 'money' | 'profile'
@@ -62,6 +64,18 @@ export default function App() {
     [profile, now],
   )
   const ms = useMemo(() => (state ? milestones(state) : []), [state])
+
+  // Πόσες ανακοινώσεις έχουν βγει από την τελευταία επίσκεψη. Διαβάζεται μόνο
+  // από το αρχείο του build — ίδιας προέλευσης, χωρίς αίτημα προς τα έξω· το
+  // φρεσκάρισμα από το δίκτυο γίνεται μόνο όταν ανοίξει η ενότητα.
+  const [unread, setUnread] = useState(0)
+  useEffect(() => {
+    let cancelled = false
+    void localAnnouncements().then((feed) => {
+      if (!cancelled && feed) setUnread(unreadCount(feed.items))
+    })
+    return () => { cancelled = true }
+  }, [])
 
   // Η ώρα των ειδοποιήσεων είναι προτίμηση συσκευής και ζει εκτός React·
   // αυτός ο μετρητής ξαναχτίζει το πρόγραμμα όταν αλλάξει.
@@ -220,6 +234,7 @@ export default function App() {
             profile={profile} service={state}
             update={update} updateWith={updateWith}
           />
+          <Announcements />
           <Notifications />
           <Account syncing={syncing} profile={profile} />
           <Settings
@@ -245,6 +260,11 @@ export default function App() {
             >
               <Icon />
               <span className="tabs__t">{caps(t.tabs[k])}</span>
+              {k === 'profile' && unread > 0 && (
+                <span className="tabs__dot" title={t.news.unread(unread)}>
+                  <span className="visually-hidden">{t.news.unread(unread)}</span>
+                </span>
+              )}
             </button>
           )
         })}

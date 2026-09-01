@@ -1,0 +1,242 @@
+
+
+<!-- THEME DEBUG -->
+<!-- THEME HOOK: 'views_view_rss' -->
+<!-- BEGIN OUTPUT from 'core/modules/views/templates/views-view-rss.html.twig' -->
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xml:base="https://www.stratologia.gr/el" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Ιστότοπος Νομικού Σώματος</title>
+    <link>https://www.stratologia.gr/el</link>
+    <description></description>
+    <language>el</language>
+    
+    
+
+<!-- THEME DEBUG -->
+<!-- THEME HOOK: 'views_view_row_rss' -->
+<!-- BEGIN OUTPUT from 'core/themes/claro/templates/classy/views/views-view-row-rss.html.twig' -->
+<item>
+  <title>Κατάθεση Δελτίου Απογραφής στρατευσίμων κλάσης 2029 (γεννημένοι το έτος 2008) και κλάσης 2030 (γεννημένοι το έτος 2009)</title>
+  <link>https://www.stratologia.gr/el/content/apografi-klasis-2029</link>
+  <description>
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;field&#039; --&gt;
+&lt;!-- FILE NAME SUGGESTIONS:
+   ▪️ field--node--title--news-announcements.html.twig
+   ✅ field--node--title.html.twig
+   ▪️ field--node--news-announcements.html.twig
+   ▪️ field--title.html.twig
+   ▪️ field--string.html.twig
+   ▪️ field.html.twig
+--&gt;
+&lt;!-- BEGIN OUTPUT from &#039;core/themes/claro/templates/classy/field/field--node--title.html.twig&#039; --&gt;
+&lt;span class=&quot;field field--name-title field--type-string field--label-hidden&quot;&gt;Κατάθεση Δελτίου Απογραφής στρατευσίμων κλάσης 2029 (γεννημένοι το έτος 2008) και κλάσης 2030 (γεννημένοι το έτος 2009)&lt;/span&gt;
+
+&lt;!-- END OUTPUT from &#039;core/themes/claro/templates/classy/field/field--node--title.html.twig&#039; --&gt;
+
+
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;field&#039; --&gt;
+&lt;!-- FILE NAME SUGGESTIONS:
+   ▪️ field--node--uid--news-announcements.html.twig
+   ✅ field--node--uid.html.twig
+   ▪️ field--node--news-announcements.html.twig
+   ▪️ field--uid.html.twig
+   ▪️ field--entity-reference.html.twig
+   ▪️ field.html.twig
+--&gt;
+&lt;!-- BEGIN OUTPUT from &#039;core/themes/claro/templates/classy/field/field--node--uid.html.twig&#039; --&gt;
+&lt;span class=&quot;field field--name-uid field--type-entity-reference field--label-hidden&quot;&gt;
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;username&#039; --&gt;
+&lt;!-- BEGIN OUTPUT from &#039;core/themes/claro/templates/classy/user/username.html.twig&#039; --&gt;
+&lt;span&gt;mk_admin&lt;/span&gt;
+&lt;!-- END OUTPUT from &#039;core/themes/claro/templates/classy/user/username.html.twig&#039; --&gt;
+
+&lt;/span&gt;
+
+&lt;!-- END OUTPUT from &#039;core/themes/claro/templates/classy/field/field--node--uid.html.twig&#039; --&gt;
+
+
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;field&#039; --&gt;
+&lt;!-- FILE NAME SUGGESTIONS:
+   ▪️ field--node--created--news-announcements.html.twig
+   ✅ field--node--created.html.twig
+   ▪️ field--node--news-announcements.html.twig
+   ▪️ field--created.html.twig
+   ▪️ field--created.html.twig
+   ▪️ field.html.twig
+--&gt;
+&lt;!-- BEGIN OUTPUT from &#039;core/themes/claro/templates/classy/field/field--node--created.html.twig&#039; --&gt;
+&lt;span class=&quot;field field--name-created field--type-created field--label-hidden&quot;&gt;
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;time&#039; --&gt;
+&lt;!-- BEGIN OUTPUT from &#039;core/themes/claro/templates/classy/field/time.html.twig&#039; --&gt;
+&lt;time datetime=&quot;2026-01-14T11:20:10+02:00&quot; title=&quot;Τετάρτη, Ιανουάριος 14, 2026 - 11:20&quot; class=&quot;datetime&quot;&gt;Τετ, 01/14/2026 - 11:20&lt;/time&gt;
+
+&lt;!-- END OUTPUT from &#039;core/themes/claro/templates/classy/field/time.html.twig&#039; --&gt;
+
+&lt;/span&gt;
+
+&lt;!-- END OUTPUT from &#039;core/themes/claro/templates/classy/field/field--node--created.html.twig&#039; --&gt;
+
+
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;field&#039; --&gt;
+&lt;!-- FILE NAME SUGGESTIONS:
+   ✅ field--node--field-article-content--news-announcements.html.twig
+   ▪️ field--node--field-article-content.html.twig
+   ▪️ field--node--news-announcements.html.twig
+   ▪️ field--field-article-content.html.twig
+   ▪️ field--text-with-summary.html.twig
+   ▪️ field.html.twig
+--&gt;
+&lt;!-- 💡 BEGIN CUSTOM TEMPLATE OUTPUT from &#039;themes/stratologiatheme/templates/node/field--node--field-article-content--news-announcements.html.twig&#039; --&gt;
+            
+                            &lt;div class=&quot;field field--name-field-article-content field--type-text-with-summary field--label-hidden field__item govgr-default-paragraph govgr-text-color-basic govgr-text-size-basic&quot;&gt;&lt;p&gt;Σας γνωρίζουμε ότι οι στρατεύσιμοι της κλάσης 2029 &lt;strong&gt;(γεννημένοι το έτος 2008)&lt;/strong&gt;, έχουν υποχρέωση να καταθέσουν Δελτίο Απογραφής (ΔΑ) από &lt;strong&gt;02 Ιανουαρίου 2026 έως και 28 Φεβρουαρίου 2026&lt;/strong&gt; και οι στρατεύσιμοι της κλάσης 2030 &lt;strong&gt;(γεννημένοι το έτος 2009)&lt;/strong&gt;, έχουν υποχρέωση να καταθέσουν Δελτίο Απογραφής (ΔΑ) από &lt;strong&gt;02 Ιανουαρίου 2026 έως και 30 Απριλίου 2026&lt;/strong&gt;. Η κατάθεση του Δελτίου Απογραφής μπορεί να γίνει με οποιονδήποτε από τους παρακάτω τρόπους:&lt;/p&gt;&lt;p&gt;α. Ηλεκτρονικά μέσω της Ενιαίας Ψηφιακής Πύλης της Δημόσιας Διοίκησης (&lt;a href=&quot;http://www.gov.gr&quot;&gt;www.gov.gr&lt;/a&gt;) με χρήση κωδικών taxisnet, πατώντας &lt;a href=&quot;https://www.gov.gr/ipiresies/strateuse/apographe/katathese-deltiou-apographes-strateusimon&quot;&gt;&lt;strong&gt;εδώ&lt;/strong&gt;&lt;/a&gt;. Σχετικές οδηγίες είναι διαθέσιμες &lt;a href=&quot;https://www.stratologia.gr/sites/default/files/plhr_ent/nees_odhgies_2029_2030.pdf&quot;&gt;&lt;strong&gt;εδώ&lt;/strong&gt;&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;β. Προσερχόμενοι σε οποιαδήποτε Στρατολογική Υπηρεσία (ΣΥ) ή Κέντρο Εξυπηρέτησης Πολιτών (ΚΕΠ), για τους διαμένοντες στην Ελλάδα, ή σε οποιαδήποτε Ελληνική Προξενική Αρχή για τους διαμένοντες στο εξωτερικό. Σχετικές οδηγίες είναι διαθέσιμες &lt;a href=&quot;https://www.stratologia.gr/sites/default/files/plhr_ent/nees_odhgies_2029_2030.pdf&quot;&gt;&lt;strong&gt;εδώ&lt;/strong&gt;&lt;/a&gt;.&lt;/p&gt;&lt;/div&gt;
+                      
+&lt;!-- END CUSTOM TEMPLATE OUTPUT from &#039;themes/stratologiatheme/templates/node/field--node--field-article-content--news-announcements.html.twig&#039; --&gt;
+
+</description>
+  <pubDate>Wed, 14 Jan 2026 09:20:10 +0000</pubDate>
+    <dc:creator>mk_admin</dc:creator>
+    <guid isPermaLink="false">2246 at https://www.stratologia.gr</guid>
+    </item>
+<item>
+  <title>Νέος Νόμος Στρατολογίας Ν.5265_2026</title>
+  <link>https://www.stratologia.gr/el/node/2251</link>
+  <description>
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;field&#039; --&gt;
+&lt;!-- FILE NAME SUGGESTIONS:
+   ▪️ field--node--title--news-announcements.html.twig
+   ✅ field--node--title.html.twig
+   ▪️ field--node--news-announcements.html.twig
+   ▪️ field--title.html.twig
+   ▪️ field--string.html.twig
+   ▪️ field.html.twig
+--&gt;
+&lt;!-- BEGIN OUTPUT from &#039;core/themes/claro/templates/classy/field/field--node--title.html.twig&#039; --&gt;
+&lt;span class=&quot;field field--name-title field--type-string field--label-hidden&quot;&gt;Νέος Νόμος Στρατολογίας Ν.5265_2026&lt;/span&gt;
+
+&lt;!-- END OUTPUT from &#039;core/themes/claro/templates/classy/field/field--node--title.html.twig&#039; --&gt;
+
+
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;field&#039; --&gt;
+&lt;!-- FILE NAME SUGGESTIONS:
+   ▪️ field--node--uid--news-announcements.html.twig
+   ✅ field--node--uid.html.twig
+   ▪️ field--node--news-announcements.html.twig
+   ▪️ field--uid.html.twig
+   ▪️ field--entity-reference.html.twig
+   ▪️ field.html.twig
+--&gt;
+&lt;!-- BEGIN OUTPUT from &#039;core/themes/claro/templates/classy/field/field--node--uid.html.twig&#039; --&gt;
+&lt;span class=&quot;field field--name-uid field--type-entity-reference field--label-hidden&quot;&gt;
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;username&#039; --&gt;
+&lt;!-- BEGIN OUTPUT from &#039;core/themes/claro/templates/classy/user/username.html.twig&#039; --&gt;
+&lt;span&gt;rodopoulou.g&lt;/span&gt;
+&lt;!-- END OUTPUT from &#039;core/themes/claro/templates/classy/user/username.html.twig&#039; --&gt;
+
+&lt;/span&gt;
+
+&lt;!-- END OUTPUT from &#039;core/themes/claro/templates/classy/field/field--node--uid.html.twig&#039; --&gt;
+
+
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;field&#039; --&gt;
+&lt;!-- FILE NAME SUGGESTIONS:
+   ▪️ field--node--created--news-announcements.html.twig
+   ✅ field--node--created.html.twig
+   ▪️ field--node--news-announcements.html.twig
+   ▪️ field--created.html.twig
+   ▪️ field--created.html.twig
+   ▪️ field.html.twig
+--&gt;
+&lt;!-- BEGIN OUTPUT from &#039;core/themes/claro/templates/classy/field/field--node--created.html.twig&#039; --&gt;
+&lt;span class=&quot;field field--name-created field--type-created field--label-hidden&quot;&gt;
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;time&#039; --&gt;
+&lt;!-- BEGIN OUTPUT from &#039;core/themes/claro/templates/classy/field/time.html.twig&#039; --&gt;
+&lt;time datetime=&quot;2026-01-14T08:07:01+02:00&quot; title=&quot;Τετάρτη, Ιανουάριος 14, 2026 - 08:07&quot; class=&quot;datetime&quot;&gt;Τετ, 01/14/2026 - 08:07&lt;/time&gt;
+
+&lt;!-- END OUTPUT from &#039;core/themes/claro/templates/classy/field/time.html.twig&#039; --&gt;
+
+&lt;/span&gt;
+
+&lt;!-- END OUTPUT from &#039;core/themes/claro/templates/classy/field/field--node--created.html.twig&#039; --&gt;
+
+
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;field&#039; --&gt;
+&lt;!-- FILE NAME SUGGESTIONS:
+   ✅ field--node--field-article-content--news-announcements.html.twig
+   ▪️ field--node--field-article-content.html.twig
+   ▪️ field--node--news-announcements.html.twig
+   ▪️ field--field-article-content.html.twig
+   ▪️ field--text-with-summary.html.twig
+   ▪️ field.html.twig
+--&gt;
+&lt;!-- 💡 BEGIN CUSTOM TEMPLATE OUTPUT from &#039;themes/stratologiatheme/templates/node/field--node--field-article-content--news-announcements.html.twig&#039; --&gt;
+            
+                            &lt;div class=&quot;field field--name-field-article-content field--type-text-with-summary field--label-hidden field__item govgr-default-paragraph govgr-text-color-basic govgr-text-size-basic&quot;&gt;&lt;p&gt;Δημοσιεύτηκε ο Νόμος 5265/2026 «Χάρτης μετάβασης των Ενόπλων Δυνάμεων στη νέα εποχή... Στρατολογία των Ελλήνων...».&lt;/p&gt;&lt;/div&gt;
+                      
+&lt;!-- END CUSTOM TEMPLATE OUTPUT from &#039;themes/stratologiatheme/templates/node/field--node--field-article-content--news-announcements.html.twig&#039; --&gt;
+
+
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;field&#039; --&gt;
+&lt;!-- FILE NAME SUGGESTIONS:
+   ▪️ field--node--field-news-file--news-announcements.html.twig
+   ▪️ field--node--field-news-file.html.twig
+   ▪️ field--node--news-announcements.html.twig
+   ▪️ field--field-news-file.html.twig
+   ▪️ field--file.html.twig
+   ✅ field.html.twig
+--&gt;
+&lt;!-- BEGIN OUTPUT from &#039;core/themes/claro/templates/classy/field/field.html.twig&#039; --&gt;
+
+  &lt;div class=&quot;field field--name-field-news-file field--type-file field--label-above&quot;&gt;
+    &lt;div class=&quot;field__label&quot;&gt;Αρχείο Άρθρου&lt;/div&gt;
+          &lt;div class=&quot;field__items&quot;&gt;
+              &lt;div class=&quot;field__item&quot;&gt;
+
+&lt;!-- THEME DEBUG --&gt;
+&lt;!-- THEME HOOK: &#039;file_link&#039; --&gt;
+&lt;!-- 💡 BEGIN CUSTOM TEMPLATE OUTPUT from &#039;themes/stratologiatheme/templates/file-link.html.twig&#039; --&gt;
+&lt;span class=&quot;file file--mime-application-pdf file--application-pdf&quot;&gt;&lt;a href=&quot;/sites/default/files/news_announcements/%CE%9D_5265_2026_%CE%A7%CE%91%CE%A1%CE%A4%CE%97%CE%A3%20%CE%9C%CE%95%CE%A4%CE%91%CE%92%CE%91%CE%A3%CE%97%CE%A3_%CE%A3%CE%A4%CE%A1%CE%91%CE%A4%CE%9F%CE%9B%CE%9F%CE%93%CE%99%CE%91%20%CE%A4%CE%A9%CE%9D%20%CE%95%CE%9B%CE%9B%CE%97%CE%9D%CE%A9%CE%9D_%CE%A6%CE%95%CE%9A%20%CE%91%203_10_01_26.pdf&quot; type=&quot;application/pdf&quot;&gt;Ν_5265_2026_ΧΑΡΤΗΣ ΜΕΤΑΒΑΣΗΣ_ΣΤΡΑΤΟΛΟΓΙΑ ΤΩΝ ΕΛΛΗΝΩΝ_ΦΕΚ Α 3_10_01_26.pdf&lt;/a&gt;&lt;/span&gt;
+&lt;!--     &lt;span&gt;(1.57 MB)&lt;/span&gt;
+ --&gt;
+
+&lt;!-- END CUSTOM TEMPLATE OUTPUT from &#039;themes/stratologiatheme/templates/file-link.html.twig&#039; --&gt;
+
+&lt;/div&gt;
+              &lt;/div&gt;
+      &lt;/div&gt;
+
+&lt;!-- END OUTPUT from &#039;core/themes/claro/templates/classy/field/field.html.twig&#039; --&gt;
+
+</description>
+  <pubDate>Wed, 14 Jan 2026 06:07:01 +0000</pubDate>
+    <dc:creator>rodopoulou.g</dc:creator>
+    <guid isPermaLink="false">2251 at https://www.stratologia.gr</guid>
+    </item>
+  </channel>
+</rss>

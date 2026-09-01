@@ -16,7 +16,7 @@ npm run audit
 | `audit-functional.mjs` | Language detection and switching, meta title and description updates, success and error messaging, data persistence across reloads, leave and duty entry with validation, recurring charges, expense editing, the monthly calendar and the milestone timeline, the spending limit, undo on deletion, posting history, home-screen shortcut URLs, 404 and privacy routes, zoom lock |
 | `audit-fonts.mjs` | That the display and mono typefaces actually cover **Greek** glyphs rather than falling back silently |
 | `audit-pwa.mjs` | Manifest fields, icon sizes including maskable, a PNG apple-touch-icon (iOS ignores SVG), service worker registration and activation, app shell precaching, and that the app **opens with the network down** |
-| `audit-extras.mjs` | The notification plan written to the Cache API, its translation following the UI language, the toggle and the chosen hour persisting per device, the light/dark theme surviving a reload with the tokens actually redefined, share-card PNG generation, and the JSON backup and `.ics` calendar downloads |
+| `audit-extras.mjs` | The notification plan written to the Cache API, its translation following the UI language, the toggle and the chosen hour persisting per device, the light/dark theme surviving a reload with the tokens actually redefined, share-card PNG generation, the JSON backup and `.ics` calendar downloads, and the announcements section — including that it still renders when the live file is missing |
 | `audit-legacy.mjs` | That a profile written by an **older version** — missing whole collections — still opens, renders every tab and migrates rather than crashing |
 | `audit-scroll.mjs` | That every screen scrolls with a mouse wheel at desktop window sizes, including short ones |
 
@@ -43,6 +43,12 @@ read from a profile saved last month. That bug does not produce a broken screen;
 produces a white one, for somebody who did nothing wrong. This suite loads the
 shapes previous releases actually wrote.
 
+**The announcements parser.** Its input is somebody else's Drupal install with
+debug output left on, so the fixture test is the only thing standing between a new
+notice and a screenful of `.twig` paths. It runs against a saved copy of the feed,
+not the network: the point is to catch our parser breaking, not their site being
+down. A live failure surfaces in the scheduled job instead.
+
 **Themes.** A colour defined only inside a `prefers-color-scheme` block does not
 exist in the other theme, and nothing in the build catches it. The suite reads the
 computed `--ink` after switching, so a token that failed to redefine shows up as a
@@ -54,5 +60,6 @@ value rather than as a screenshot somebody has to look at.
 |---|---|
 | `gen-icons.mjs` | Renders `public/icon-*.png` from the SVG sources in `design/logos/` |
 | `build-sw.mjs` | Injects the hashed asset list and a build id into `dist/sw.js` after each build |
+| `fetch-announcements.mjs` | Downloads the recruitment service's RSS into `public/announcements.json`. Run daily by [`.github/workflows/announcements.yml`](../.github/workflows/announcements.yml); `--selftest` runs the parser against a saved feed instead of the network, and is part of `npm test` |
 
 If `chromium-1148` is not present locally: `npx playwright install chromium`.

@@ -26,7 +26,14 @@ const ctx = await browser.newContext({
 const page = await ctx.newPage()
 const errors = []
 page.on('pageerror', (e) => errors.push(String(e)))
-page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
+// Το κείμενο ενός σφάλματος δικτύου δεν περιέχει τη διεύθυνση — μόνο το
+// `location()` την ξέρει. Χωρίς αυτή δεν μπορούμε να ξεχωρίσουμε ένα
+// αναμενόμενο 404 από πραγματικό σφάλμα.
+page.on('console', (m) => {
+  if (m.type() !== 'error') return
+  const at = m.location()?.url
+  errors.push(at ? `${m.text()} @ ${at}` : m.text())
+})
 
 await page.goto(BASE, { waitUntil: 'networkidle' })
 const skip = await page.$('.welcome__skip .btn')
@@ -188,7 +195,58 @@ const planWithHour = await page.evaluate(async () => {
 check('η ώρα μπαίνει στο πρόγραμμα για τον service worker',
   planWithHour?.hour === 9, String(planWithHour?.hour))
 
-check('χωρίς σφάλματα κονσόλας', errors.length === 0, errors.slice(0, 3).join(' | '))
+
+/* ── Ανακοινώσεις στρατολογίας ──────────────────────────────────────────── */
+
+await page.click('[data-tab="profile"]')
+await page.waitForSelector('.nw')
+check('η ενότητα ανακοινώσεων εμφανίζεται', await page.isVisible('.nw'))
+await page.waitForTimeout(800)
+
+const news = await page.evaluate(() => [...document.querySelectorAll('.nw__item')].map((li) => ({
+  title: li.querySelector('.nw__title')?.textContent?.trim() ?? '',
+  href: li.querySelector('.nw__title')?.getAttribute('href') ?? '',
+  target: li.querySelector('.nw__title')?.getAttribute('target') ?? '',
+  rel: li.querySelector('.nw__title')?.getAttribute('rel') ?? '',
+  summary: li.querySelector('.nw__sum')?.textContent?.trim() ?? '',
+})))
+check('διαβάστηκαν ανακοινώσεις από το αρχείο του build', news.length > 0, `${news.length}`)
+check('κάθε τίτλος δείχνει στην επίσημη σελίδα',
+  news.every((n) => n.href.startsWith('https://www.stratologia.gr/')))
+// `noopener` δεν είναι τελετουργικό: χωρίς αυτό η σελίδα που ανοίγει αποκτά
+// `window.opener` και μπορεί να αλλάξει τη διεύθυνση της δικής μας καρτέλας.
+check('οι εξωτερικοί σύνδεσμοι ανοίγουν ασφαλώς',
+  news.every((n) => n.target === '_blank' && n.rel.includes('noopener')))
+check('οι περιλήψεις είναι καθαρές από markup του Drupal',
+  news.every((n) => !n.summary.includes('THEME DEBUG') && !n.summary.includes('.twig')))
+check('φαίνεται πότε ελέγχθηκε η πηγή', await page.isVisible('.nw__checked'))
+check('δηλώνεται ότι δεν είναι επίσημο κανάλι', await page.isVisible('.nw__note'))
+check('υπάρχουν σύνδεσμοι προς τις επίσημες πηγές',
+  (await page.$$('.nw__links a')).length === 3)
+
+// Η σήμανση «διαβάστηκε» γράφεται μόνο αφού μείνει η λίστα στην οθόνη.
+await page.waitForTimeout(1800)
+const seen = await page.evaluate(() => localStorage.getItem('army_app.news.seen.v1'))
+check('η νεότερη ημερομηνία σημειώνεται ως ιδωμένη', /^\d{4}-\d{2}-\d{2}$/.test(seen ?? ''), seen)
+
+// Πρώτη επίσκεψη: καμία κουκκίδα. Θα ήταν ψέμα να πούμε «νέο» σε κάποιον που
+// δεν έχει δει ποτέ τη λίστα.
+check('καμία κουκκίδα «νέο» στην πρώτη επίσκεψη',
+  (await page.$$('.tabs__dot')).length === 0)
+
+// Το ζωντανό αρχείο στο GitHub μπορεί κάλλιστα να λείπει: πριν τρέξει το
+// Action για πρώτη φορά, ή σε ένα fork. Η ενότητα πρέπει να δείχνει ό,τι
+// ήρθε με το build και να μη λέει τίποτα για την αποτυχία — το παραπάνω
+// «διαβάστηκαν ανακοινώσεις» το επιβεβαιώνει ήδη.
+const liveFailed = errors.some((e) => e.includes('raw.githubusercontent.com'))
+check('η αποτυχία του ζωντανού αρχείου δεν αφήνει ίχνος στην οθόνη',
+  await page.isVisible('.nw__list'), liveFailed ? 'το ζωντανό αρχείο έδωσε 404' : '')
+
+// Το αποτυχημένο αίτημα προς το raw.githubusercontent.com το καταγράφει ο
+// ίδιος ο browser και δεν πιάνεται από `catch`. Είναι αναμενόμενη κατάσταση,
+// όχι σφάλμα, και ελέγχεται χωριστά παραπάνω.
+const unexpected = errors.filter((e) => !e.includes('raw.githubusercontent.com'))
+check('χωρίς σφάλματα κονσόλας', unexpected.length === 0, unexpected.slice(0, 3).join(' | '))
 
 await browser.close()
 console.log(fails === 0 ? '\nALL PASS' : `\n${fails} FAILURES`)

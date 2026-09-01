@@ -41,6 +41,7 @@ between devices. The screenshots above and below show the English interface.
 | **Duties** | Guard shifts and fatigues with time and length, next-duty countdown, totals per type, and an average per month |
 | **Money** | Allowance, expenses by category, recurring charges that post themselves, a projection to discharge, and a monthly limit you set yourself |
 | **Profile** | Service record, posting history from training centre to current unit, local notifications at an hour you choose, JSON backup, `.ics` calendar export, and optional cross-device sync |
+| **Announcements** | The latest notices from the recruitment service, refreshed daily, with a marker for anything published since your last visit |
 
 <p align="center">
   <img src="docs/screenshots/leave.png" width="30%" alt="Leave screen with entitlement and a when-am-I-entitled forecast">
@@ -146,6 +147,26 @@ API — the same place the notification text already lives.
 needs a server, and a server would mean the data leaves the device. The `.ics` is
 generated in the browser and downloaded directly.
 
+**The announcements feed has a scheduled job for a backend, and no backend.**
+`stratologia.gr` publishes RSS but sends no CORS headers, so a browser cannot read
+it. A Cloud Function would mean a paid plan for something that runs once a day, and
+a per-user request for something identical for everyone. Instead a GitHub Action
+fetches it daily, normalises it to
+[`public/announcements.json`](public/announcements.json) and commits. The app reads
+that file three ways, in order: the copy shipped with the build (same origin, in the
+service-worker cache, works offline), whatever was cached locally last time, and
+finally the live file from `raw.githubusercontent.com`, which does send
+`access-control-allow-origin: *`. A new notice therefore reaches users without a
+deploy, and every step can fail without the section going blank.
+
+That feed is also a small museum of other people's bugs, and the parser is written
+against them: `THEME DEBUG` output printed **before** the `<?xml` declaration, which
+makes the document invalid XML; the article HTML double-encoded inside
+`<description>`, so entities must be decoded *before* comments are stripped or the
+debug output reappears as prose; and Drupal rendering the whole node, so each
+summary begins with the title again, the author's username and a timestamp. A
+fixture test locks all three in.
+
 **The date picker is custom.** A native `<input type="date">` renders month/day
 order according to the browser's locale rather than the page's, so Chrome on
 desktop showed American dates in a Greek interface. The replacement is a sheet of
@@ -170,8 +191,9 @@ wide.
 ## Testing
 
 ```bash
-npm test           # domain logic, formatting, merge behaviour, dictionaries
+npm test           # domain logic, dictionaries, and the announcements parser
 npm run audit      # seven browser suites
+npm run news       # refresh announcements by hand (the schedule does this daily)
 ```
 
 The browser suites run against a production build in headless Chromium and cover
@@ -192,13 +214,15 @@ component but as a white screen.
 ```
 src/lib/          domain logic, no React — dates, service, leave, duty, money,
                   postings, agenda, merge, notify, share, backup, ics, calendar,
-                  theme, haptics, greek, i18n
+                  announcements, theme, haptics, greek, i18n
 src/components/   UI, including Agenda, Timeline, Privacy, NotFound, Toasts
 src/hooks/        useI18n, useToast, useProfile, useAuth, useRoute, useToday
 src/firebase/     config, auth, sync — inert until credentials are supplied
 src/styles/       tokens, global, app
 tests/            domain and dictionary checks
-scripts/          browser audits, icon generation, service-worker build step
+scripts/          browser audits, icon generation, service-worker build step,
+                  the announcements fetcher
+.github/          the scheduled job that refreshes announcements
 DESIGN.md         the design system
 ```
 
@@ -259,9 +283,15 @@ Typefaces are Roboto Condensed and Roboto Mono because they **must cover Greek**
 ## Privacy
 
 Without an account, no data leaves the device: no tracking, no analytics, no
-advertising. Signing in stores the profile in Firestore in a document readable
-only by that account. The full text is at `/privacy` in the app, in both
-languages.
+advertising. Signing in stores the profile in Firestore in a document readable only
+by that account. Two requests do go outside — Google Fonts, and the announcements
+file on GitHub when that section is opened. Both are static, identical for every
+visitor, and carry nothing of yours. The full text is at `/privacy` in the app, in
+both languages.
+
+The recruitment service's **personal** area — call-up papers, applications — sits
+behind gov.gr credentials. The app does not touch it, and never will: automating it
+would mean storing somebody's government identity in a config file.
 
 ## Author
 

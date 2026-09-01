@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build && node scripts/build-sw.mjs",
     "preview": "vite preview",
     "deploy": "npm run build && firebase deploy --only hosting",
-    "test": "npm run test:core && npm run test:features",
+    "test": "npm run test:core && npm run test:features && npm run test:news",
     "audit:mobile": "node scripts/audit-mobile.mjs",
     "audit:func": "node scripts/audit-functional.mjs",
     "audit:fonts": "node scripts/audit-fonts.mjs",
@@ -18,7 +18,9 @@
     "test:core": "esbuild tests/service.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp-test.mjs --log-level=error && node node_modules/.tmp-test.mjs",
     "test:features": "esbuild tests/features.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.tmp-feat.mjs --log-level=error && node node_modules/.tmp-feat.mjs",
     "audit:extras": "node scripts/audit-extras.mjs",
-    "audit:legacy": "node scripts/audit-legacy.mjs"
+    "audit:legacy": "node scripts/audit-legacy.mjs",
+    "news": "node scripts/fetch-announcements.mjs",
+    "test:news": "node scripts/fetch-announcements.mjs --selftest"
   },
   "dependencies": {
     "firebase": "^12.18.0",

@@ -35,6 +35,22 @@ const el = {
     cancel: 'Άκυρο',
     save: 'Αποθήκευση',
   },
+  news: {
+    label: 'Ανακοινώσεις στρατολογίας',
+    intro: 'Οι τελευταίες ανακοινώσεις από τη Στρατολογία, όπως τις δημοσιεύει η ίδια. Πάτα έναν τίτλο για να ανοίξει η επίσημη σελίδα.',
+    loading: 'Φόρτωση…',
+    empty: 'Καμία ανακοίνωση αυτή τη στιγμή.',
+    fresh: 'νέο',
+    checked: (d: string) => `Τελευταίος έλεγχος: ${d}`,
+    official: 'Επίσημες πηγές',
+    links: {
+      stratologia: 'Στρατολογία',
+      govgr: 'gov.gr',
+      army: 'ΓΕΣ',
+    },
+    disclaimer: 'Αντίγραφο για ενημέρωση, όχι επίσημο κανάλι. Για προθεσμίες και για τα δικά σου στοιχεία, πήγαινε πάντα στην πηγή.',
+    unread: (n: number) => (n === 1 ? '1 νέα ανακοίνωση' : `${n} νέες ανακοινώσεις`),
+  },
   agenda: {
     label: 'Ο μήνας σου',
     hint: 'Άδειες, υπηρεσίες, μισθός και έξοδα στο ίδιο πλέγμα.',
@@ -602,7 +618,7 @@ const el = {
       },
       {
         h: 'Εξωτερικοί πόροι',
-        p: 'Οι γραμματοσειρές φορτώνονται από το Google Fonts, το οποίο βλέπει τη διεύθυνση IP σου όπως κάθε ιστότοπος που επισκέπτεσαι. Δεν του στέλνουμε κανένα δεδομένο σχετικό με τη θητεία σου.',
+        p: 'Οι γραμματοσειρές φορτώνονται από το Google Fonts, το οποίο βλέπει τη διεύθυνση IP σου όπως κάθε ιστότοπος που επισκέπτεσαι. Όταν ανοίγεις τις «Ανακοινώσεις στρατολογίας», η εφαρμογή κατεβάζει ένα στατικό αρχείο από το GitHub — το ίδιο για όλους, χωρίς τίποτε δικό σου μαζί του. Σε καμία από τις δύο περιπτώσεις δεν στέλνεται δεδομένο σχετικό με τη θητεία σου.',
       },
       {
         h: 'Επικοινωνία',
@@ -671,6 +687,22 @@ const en: typeof el = {
     undo: 'Undo',
     cancel: 'Cancel',
     save: 'Save',
+  },
+  news: {
+    label: 'Recruitment announcements',
+    intro: 'The latest announcements from the Greek recruitment service, as it publishes them. Tap a title to open the official page.',
+    loading: 'Loading…',
+    empty: 'No announcements at the moment.',
+    fresh: 'new',
+    checked: (d: string) => `Last checked: ${d}`,
+    official: 'Official sources',
+    links: {
+      stratologia: 'Recruitment service',
+      govgr: 'gov.gr',
+      army: 'Army HQ',
+    },
+    disclaimer: 'A copy for convenience, not an official channel. For deadlines and for your own record, always go to the source.',
+    unread: (n: number) => (n === 1 ? '1 new announcement' : `${n} new announcements`),
   },
   agenda: {
     label: 'Your month',
@@ -1238,7 +1270,7 @@ const en: typeof el = {
       },
       {
         h: 'External resources',
-        p: 'Fonts are loaded from Google Fonts, which sees your IP address as it would on any site you visit. We send it no data about your service.',
+        p: 'Fonts are loaded from Google Fonts, which sees your IP address as it would on any site you visit. When you open “Recruitment announcements”, the app downloads a static file from GitHub — the same file for everyone, carrying nothing of yours. In neither case do we send any data about your service.',
       },
       {
         h: 'Contact',

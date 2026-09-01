@@ -16,6 +16,7 @@ import {
   currentPosting, migrateLegacyUnit, newPosting, postingSpans,
 } from '../src/lib/postings'
 import { spentInMonth } from '../src/lib/money'
+import { unreadCount } from '../src/lib/announcements'
 import { deletion } from '../src/lib/merge'
 import { computeDuties, newDuty } from '../src/lib/duty'
 import {
@@ -580,6 +581,19 @@ eq('αντίγραφο: παλιό αρχείο χωρίς τοποθετήσε�
     format: 'army-apolele/backup', version: 1, exportedAt: '',
     profile: { enlistDate: '2026-02-24', months: 12 },
   })).profile!.postings.length, 0)
+
+/* ── Ανακοινώσεις: τι είναι «νέο» ──────────────────────────────────────── */
+
+const news = [
+  { id: 'a', title: 'Α', summary: '', link: 'https://x/1', date: '2026-08-20' },
+  { id: 'b', title: 'Β', summary: '', link: 'https://x/2', date: '2026-01-14' },
+]
+eq('ανακοινώσεις: μετά την τελευταία επίσκεψη', unreadCount(news, '2026-02-01'), 1)
+eq('ανακοινώσεις: τίποτα νεότερο', unreadCount(news, '2026-08-20'), 0)
+eq('ανακοινώσεις: όλες μετά από παλιά επίσκεψη', unreadCount(news, '2024-01-01'), 2)
+// Πρώτο άνοιγμα: χωρίς ιστορικό δεν σημαιοδοτούμε ολόκληρο το αρχείο ως «νέο».
+eq('ανακοινώσεις: πρώτη επίσκεψη δεν είναι όλα νέα', unreadCount(news, ''), 0)
+eq('ανακοινώσεις: κενή λίστα', unreadCount([], '2026-01-01'), 0)
 
 console.log(fails === 0 ? '\nΌλα πέρασαν.' : `\n${fails} απέτυχαν.`)
 process.exit(fails === 0 ? 0 : 1)

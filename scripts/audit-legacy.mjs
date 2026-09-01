@@ -37,7 +37,11 @@ for (const [label, legacy] of Object.entries({
   const page = await ctx.newPage()
   const errs = []
   page.on('pageerror', e => errs.push(String(e)))
-  page.on('console', m => m.type()==='error' && errs.push(m.text()))
+  page.on('console', m => {
+    if (m.type() !== 'error') return
+    const at = m.location()?.url
+    errs.push(at ? `${m.text()} @ ${at}` : m.text())
+  })
   await page.addInitScript((p) => localStorage.setItem('army_app.profile.v1', JSON.stringify(p)), legacy)
   await page.goto('http://localhost:4173', { waitUntil:'networkidle' })
   const shown = await page.waitForSelector('.clock__num', { timeout: 8000 }).catch(() => null)
@@ -51,7 +55,10 @@ for (const [label, legacy] of Object.entries({
   if (legacy.unit) {
     check(`${label}: legacy unit became a posting`, await page.isVisible('.ps__item'))
   }
-  check(`${label}: no console errors`, errs.length === 0, errs.slice(0,2).join(' | '))
+  // Το ζωντανό αρχείο ανακοινώσεων μπορεί να λείπει από το GitHub· η εφαρμογή
+  // πέφτει πίσω στο αντίγραφο του build και δεν σπάει.
+  const unexpected = errs.filter(e => !e.includes('raw.githubusercontent.com'))
+  check(`${label}: no console errors`, unexpected.length === 0, unexpected.slice(0,2).join(' | '))
   await ctx.close()
 }
 await browser.close()
