@@ -10,14 +10,14 @@ import { applyTheme, readTheme, watchSystemTheme } from './lib/theme'
 import './styles/global.css'
 import './styles/app.css'
 
-// Πριν από την πρώτη απόδοση: το `data-theme` πρέπει να υπάρχει ήδη, αλλιώς
-// όποιος έχει διαλέξει φωτεινό βλέπει μια μαύρη αναλαμπή.
+// Before the first render: `data-theme` has to be in place already, or anyone
+// who chose the light theme sees a flash of black.
 applyTheme(readTheme())
 watchSystemTheme()
 
-// Ο service worker κάνει την εφαρμογή εγκαταστάσιμη και της δίνει offline
-// λειτουργία. Καταχωρείται μετά το load ώστε να μη διεκδικεί εύρος ζώνης
-// από την πρώτη απόδοση.
+// The service worker makes the app installable and gives it offline support.
+// It registers after load, so it does not compete for bandwidth with the first
+// render.
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch((err) => {

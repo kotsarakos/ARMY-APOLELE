@@ -1,18 +1,19 @@
 /**
- * Στιγμιότυπα οθόνης για την τεκμηρίωση και για το manifest.
+ * Screenshots for the documentation and the manifest.
  *
- * Υπάρχει ως αρχείο και όχι ως πρόχειρο script, γιατί το README δείχνει έξι
- * οθόνες: μετά από κάθε αλλαγή σχεδίασης πρέπει να ξαναβγούν όλες μαζί, με
- * τα ίδια δεδομένα, αλλιώς η μία εικόνα δείχνει παλιά διεπαφή δίπλα στη νέα.
+ * This is a checked-in script rather than something rebuilt by hand, because
+ * the README shows seven screens: after any design change they all have to be
+ * retaken together, from the same data, or one image shows an old interface
+ * beside a new one.
  *
- * Τα δεδομένα είναι κατασκευασμένα και σχετικά — μια θητεία στη μέση, με
- * ιστορικό που έχει νόημα. Οι ημερομηνίες υπολογίζονται από το σήμερα, ώστε
- * ο μετρητής να μη δείχνει ποτέ κάτι αδύνατο.
+ * The data is invented but coherent — a term halfway through, with a history
+ * that makes sense. Dates are derived from today, so the counter never shows
+ * something impossible.
  *
- *   npm run shots            # σκοτεινό θέμα, αγγλικά, στο docs/screenshots
+ *   npm run shots            # dark theme, English, into docs/screenshots
  *   THEME=light npm run shots
  *
- * Απαιτεί το preview server στο :4173 — δες scripts/README.md.
+ * Needs the preview server on :4173 — see scripts/README.md.
  */
 import { mkdirSync } from 'node:fs'
 import { chromium } from 'playwright-core'
@@ -26,7 +27,7 @@ const LOCALE = process.env.LOCALE ?? 'en-IE'
 const iso = (d) => d.toISOString().slice(0, 10)
 const day = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d) }
 
-/** Κατάταξη πριν από ~6 μήνες: αρκετό ιστορικό ώστε καμία οθόνη να μην είναι κενή. */
+/** Enlisted about six months ago: enough history that no screen is empty. */
 const enlist = (() => { const d = new Date(); d.setMonth(d.getMonth() - 6, 24); return iso(d) })()
 
 const profile = {
@@ -86,7 +87,7 @@ const page = await ctx.newPage()
 await page.addInitScript(([p, theme]) => {
   localStorage.setItem('army_app.profile.v1', JSON.stringify(p))
   localStorage.setItem('army_app.theme.v1', theme)
-  // Ώστε η ενότητα ανακοινώσεων να δείχνει το σήμα «νέο» σε ό,τι είναι πρόσφατο.
+  // So the announcements section marks the recent ones as new.
   localStorage.setItem('army_app.news.seen.v1', '2025-06-01')
 }, [profile, THEME])
 
@@ -102,9 +103,9 @@ const shot = async (name) => {
 }
 
 /**
- * Φέρνει μια ενότητα στην κορυφή της οθόνης, ξεκινώντας από την επικεφαλίδα
- * της. Το `block: 'center'` κεντράρει το panel και έκοβε τον τίτλο έξω από το
- * κάδρο — σε εικόνα τεκμηρίωσης ο τίτλος είναι το μισό νόημα.
+ * Brings a section to the top of the screen, starting at its heading.
+ * `block: 'center'` centres the panel and pushed the title out of frame — in a
+ * documentation image the title is half the point.
  */
 const scrollTo = async (selector) => {
   await page.waitForSelector(selector)
@@ -129,7 +130,7 @@ for (const tab of ['leave', 'duty', 'money', 'profile']) {
   await shot(tab)
 }
 
-// Οι ανακοινώσεις ζουν στο Προφίλ αλλά χαμηλά· θέλουν δική τους εικόνα.
+// Announcements live on the Profile tab but well down it, so they get their own shot.
 await scrollTo('.nw')
 await shot('news')
 

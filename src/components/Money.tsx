@@ -13,7 +13,7 @@ import { upperGreek as caps } from '../lib/greek'
 import { useI18n } from '../hooks/useI18n'
 import { useToast } from '../hooks/useToast'
 
-/** Η πληρωμή μέσα σε τρεις μέρες αξίζει να ξεχωρίζει. */
+/** A payday within three days is worth setting apart. */
 const SOON_DAYS = 3
 
 export function Money({
@@ -36,7 +36,7 @@ export function Money({
   const [startingDraft, setStartingDraft] = useState('')
   const [budgetDraft, setBudgetDraft] = useState('')
 
-  // Επεξεργασία υπάρχοντος εξόδου, ένα τη φορά.
+  // Editing an existing expense, one at a time.
   const [editing, setEditing] = useState<string | null>(null)
   const [draft, setDraft] = useState({ amount: '', category: 'canteen' as ExpenseCategory, date: iso, note: '' })
 
@@ -108,7 +108,7 @@ export function Money({
     toast.success(t.money.okRecurringAdded)
   }
 
-  /** Το πάγιο φεύγει μαζί με ό,τι χρέωσε — αλλιώς μένουν ορφανές εγγραφές. */
+  /** A recurring charge leaves with everything it charged, or orphans remain. */
   const removeRecurring = (id: string) => {
     const ids = [id, ...profile.expenses.filter((e) => isFromRecurring(e, id)).map((e) => e.id)]
     const del = deletion(profile, ids)
@@ -132,7 +132,7 @@ export function Money({
 
   return (
     <>
-      {/* Το υπόλοιπο παίζει τον ρόλο του «ρολογιού» σε αυτή την οθόνη. */}
+      {/* The balance plays the part of the "clock" on this screen. */}
       <section className={`clock ${m.balance < 0 ? 'clock--signal' : 'clock--olive'}`}>
         <p className="eyebrow">{caps(t.money.balance)}</p>
         <div className="clock__figure">
@@ -182,7 +182,7 @@ export function Money({
         </div>
       </section>
 
-      {/* Δικά του χρήματα */}
+      {/* Their own money */}
       <section className="band">
         <p className="eyebrow band__label">{caps(t.money.starting)}</p>
         <div className="panel mn__start">
@@ -205,7 +205,7 @@ export function Money({
         </div>
       </section>
 
-      {/* Μηνιαίο όριο — δική του απόφαση, όχι κανόνας του στρατού. */}
+      {/* Monthly limit — their decision, not an army rule. */}
       <section className="band">
         <p className="eyebrow band__label">{caps(t.money.budgetTitle)}</p>
         <div className={`panel bd ${m.budget.over ? 'bd--over' : ''}`}>
@@ -267,7 +267,7 @@ export function Money({
         </div>
       </section>
 
-      {/* Νέο έξοδο */}
+      {/* New expense */}
       <section className="band" id="add-money">
         <p className="eyebrow band__label">{caps(t.money.addTitle)}</p>
         <div className="panel mn__add">
@@ -314,7 +314,7 @@ export function Money({
         </div>
       </section>
 
-      {/* Πάγια — χρεώνονται μόνα τους */}
+      {/* Recurring charges — they post themselves */}
       <section className="band">
         <p className="eyebrow band__label">{caps(t.money.recurringTitle)}</p>
         <div className="panel mn__rec">
@@ -395,7 +395,7 @@ export function Money({
         </div>
       </section>
 
-      {/* Ανάλυση ανά κατηγορία */}
+      {/* Breakdown by category */}
       {m.byCategory.length > 0 && (
         <section className="band">
           <p className="eyebrow band__label">{caps(t.money.breakdown)}</p>
@@ -415,7 +415,7 @@ export function Money({
         </section>
       )}
 
-      {/* Πρόσφατα έξοδα */}
+      {/* Recent expenses */}
       <section className="band">
         <p className="eyebrow band__label">{caps(t.money.recent)}</p>
         {profile.expenses.length === 0 ? (

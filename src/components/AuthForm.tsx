@@ -8,7 +8,7 @@ import { upperGreek as caps } from '../lib/greek'
 
 type Mode = 'signin' | 'signup'
 
-/** Κοινή φόρμα σύνδεσης — χρησιμοποιείται στην αρχική οθόνη και στις Ρυθμίσεις. */
+/** The shared sign-in form, used on the welcome screen and in Settings. */
 export function AuthForm({ onDone }: { onDone?: () => void }) {
   const { t } = useI18n()
   const toast = useToast()

@@ -1,12 +1,12 @@
 /**
- * Εικονίδια για τη γραμμή ενοτήτων.
+ * Icons for the tab bar.
  *
- * Πέντε ελληνικές λέξεις σε πλάτος 320px στριμώχνονται μέχρι να γίνουν
- * δυσανάγνωστες. Ένα σχήμα από πάνω αναγνωρίζεται πριν διαβαστεί η λέξη, και
- * αντέχει και την εναλλαγή γλώσσας, όπου τα μήκη αλλάζουν.
+ * Five Greek words at 320px squeeze together until they cannot be read. A
+ * shape above the label is recognised before the word is, and it survives the
+ * language switch, where the lengths change.
  *
- * Γραμμικά, ένα βάρος, καμία γέμιση: ακολουθούν το ίδιο ύφος με την υπόλοιπη
- * διεπαφή. Είναι διακοσμητικά — η ετικέτα από κάτω είναι το προσβάσιμο όνομα.
+ * Line only, one weight, no fill: the same idiom as the rest of the interface.
+ * They are decorative — the label beneath is the accessible name.
  */
 
 const common = {
@@ -22,7 +22,7 @@ const common = {
   focusable: false,
 }
 
-/** Μετρητής: ρολόι. */
+/** Counter: a clock. */
 function Clock() {
   return (
     <svg {...common}>
@@ -32,7 +32,7 @@ function Clock() {
   )
 }
 
-/** Άδειες: πύλη ανοιχτή προς τα έξω. */
+/** Leave: a gate opening outwards. */
 function Leave() {
   return (
     <svg {...common}>
@@ -43,7 +43,7 @@ function Leave() {
   )
 }
 
-/** Υπηρεσίες: ασπίδα σκοπιάς. */
+/** Duties: a sentry's shield. */
 function Duty() {
   return (
     <svg {...common}>
@@ -53,7 +53,7 @@ function Duty() {
   )
 }
 
-/** Ταμείο: πορτοφόλι. */
+/** Money: a wallet. */
 function Money() {
   return (
     <svg {...common}>
@@ -64,7 +64,7 @@ function Money() {
   )
 }
 
-/** Προφίλ: σήμα με προτομή. */
+/** Profile: a figure on a badge. */
 function Profile() {
   return (
     <svg {...common}>

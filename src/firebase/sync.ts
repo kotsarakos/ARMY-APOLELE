@@ -5,19 +5,18 @@ import { mergeProfiles } from '../lib/merge'
 import { getFirebaseApp, isFirebaseConfigured } from './config'
 
 /**
- * Συγχρονισμός προφίλ.
+ * Profile syncing.
  *
- * Η εφαρμογή είναι **local-first**: το localStorage είναι πάντα η άμεση πηγή,
- * ώστε να δουλεύει offline και χωρίς λογαριασμό. Το Firestore μπαίνει από πάνω
- * μόνο όταν ο χρήστης συνδεθεί μόνος του.
+ * The app is **local-first**: localStorage is always the immediate source, so
+ * it works offline and without an account. Firestore sits on top, and only
+ * once someone signs in of their own accord.
  *
- * Σχήμα: `users/{uid}` → Profile + updatedAt.
+ * Schema: `users/{uid}` holding the Profile plus updatedAt.
  *
- * Συγκρούσεις: το `updatedAt` κρίνει μόνο τα **βαθμωτά** πεδία (όνομα, μονάδα,
- * ημερομηνία κατάταξης). Οι λίστες — έξοδα, άδειες, υπηρεσίες — ενώνονται ανά
- * `id`, γιατί δύο συσκευές μπορεί κάλλιστα να έχουν γράψει διαφορετικές
- * εγγραφές· ένα σκέτο last-write-wins θα έσβηνε σιωπηλά τη μία πλευρά.
- * Βλ. `src/lib/merge.ts`.
+ * Conflicts: `updatedAt` decides **scalar** fields only (name, unit,
+ * enlistment date). The lists — expenses, leave, duties — are merged by `id`,
+ * because two devices may well have written different entries, and a plain
+ * last-write-wins would silently erase one side. See `src/lib/merge.ts`.
  */
 
 const COLLECTION = 'users'
@@ -29,12 +28,12 @@ async function getDb() {
   return getFirestore(app)
 }
 
-/** Τοπικό προφίλ. Δεν αγγίζει δίκτυο. */
+/** The local profile. Touches no network. */
 export async function fetchProfile(): Promise<Profile | null> {
   return loadProfile()
 }
 
-/** Γράφει τοπικά και, αν υπάρχει uid, ανεβάζει και στο Firestore. */
+/** Writes locally and, when there is a uid, uploads to Firestore as well. */
 export async function pushProfile(profile: Profile, uid?: string): Promise<boolean> {
   const stamped = { ...profile, updatedAt: Date.now() }
   const ok = saveProfile(stamped)
@@ -47,7 +46,7 @@ export async function pushProfile(profile: Profile, uid?: string): Promise<boole
     const { doc, setDoc } = await import('firebase/firestore')
     await setDoc(doc(db, COLLECTION, uid), stamped)
   } catch (err) {
-    // Η τοπική εγγραφή πέτυχε — η αποτυχία δικτύου δεν πρέπει να χάσει δεδομένα.
+    // The local write succeeded — a network failure must not lose data.
     console.warn('[army_app] remote sync failed', err)
     return ok
   }
@@ -65,12 +64,12 @@ export async function fetchRemoteProfile(uid: string): Promise<Profile | null> {
 }
 
 /**
- * Ανεβάζει και λέει αν το γράψιμο **έφτασε όντως** στον διακομιστή.
+ * Uploads, and reports whether the write **actually reached** the server.
  *
- * Το `pushProfile` επιστρέφει την επιτυχία της τοπικής εγγραφής και καταπίνει
- * το σφάλμα δικτύου, που είναι σωστό για την κανονική ροή. Πριν όμως σβήσουμε
- * τα τοπικά δεδομένα στην αποσύνδεση, πρέπει να ξέρουμε αν υπάρχει αντίγραφο —
- * αλλιώς ό,τι γράφτηκε εκτός δικτύου χάνεται σιωπηλά.
+ * `pushProfile` returns the success of the local write and swallows network
+ * errors, which is right for the normal flow. But before wiping local data on
+ * sign-out we need to know a copy exists — otherwise anything written offline
+ * disappears silently.
  */
 export async function pushRemoteOnly(profile: Profile, uid: string): Promise<boolean> {
   if (!isFirebaseConfigured()) return false
@@ -86,7 +85,7 @@ export async function pushRemoteOnly(profile: Profile, uid: string): Promise<boo
   }
 }
 
-/** Σβήνει οριστικά το έγγραφο του χρήστη. Καλείται πριν τη διαγραφή λογαριασμού. */
+/** Permanently removes the user's document. Called before deleting the account. */
 export async function deleteRemoteProfile(uid: string): Promise<void> {
   if (!isFirebaseConfigured()) return
   const db = await getDb()
@@ -103,8 +102,8 @@ export interface MergeResult {
 }
 
 /**
- * Ενώνει τοπικό και απομακρυσμένο προφίλ μετά τη σύνδεση και ανεβάζει το
- * αποτέλεσμα, ώστε οι δύο πλευρές να καταλήξουν πανομοιότυπες.
+ * Merges the local and remote profiles after sign-in and uploads the result,
+ * so both sides end up identical.
  */
 export async function mergeOnSignIn(uid: string, local: Profile | null): Promise<MergeResult> {
   const remote = await fetchRemoteProfile(uid)
@@ -125,7 +124,7 @@ export async function mergeOnSignIn(uid: string, local: Profile | null): Promise
   const l = local as Profile
   const merged = mergeProfiles(l, r)
 
-  // Ίδιο περιεχόμενο και στις δύο πλευρές: τίποτα να γράψουμε.
+  // Identical on both sides: nothing to write.
   const unchanged =
     JSON.stringify({ ...merged, updatedAt: 0 }) === JSON.stringify({ ...r, updatedAt: 0 }) &&
     JSON.stringify({ ...merged, updatedAt: 0 }) === JSON.stringify({ ...l, updatedAt: 0 })

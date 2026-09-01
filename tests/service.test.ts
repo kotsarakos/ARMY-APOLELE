@@ -20,13 +20,13 @@ const clip = (v: unknown) => {
 const eq = (label: string, got: unknown, want: unknown) => {
   const ok = String(got) === String(want)
   if (!ok) fails++
-  // Σε επιτυχία τυπώνουμε συνοπτικά· σε αποτυχία ολόκληρες τις τιμές.
+  // On success print a summary; on failure print the values in full.
   console.log(ok
     ? `ok   ${label}: ${clip(got)}`
     : `FAIL ${label}:\n  got=${got}\n  want=${want}`)
 }
 
-// Day 0 — κατάταξη
+// Day 0 — enlistment
 const s0 = computeService(p, parseISO('2026-02-24'))
 eq('discharge date', formatShort(s0.discharge), '24/02/2027')
 eq('totalDays (12mo)', s0.totalDays, 365)
@@ -37,42 +37,42 @@ eq('leave total entitlement', s0.leave.totalEntitlement, 18)
 eq('tier day0', tierFor(s0).key, 'psaraki')
 eq('pay total', s0.pay.totalForService, 600)
 
-// Πριν την κατάταξη
+// Before enlistment
 const sPre = computeService(p, parseISO('2026-02-14'))
 eq('daysUntilEnlist', sPre.daysUntilEnlist, 10)
 eq('hasEnlisted false', sPre.hasEnlisted, false)
 eq('tier pre', tierFor(sPre).key, 'pre')
 
-// Μετά από 2 μήνες ακριβώς → πρώτο δίμηνο = 3 μέρες άδεια
+// Exactly two months in: the first block credits 3 days of leave
 const s2 = computeService(p, parseISO('2026-04-24'))
 eq('monthsServed @2mo', s2.monthsServed, 2)
 eq('leave earned @2mo', s2.leave.earned, 3)
 eq('next accrual @2mo (to month 4)', s2.leave.daysToNextAccrual, 61)
 
-// Μία μέρα πριν το δίμηνο → ακόμη 0
+// One day short of the block: still 0
 const s2m = computeService(p, parseISO('2026-04-23'))
 eq('monthsServed @2mo-1d', s2m.monthsServed, 1)
 eq('leave earned @2mo-1d', s2m.leave.earned, 0)
 
-// Μισή θητεία
+// Halfway
 const sHalf = computeService(p, parseISO('2026-08-25'))
 eq('monthsServed @6mo', sHalf.monthsServed, 6)
 eq('leave earned @6mo', sHalf.leave.earned, 9)
 eq('progress ~50%', Math.round(sHalf.progress * 100), 50)
 
-// Τέλος
+// The end
 const sEnd = computeService(p, parseISO('2027-02-24'))
 eq('isDischarged', sEnd.isDischarged, true)
 eq('daysLeft at end', sEnd.daysLeft, 0)
 eq('monthsServed capped', sEnd.monthsServed, 12)
 eq('tier end', tierFor(sEnd).key, 'done')
 
-// Μετά την απόλυση δεν ξεφεύγει
+// Nothing overruns after discharge
 const sAfter = computeService(p, parseISO('2027-06-01'))
 eq('daysServed clamped', sAfter.daysServed, 365)
 eq('progress clamped', sAfter.progress, 1)
 
-// 9μηνη παραμεθόριος
+// A nine-month term in a border unit
 const p9: Profile = { ...p, months: 9, borderUnit: true }
 const s9 = computeService(p9, parseISO('2026-08-24'))
 eq('9mo discharge', formatShort(computeService(p9, parseISO('2026-02-24')).discharge), '24/11/2026')
@@ -80,19 +80,19 @@ eq('9mo entitlement', s9.leave.totalEntitlement, 12)
 eq('border pay/mo', s9.pay.perMonth, 100)
 eq('border honorary @6mo', s9.leave.bonusHonorary, 12)
 
-// daysInCamp < daysLeft όταν υπάρχουν αχρησιμοποίητες άδειες
+// daysInCamp is below daysLeft while leave remains unspent
 eq('daysInCamp < daysLeft', s0.daysInCamp < s0.daysLeft, true)
 eq('daysInCamp day0', s0.daysInCamp, 365 - 18)
 
-// Λελές: τελευταίες 60 μέρες
+// Short-timer: the final 60 days
 const sLeles = computeService(p, parseISO('2027-01-15'))
 eq('tier leles', tierFor(sLeles).key, 'leles')
 
-// addMonths end-of-month clamp: 31 Ιαν + 1 μήνα
+// addMonths end-of-month clamp: 31 Jan plus one month
 const pJan: Profile = { ...p, enlistDate: '2026-01-31', months: 1 as never }
 eq('31 Jan +1mo = 28 Feb', formatShort(computeService(pJan, parseISO('2026-01-31')).discharge), '28/02/2026')
 
-// Ορόσημα σε σωστή σειρά και όλα εντός θητείας
+// Milestones in order, and all of them inside the term
 const m = milestones(s0)
 const sorted = m.every((x, i) => i === 0 || m[i-1].date.getTime() <= x.date.getTime())
 eq('milestones sorted', sorted, true)
@@ -102,7 +102,7 @@ eq('all within service', m.every(x => x.date <= s0.discharge), true)
 
 /* ── i18n ─────────────────────────────────────────────────────────────── */
 
-// Κάθε κλειδί πρέπει να υπάρχει και στις δύο γλώσσες, με ίδιο σχήμα.
+// Every key must exist in both languages, with the same shape.
 function shape(o: unknown, path = ''): string[] {
   if (typeof o === 'function') return [path + ':fn']
   if (Array.isArray(o)) return [path + ':arr' + o.length]
@@ -116,7 +116,7 @@ const shapeEl = shape(DICT.el).join('|')
 const shapeEn = shape(DICT.en).join('|')
 eq('el/en dictionaries same shape', shapeEn, shapeEl)
 
-// Καμία μετάφραση δεν λείπει (κενό string).
+// No translation is missing (an empty string counts as missing).
 function emptyStrings(o: unknown, path = ''): string[] {
   if (typeof o === 'string') return o.trim() === '' ? [path] : []
   if (Array.isArray(o)) return o.flatMap((v, i) => emptyStrings(v, path + '[' + i + ']'))
@@ -127,41 +127,41 @@ function emptyStrings(o: unknown, path = ''): string[] {
 }
 for (const l of LANGS) eq(`no empty strings in ${l}`, emptyStrings(DICT[l]).length, 0)
 
-// Κάθε ορόσημο έχει ετικέτα και στις δύο γλώσσες.
+// Every milestone has a label in both languages.
 for (const l of LANGS) {
   const missing = m.filter((x) => !DICT[l].milestones.items[x.key])
   eq(`all milestone keys translated (${l})`, missing.length, 0)
 }
 
-// Κάθε βαθμίδα έχει τίτλο και στις δύο γλώσσες.
+// Every tier has a title in both languages.
 const tierKeys = ['pre','psaraki','neos','mesaios','palios','leles','done'] as const
 for (const l of LANGS) {
   eq(`all tier keys translated (${l})`, tierKeys.every((k) => !!DICT[l].tiers[k].title), true)
 }
 
-// Οι ημερομηνίες μεταφράζονται.
+// Dates are translated.
 eq('date el', formatDate(parseISO('2027-02-24'), DICT.el), '24 Φεβρουαρίου 2027')
 eq('date en', formatDate(parseISO('2027-02-24'), DICT.en), '24 February 2027')
 eq('weekday en', formatDate(parseISO('2026-02-24'), DICT.en, true), 'Tuesday, 24 February 2026')
 
-// Οι ετικέτες ΕΣΣΟ φτιάχνονται ανά γλώσσα.
+// Intake labels are built per language.
 eq('esso label el', essoLabel(ALL_ESSO[0], DICT.el), "2026 A' ΕΣΣΟ")
 eq('esso label en', essoLabel(ALL_ESSO[0], DICT.en), '2026 intake A')
 
-// Οι περιγραφές meta υπάρχουν και έχουν λογικό μήκος για SEO.
+// The meta descriptions exist and are a sensible length for search.
 for (const l of LANGS) {
   const d = DICT[l].meta.description
   eq(`meta description length ok (${l})`, d.length >= 70 && d.length <= 200, true)
 }
 
-// Η πολιτική απορρήτου έχει περιεχόμενο και στις δύο γλώσσες.
+// The privacy policy has content in both languages.
 for (const l of LANGS) {
   eq(`privacy sections (${l})`, DICT[l].privacy.sections.length, 7)
 }
 
 
-/* ── Ελληνικά κεφαλαία ────────────────────────────────────────────────── */
-// Ο τόνος φεύγει, εκτός αν πέφτει στο αρχικό γράμμα.
+/* ── Greek capitalisation ─────────────────────────────────────────────── */
+// The accent is dropped, unless it falls on the first letter.
 eq('caps: τόνος σε μη-αρχικό φεύγει', upperGreek('Υπολογιστής'), 'ΥΠΟΛΟΓΙΣΤΗΣ')
 eq('caps: τόνος σε αρχικό μένει', upperGreek('Άδειες'), 'ΆΔΕΙΕΣ')
 eq('caps: μονοσύλλαβο', upperGreek('ή'), 'Ή')
@@ -170,7 +170,7 @@ eq('caps: λατινικά ανέπαφα', upperGreek('iPhone & iPad'), 'IPHONE
 eq('caps: πρόταση', upperGreek('Μέρες μέχρι το απολυτήριο'), 'ΜΕΡΕΣ ΜΕΧΡΙ ΤΟ ΑΠΟΛΥΤΗΡΙΟ')
 eq('caps: ήδη κεφαλαία καθαρίζονται', upperGreek('ΥΠΟΛΟΓΙΣΤΉΣ'), 'ΥΠΟΛΟΓΙΣΤΗΣ')
 
-// Κανένα ελληνικό κείμενο του λεξικού δεν βγάζει τόνο σε μη-αρχική θέση.
+// No Greek string in the dictionary leaves an accent off the first letter.
 const TONOS = /[ΆΈΉΊΌΎΏ]/
 function offenders(o: unknown, path = ''): string[] {
   if (typeof o === 'string') {
@@ -189,7 +189,7 @@ eq('caps: κανένας τόνος σε μη-αρχικό σε όλο το λε
 if (bad.length) bad.slice(0, 5).forEach((b) => console.log('     ', b))
 
 
-/* ── Οικονομικά ───────────────────────────────────────────────────────── */
+/* ── Money ────────────────────────────────────────────────────────────── */
 const ex = (amount: number, category: Expense['category'], date: string): Expense =>
   ({ id: date + amount + category, amount, category, date })
 
@@ -198,7 +198,7 @@ eq('parseAmount 12.5 → λεπτά', parseAmount('12.5'), 1250)
 eq('parseAmount με σύμβολο', parseAmount('€ 4,20'), 420)
 eq('parseAmount άκυρο', parseAmount('abc'), null)
 eq('parseAmount αρνητικό', parseAmount('-5'), null)
-// Ο λόγος που κρατάμε λεπτά: σε δεκαδικά το 0.1+0.2 δεν κάνει 0.3.
+// Why cents: in floating point 0.1 + 0.2 is not 0.3.
 eq('τα λεπτά δεν χάνουν ακρίβεια',
    totalSpent([ex(10,'food','2026-03-01'), ex(10,'food','2026-03-01'), ex(10,'food','2026-03-01')]), 30)
 

@@ -12,8 +12,8 @@ import { useAuth } from './useAuth'
 import { useToday } from './useToday'
 
 /**
- * Φορτώνει το προφίλ (τοπικά πάντα, από Firestore όταν υπάρχει σύνδεση) και
- * το αποθηκεύει σε κάθε αλλαγή, ειδοποιώντας αν η εγγραφή αποτύχει.
+ * Loads the profile — always locally, and from Firestore when signed in — and
+ * saves it on every change, reporting a failed write.
  */
 export function useProfile() {
   const [profile, setProfileState] = useState<Profile | null>(null)
@@ -39,7 +39,7 @@ export function useProfile() {
     return () => { cancelled = true }
   }, [])
 
-  // Όταν συνδεθεί κάποιος, ενώνουμε τοπικό και απομακρυσμένο προφίλ μία φορά.
+  // On sign-in, merge the local and remote profiles exactly once.
   useEffect(() => {
     if (!ready || loading) return
     if (!user) { mergedFor.current = null; return }
@@ -65,7 +65,7 @@ export function useProfile() {
       .finally(() => { if (!cancelled) setSyncing(false) })
 
     return () => { cancelled = true }
-    // `profile` σκόπιμα εκτός: η συγχώνευση τρέχει μία φορά ανά σύνδεση.
+    // `profile` is left out deliberately: the merge runs once per sign-in.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, ready, loading])
 
@@ -75,7 +75,7 @@ export function useProfile() {
     })
   }, [toast, t])
 
-  // Σταθερή αναφορά, ώστε η συντήρηση παρακάτω να μην εξαρτάται από το `persist`.
+  // A stable reference, so the maintenance below does not depend on `persist`.
   const persistRef = useRef(persist)
   persistRef.current = persist
 
@@ -84,13 +84,13 @@ export function useProfile() {
     persist(next)
   }, [persist])
 
-  // Τρεις εργασίες συντήρησης: μεταφορά του παλιού μετρητή αδείας σε εγγραφή
-  // με ημερομηνίες, μεταφορά της σκέτης μονάδας σε τοποθέτηση, και χρέωση των
-  // πάγιων εξόδων που ωρίμασαν.
+  // Three maintenance jobs: turning the old leave counter into a dated entry,
+  // turning a bare unit into a posting, and charging any recurring expenses
+  // that have come due.
   //
-  // Τρέχουν μία φορά ανά ημερολογιακή μέρα, όχι μία φορά ανά φόρτωση: η
-  // εφαρμογή είναι PWA και μπορεί να μείνει ανοιχτή για βδομάδες, οπότε τα
-  // πάγια πρέπει να μπαίνουν και χωρίς reload.
+  // They run once per calendar day rather than once per load: this is a PWA
+  // and can stay open for weeks, so recurring charges have to land without a
+  // reload.
   const maintainedFor = useRef<string | null>(null)
   useEffect(() => {
     const day = toISO(now)
@@ -104,7 +104,7 @@ export function useProfile() {
     const next: Profile = { ...migrated, expenses: [...migrated.expenses, ...due] }
     setProfileState(next)
     persistRef.current(next)
-    // `t` σκόπιμα εκτός: αλλαγή γλώσσας δεν πρέπει να ξανατρέξει τη μεταφορά.
+    // `t` is left out deliberately: changing language must not re-run migration.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, loading, now])
 
@@ -118,11 +118,10 @@ export function useProfile() {
   }, [persist])
 
   /**
-   * Ενημέρωση που υπολογίζει το patch από το **τρέχον** προφίλ.
+   * An update that builds its patch from the **current** profile.
    *
-   * Το χρειάζεται η αναίρεση διαγραφής: ανάμεσα στο σβήσιμο και στο πάτημα του
-   * «Αναίρεση» μπορεί να έχει προστεθεί άλλη εγγραφή, και ένα patch φτιαγμένο
-   * από παλιό στιγμιότυπο θα την έσβηνε.
+   * Undo needs this: between the delete and the tap on "Undo" another entry
+   * may have been added, and a patch built from an old snapshot would erase it.
    */
   const updateWith = useCallback((build: (prev: Profile) => Partial<Profile>) => {
     setProfileState((prev) => {

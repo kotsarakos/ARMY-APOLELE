@@ -5,21 +5,21 @@ import { formatDate } from '../lib/dates'
 import { useI18n } from '../hooks/useI18n'
 import { upperGreek as caps } from '../lib/greek'
 
-/** Ώρες μέχρι τα επόμενα μεσάνυχτα, στρογγυλεμένες προς τα πάνω. */
+/** Hours until the next midnight, rounded up. */
 function hoursToMidnight(): number {
   const now = new Date()
   const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
   return Math.max(1, Math.ceil((midnight.getTime() - now.getTime()) / 3_600_000))
 }
 
-/** Το ρολόι της αποστολής: ένας αριθμός, τεράστιος, χωρίς διακόσμηση. */
+/** The mission clock: one number, enormous, undecorated. */
 export function Countdown({ state, name }: { state: ServiceState; name: string }) {
   const { t } = useI18n()
   const tier = tierFor(state)
 
-  // Η τελευταία μέρα στο στρατό είναι η προηγούμενη της απόλυσης — τότε ο
-  // μετρητής δείχνει «1» και μένει εκεί όλη μέρα. Είναι η μέρα που θα ανοίξει
-  // την εφαρμογή δέκα φορές, οπότε μετράμε ώρες.
+  // The last day in the army is the day before discharge, when the counter
+  // reads "1" and sits there all day. It is the day the app gets opened ten
+  // times, so it counts hours instead.
   const lastDay = state.hasEnlisted && !state.isDischarged && state.daysLeft === 1
   const [hours, setHours] = useState(hoursToMidnight)
 
@@ -58,9 +58,9 @@ export function Countdown({ state, name }: { state: ServiceState; name: string }
 
       {lastDay && <p className="clock__note">{t.clock.lastDayHint}</p>}
 
-      {/* Η πρόοδος δεν είναι εδώ: ζει στο χρονολόγιο, μαζί με τα ορόσημα που
-          εξηγούν τι σημαίνει το ποσοστό. Δύο μπάρες για το ίδιο πράγμα ήταν
-          απλώς δύο φορές η ίδια πληροφορία. */}
+      {/* Progress is not here: it lives on the timeline, beside the
+          milestones that explain what the percentage means. Two bars for the
+          same thing were simply the same information twice. */}
 
       {!state.hasEnlisted && (
         <p className="clock__note">

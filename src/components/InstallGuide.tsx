@@ -7,7 +7,7 @@ import type { Platform } from '../hooks/useInstall'
 
 const ORDER: Platform[] = ['ios', 'android', 'desktop']
 
-/** Πλήρης οδηγός εγκατάστασης, με καρτέλα ανά πλατφόρμα. */
+/** The full install guide, one tab per platform. */
 export function InstallGuide({ onBack }: { onBack: () => void }) {
   const { t } = useI18n()
   const { installed, canPromptNatively, install } = useInstall()

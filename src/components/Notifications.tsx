@@ -8,8 +8,8 @@ import { useI18n } from '../hooks/useI18n'
 import { useToast } from '../hooks/useToast'
 import { upperGreek as caps } from '../lib/greek'
 
-/** Είναι η εφαρμογή εγκατεστημένη; Μόνο τότε φτάνουν ειδοποιήσεις με την
- *  εφαρμογή κλειστή, οπότε αξίζει να το πούμε. */
+/** Is the app installed? Only then do notifications arrive with the app
+ *  closed, which is worth saying. */
 function isStandalone(): boolean {
   return window.matchMedia('(display-mode: standalone)').matches ||
     (navigator as Navigator & { standalone?: boolean }).standalone === true
@@ -55,7 +55,7 @@ export function Notifications() {
     toast.success(t.notify.okDisabled)
   }
 
-  /** Η ώρα μπαίνει στο πρόγραμμα με το επόμενο render του App — δες buildPlan. */
+  /** The hour reaches the plan on App's next render — see buildPlan. */
   const pickHour = (h: number) => {
     setNotifyHour(h)
     setHour(h)

@@ -1,19 +1,19 @@
 import { addDays, parseISO, toISO } from './dates'
 
 /**
- * Πλέγμα μήνα για το ημερολόγιο.
+ * The month grid behind the calendar.
  *
- * Η εβδομάδα ξεκινά **Δευτέρα** — έτσι τη διαβάζει κανείς στην Ελλάδα, και το
- * ίδιο ισχύει και στην αγγλική έκδοση (en-IE). Το `getDay()` όμως μετράει από
- * Κυριακή, οπότε η μετατόπιση γίνεται ρητά εδώ και όχι σε κάθε component.
+ * Weeks start on **Monday** — that is how they are read in Greece, and it
+ * holds for the English build (en-IE) too. `getDay()` counts from Sunday
+ * though, so the shift is done explicitly here rather than in every component.
  */
 
-/** Θέση της ημέρας μέσα σε εβδομάδα που ξεκινά Δευτέρα: Δευτέρα = 0. */
+/** Position within a Monday-first week: Monday is 0. */
 export function mondayIndex(date: Date): number {
   return (date.getDay() + 6) % 7
 }
 
-/** Ονόματα ημερών ξαναταξινομημένα ώστε να ξεκινούν από Δευτέρα. */
+/** Weekday names reordered to start on Monday. */
 export function weekHeader<T>(sundayFirst: readonly T[]): T[] {
   return [...sundayFirst.slice(1), sundayFirst[0]]
 }
@@ -21,14 +21,14 @@ export function weekHeader<T>(sundayFirst: readonly T[]): T[] {
 export interface DayCell {
   date: Date
   iso: string
-  /** Ανήκει στον μήνα που δείχνουμε, ή είναι γέμισμα από τον γειτονικό. */
+  /** Belongs to the month on show, or is padding from a neighbouring one. */
   inMonth: boolean
 }
 
 /**
- * Έξι πλήρεις εβδομάδες (42 κελιά). Σταθερό ύψος σημαίνει ότι το ημερολόγιο
- * δεν αναπηδά όταν αλλάζεις μήνα — που είναι ο πιο ενοχλητικός τρόπος να
- * χάσεις το σημείο που κοιτούσες.
+ * Six full weeks, always — 42 cells. A fixed height means the calendar does
+ * not jump when you change month, which is the most irritating way to lose
+ * the spot you were looking at.
  */
 export function monthGrid(year: number, month: number): DayCell[] {
   const first = new Date(year, month, 1, 12)
@@ -41,7 +41,7 @@ export function monthGrid(year: number, month: number): DayCell[] {
   return cells
 }
 
-/** Ασφαλής ανάγνωση ISO· επιστρέφει null αντί για Invalid Date. */
+/** Reads an ISO date safely, returning null instead of an Invalid Date. */
 export function safeParse(iso: string): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null
   const d = parseISO(iso)

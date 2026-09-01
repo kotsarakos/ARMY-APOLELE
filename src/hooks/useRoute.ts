@@ -10,8 +10,8 @@ function parse(pathname: string): Route {
   return 'notfound'
 }
 
-/** Ελάχιστος router. Το Firebase Hosting κάνει rewrite τα πάντα στο
- *  index.html, οπότε οι άγνωστες διαδρομές φτάνουν εδώ και γίνονται 404. */
+/** A minimal router. Firebase Hosting rewrites everything to index.html, so
+ *  unknown paths arrive here and become the 404 page. */
 export function useRoute() {
   const [route, setRoute] = useState<Route>(() => parse(window.location.pathname))
 

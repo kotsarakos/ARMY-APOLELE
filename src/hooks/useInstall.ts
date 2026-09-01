@@ -8,19 +8,19 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const DISMISS_KEY = 'army_app.install.dismissed.v1'
-/** Μετά την απόρριψη, σιωπή για 30 μέρες. Το prompt δεν πρέπει να γίνεται γκρίνια. */
+/** Once dismissed, silence for 30 days. A prompt must not become nagging. */
 const SNOOZE_MS = 30 * 24 * 60 * 60 * 1000
 
 export function detectPlatform(): Platform {
   const ua = navigator.userAgent
-  // iPadOS 13+ δηλώνει «Macintosh», οπότε ελέγχουμε και την αφή.
+  // iPadOS 13+ reports itself as "Macintosh", so touch is checked as well.
   const iPadOS = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1
   if (/iPhone|iPad|iPod/.test(ua) || iPadOS) return 'ios'
   if (/Android/.test(ua)) return 'android'
   return 'desktop'
 }
 
-/** Τρέχει ήδη ως εγκατεστημένη εφαρμογή; */
+/** Already running as an installed app? */
 export function isStandalone(): boolean {
   return window.matchMedia('(display-mode: standalone)').matches
     || (navigator as Navigator & { standalone?: boolean }).standalone === true
@@ -44,7 +44,7 @@ export function useInstall() {
     if (installed || snoozed()) return
 
     const onBefore = (e: Event) => {
-      // Κρατάμε το γεγονός για να το πυροδοτήσουμε από δικό μας κουμπί.
+      // Keep the event so it can be fired from our own button.
       e.preventDefault()
       setDeferred(e as BeforeInstallPromptEvent)
       setVisible(true)
@@ -58,8 +58,8 @@ export function useInstall() {
     window.addEventListener('beforeinstallprompt', onBefore)
     window.addEventListener('appinstalled', onInstalled)
 
-    // Το iOS δεν υποστηρίζει beforeinstallprompt — δεν θα έρθει ποτέ γεγονός,
-    // οπότε το εμφανίζουμε μόνοι μας, αφού ο χρήστης προλάβει να δει τη σελίδα.
+    // iOS has no beforeinstallprompt — the event never arrives — so we show it
+    // ourselves, once the person has had a moment to see the page.
     let timer: ReturnType<typeof setTimeout> | undefined
     if (platform === 'ios') {
       timer = setTimeout(() => setVisible(true), 4000)
@@ -72,7 +72,7 @@ export function useInstall() {
     }
   }, [platform, installed])
 
-  /** Το πραγματικό native prompt — μόνο Android/Chrome. */
+  /** The real native prompt — Android and Chrome only. */
   const install = useCallback(async (): Promise<'accepted' | 'dismissed' | 'unavailable'> => {
     if (!deferred) return 'unavailable'
     await deferred.prompt()
@@ -90,7 +90,7 @@ export function useInstall() {
   return {
     platform,
     installed,
-    /** true όταν το Chrome έχει επιβεβαιώσει ότι η εφαρμογή είναι εγκαταστάσιμη. */
+    /** True once Chrome has confirmed the app is installable. */
     canPromptNatively: deferred !== null,
     visible,
     install,

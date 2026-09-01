@@ -1,17 +1,18 @@
 import type { ServiceState } from './service'
 
 /**
- * Ανεπίσημες «βαθμίδες» της φαντάρικης αργκό, με βάση το πόσο έχει προχωρήσει
- * η θητεία. Δεν έχουν καμία επίσημη ισχύ — είναι ο τρόπος που μετράει ο φαντάρος.
+ * The unofficial "tiers" of conscript slang, keyed off how far service has
+ * progressed. They carry no official weight — this is simply how conscripts
+ * count.
  *
- * Εδώ ζει μόνο το κλειδί και το κατώφλι· το κείμενο έρχεται από το i18n.
+ * Only the key and the threshold live here; the wording comes from i18n.
  */
 export type TierKey =
   | 'pre' | 'psaraki' | 'neos' | 'mesaios' | 'palios' | 'leles' | 'done'
 
 export interface Tier {
   key: TierKey
-  /** Κατώτατο ποσοστό προόδου (0..1) για τη βαθμίδα. */
+  /** Lowest progress (0..1) that still counts as this tier. */
   from: number
   accent: 'olive' | 'signal'
 }

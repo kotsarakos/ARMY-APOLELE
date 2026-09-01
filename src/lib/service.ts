@@ -6,68 +6,68 @@ import {
   regularDaysTaken, sickExtensionDays, splitRegularDays, totalLeaveDays,
 } from './leave'
 
-/* ── Σταθερές θητείας (ισχύουν από 1/1/2026, Ν. 5265/2026) ────────────────── */
+/* ── Service constants (in force from 1 Jan 2026, Law 5265/2026) ──────────── */
 
-/** Κανονική άδεια: 3 ημέρες για κάθε πλήρες δίμηνο υπηρεσίας. */
+/** Regular leave: 3 days for every completed two-month period. */
 export const LEAVE_DAYS_PER_TWO_MONTHS = 3
-/** Ανώτατο όριο ημερών άδειας για πλήρη θητεία (περιλαμβάνει την αναρρωτική). */
+/** Hard cap on leave days for a full term, sick leave included. */
 export const LEAVE_HARD_CAP = 36
-/** Τιμητική άδεια αιμοδοσίας: 2-4 ημέρες, έως 2 φορές στη θητεία. */
+/** Honorary blood-donation leave: 2-4 days, at most twice per term. */
 export const BLOOD_LEAVE_DAYS = 3
 export const MAX_BLOOD_DONATIONS = 2
-/** Τιμητική άδεια παραμεθορίου (ΤΑΠ): 2 ημέρες για κάθε πλήρη μήνα. */
+/** Honorary border-area leave: 2 days for every completed month. */
 export const BORDER_LEAVE_PER_MONTH = 2
-/** Αποζημίωση οπλίτη ανά μήνα (€) — 50€, 100€ σε παραμεθόριο. */
+/** Conscript pay per month in euro — 50, or 100 in a border unit. */
 export const PAY_PER_MONTH = 50
 export const PAY_PER_MONTH_BORDER = 100
 
 export interface ServiceState {
   enlist: Date
   discharge: Date
-  /** Η απόλυση χωρίς την παράταση της αναρρωτικής — «κατάταξη + μήνες». */
+  /** Discharge without the sick-leave extension — "enlistment + months". */
   baseDischarge: Date
-  /** Μέρες που πρόσθεσε η αναρρωτική πέρα από το όριο· 0 στη συνηθισμένη θητεία. */
+  /** Days added by sick leave past the limit; 0 for an ordinary term. */
   sickExtension: number
   now: Date
-  /** Συνολικές ημέρες θητείας από κατάταξη έως απόλυση. */
+  /** Total days of service, from enlistment to discharge. */
   totalDays: number
-  /** Ημέρες που έχουν υπηρετηθεί (0 πριν την κατάταξη). */
+  /** Days served so far — 0 before enlistment. */
   daysServed: number
-  /** Ημέρες που απομένουν μέχρι το απολυτήριο. */
+  /** Days left until discharge. */
   daysLeft: number
-  /** Ημέρες μέχρι την κατάταξη — >0 μόνο αν δεν έχει καταταγεί ακόμη. */
+  /** Days until enlistment — above 0 only while it has not happened yet. */
   daysUntilEnlist: number
   hasEnlisted: boolean
   isDischarged: boolean
   /** 0..1 */
   progress: number
-  /** Πλήρεις μήνες που υπηρετήθηκαν. */
+  /** Whole months served. */
   monthsServed: number
   leave: LeaveState
-  /** Ημέρες πραγματικής παρουσίας που απομένουν, αφαιρώντας τις άδειες. */
+  /** Days of actual presence left, with leave taken out. */
   daysInCamp: number
   pay: PayState
 }
 
 export interface LeaveState {
-  /** Κανονική άδεια που έχει ήδη δικαιωθεί μέχρι σήμερα. */
+  /** Regular leave accrued up to today. */
   earned: number
-  /** Συνολική κανονική άδεια για ολόκληρη τη θητεία. */
+  /** Total regular leave for the whole term. */
   totalEntitlement: number
-  /** Μέρες κανονικής άδειας που έχουν ήδη περάσει. */
+  /** Regular-leave days that have already passed. */
   taken: number
-  /** Μέρες κανονικής άδειας κλεισμένες για το μέλλον — δεσμευμένες, όχι παρμένες. */
+  /** Regular-leave days booked ahead — set aside, not yet taken. */
   planned: number
-  /** taken + planned· ό,τι κόβεται από το δικαίωμα. */
+  /** taken + planned: everything that comes off the entitlement. */
   committed: number
-  /** Μέρες τιμητικής/αναρρωτικής/φύλλου πορείας — δεν κόβουν την κανονική. */
+  /** Honorary, sick and travel-warrant days — these do not touch the regular allowance. */
   otherTaken: number
-  /** Δικαιωμένη και αχρησιμοποίητη. */
+  /** Accrued and still unused. */
   available: number
-  /** Θα δικαιωθεί μέχρι την απόλυση αλλά όχι ακόμη. */
+  /** Will accrue before discharge, but has not yet. */
   upcoming: number
   bonusHonorary: number
-  /** Ημέρες μέχρι το επόμενο δίμηνο (επόμενη πίστωση αδείας). */
+  /** Days until the next two-month mark, when leave is credited. */
   daysToNextAccrual: number
   cap: number
 }
@@ -76,24 +76,24 @@ export interface PayState {
   perMonth: number
   earnedSoFar: number
   totalForService: number
-  /** Επόμενη καταβολή — η επέτειος της κατάταξης κάθε μήνα. */
+  /** Next payment — the monthly anniversary of enlistment. */
   nextPayDate: Date
-  /** Μέρες μέχρι την επόμενη καταβολή. */
+  /** Days until the next payment. */
   daysToPay: number
 }
 
-/** Απόλυση χωρίς προσαυξήσεις: κατάταξη + μήνες υποχρέωσης. */
+/** Discharge with nothing added: enlistment plus the months owed. */
 export function baseDischargeDate(profile: Profile): Date {
   return addMonths(parseISO(profile.enlistDate), profile.months)
 }
 
 /**
- * Ημερομηνία απόλυσης.
+ * The discharge date.
  *
- * Η κανονική άδεια υπηρετείται, οπότε δεν μεταθέτει το απολυτήριο — αυτό είναι
- * το σημείο που παρεξηγείται πιο συχνά. Η αναρρωτική όμως, πέρα από το όριο
- * του `SICK_LEAVE_FREE_DAYS`, δεν μετράει ως χρόνος υπηρεσίας και σπρώχνει
- * την απόλυση ισόποσα.
+ * Regular leave counts as service, so it never pushes discharge back — this is
+ * the single most misunderstood point. Sick leave beyond
+ * `SICK_LEAVE_FREE_DAYS` does not count as service, and moves discharge back
+ * by the same amount.
  */
 export function dischargeDate(profile: Profile): Date {
   return addDays(baseDischargeDate(profile), sickExtensionDays(profile.leaves))
@@ -113,13 +113,13 @@ function computeLeave(profile: Profile, monthsServed: number, now: Date, enlist:
   const borderDays = profile.borderUnit ? monthsServed * BORDER_LEAVE_PER_MONTH : 0
   const bonusHonorary = bloodDays + borderDays
 
-  // Επόμενη πίστωση αδείας: στο τέλος του τρέχοντος διμήνου.
+  // Next leave credit: at the close of the current two-month block.
   const nextAccrualMonth = (completedTwoMonthBlocks + 1) * 2
   const nextAccrualDate = addMonths(enlist, nextAccrualMonth)
   const daysToNextAccrual = Math.max(0, daysBetween(now, nextAccrualDate))
 
-  // Πηγή αλήθειας οι εγγραφές με ημερομηνίες· το `leaveTaken` έχει ήδη
-  // μεταφερθεί σε εγγραφή από το `migrateLegacyLeave` κατά τη φόρτωση.
+  // The dated entries are the source of truth; `leaveTaken` has already been
+  // turned into one by `migrateLegacyLeave` during load.
   const { past: taken, future: planned } = splitRegularDays(profile.leaves, now)
   const committed = taken + planned
   const otherTaken = totalLeaveDays(profile.leaves) - regularDaysTaken(profile.leaves)
@@ -131,7 +131,7 @@ function computeLeave(profile: Profile, monthsServed: number, now: Date, enlist:
     planned,
     committed,
     otherTaken,
-    // Οι κλεισμένες δεσμεύουν κι αυτές: δεν μπορείς να τις ξαναδώσεις αλλού.
+    // Booked days are committed too: you cannot spend them twice.
     available: Math.max(0, earned + bonusHonorary - committed),
     upcoming: Math.max(0, totalEntitlement - earned),
     bonusHonorary,
@@ -161,8 +161,7 @@ export function computeService(profile: Profile, now: Date = today()): ServiceSt
 
   const leave = computeLeave(profile, monthsServed, now, enlist)
 
-  // «Μέρες με τα φύλλα»: όσες μένουν, μείον τις άδειες που δεν έχουν
-  // ακόμη καταναλωθεί — δηλαδή πραγματική παρουσία στη μονάδα.
+  // Days actually on base: the days remaining, minus the leave still unspent.
   const leaveStillToUse = Math.max(
     0,
     leave.totalEntitlement + leave.bonusHonorary - leave.committed,
@@ -171,8 +170,8 @@ export function computeService(profile: Profile, now: Date = today()): ServiceSt
 
   const perMonth = profile.borderUnit ? PAY_PER_MONTH_BORDER : PAY_PER_MONTH
 
-  // Η αποζημίωση ακολουθεί την επέτειο της κατάταξης: αν κατατάχθηκε στις 24,
-  // πληρώνεται στις 24 κάθε μήνα. Μετά την απόλυση δεν υπάρχει επόμενη.
+  // Pay follows the anniversary of enlistment: enlist on the 24th and you are
+  // paid on the 24th of each month. After discharge there is no next one.
   const nextPayMonth = Math.min(monthsServed + 1, profile.months)
   const nextPayDate = addMonths(enlist, nextPayMonth)
 
@@ -202,28 +201,28 @@ export function computeService(profile: Profile, now: Date = today()): ServiceSt
   }
 }
 
-/* ── Πρόβλεψη αδείας ──────────────────────────────────────────────────────── */
+/* ── Leave forecast ───────────────────────────────────────────────────────── */
 
 export interface AccrualPoint {
-  /** Η μέρα που κλείνει το δίμηνο και πιστώνονται οι μέρες. */
+  /** The day the two-month block closes and the days are credited. */
   date: Date
   daysAway: number
-  /** Πόσες μέρες πιστώνονται τότε. */
+  /** How many days are credited then. */
   credit: number
-  /** Πόσες θα είναι διαθέσιμες μετά την πίστωση, με τα δεσμευμένα αφαιρεμένα. */
+  /** How many will be available after it, with committed days removed. */
   available: number
 }
 
 /**
- * Πότε πιστώνεται η επόμενη άδεια, και πόση θα υπάρχει τότε.
+ * When leave is next credited, and how much there will be by then.
  *
- * Η εφαρμογή απαντούσε μόνο «πόσες έχω σήμερα». Η ερώτηση που κάνει όμως
- * κανείς είναι η αντίστροφη: «θέλω πέντε μέρες τον Οκτώβρη — τις έχω;». Οι
- * πιστώσεις είναι ντετερμινιστικές (3 μέρες κάθε πλήρες δίμηνο), οπότε
- * βγαίνουν όλες μπροστά.
+ * The app only answered "how many do I have today". The question people
+ * actually ask runs the other way: "I want five days in October — do I have
+ * them?". Credits are deterministic (3 days per completed two-month block), so
+ * every one of them can be worked out in advance.
  *
- * Ό,τι είναι ήδη κλεισμένο μετράει ως ξοδεμένο: αν έχεις κλείσει άδεια για
- * τον Νοέμβρη, δεν μπορείς να δώσεις τις ίδιες μέρες και αλλού.
+ * Anything already booked counts as spent: if you have leave booked for
+ * November, you cannot promise those same days elsewhere.
  */
 export function leaveForecast(profile: Profile, s: ServiceState): AccrualPoint[] {
   const blocks = Math.floor(profile.months / 2)
@@ -236,8 +235,8 @@ export function leaveForecast(profile: Profile, s: ServiceState): AccrualPoint[]
     if (date.getTime() <= s.now.getTime()) continue
 
     const earned = Math.min(k * LEAVE_DAYS_PER_TWO_MONTHS, s.leave.totalEntitlement)
-    // Η τιμητική παραμεθορίου τρέχει κι αυτή με τους μήνες, οπότε μεγαλώνει
-    // μαζί· η αιμοδοσία είναι σταθερή.
+    // Border-area honorary leave also accrues per month, so it grows along
+    // with the rest; blood-donation leave is fixed.
     const bonus = profile.borderUnit
       ? Math.min(profile.bloodDonations, MAX_BLOOD_DONATIONS) * BLOOD_LEAVE_DAYS +
         k * 2 * BORDER_LEAVE_PER_MONTH
@@ -256,14 +255,14 @@ export function leaveForecast(profile: Profile, s: ServiceState): AccrualPoint[]
 }
 
 export interface LeaveAvailability {
-  /** Η πρώτη μέρα που οι διαθέσιμες φτάνουν το ζητούμενο, ή null αν ποτέ. */
+  /** The first day the balance reaches what was asked for, or null if never. */
   date: Date | null
   daysAway: number
-  /** true αν οι μέρες υπάρχουν ήδη σήμερα. */
+  /** True when the days are already available today. */
   already: boolean
 }
 
-/** «Πότε θα έχω N μέρες;» — διαβάζει την πρόβλεψη και βρίσκει το πρώτο σημείο. */
+/** "When will I have N days?" — reads the forecast for the first point that clears it. */
 export function whenAvailable(
   s: ServiceState, forecast: AccrualPoint[], wanted: number,
 ): LeaveAvailability {
@@ -274,7 +273,7 @@ export function whenAvailable(
     : { date: null, daysAway: -1, already: false }
 }
 
-/* ── Ορόσημα ──────────────────────────────────────────────────────────────── */
+/* ── Milestones ───────────────────────────────────────────────────────────── */
 
 export type MilestoneKey =
   | 'enlist' | 'oath' | 'first-leave' | 'basic-end'
@@ -288,11 +287,11 @@ export interface Milestone {
 }
 
 /**
- * Ορόσημα με βάση το νέο μοντέλο εκπαίδευσης: 10 εβδομάδες βασική εκπαίδευση
- * στο ΚΕΝ και 14 εβδομάδες συνολικής εκπαίδευσης πριν την τοποθέτηση σε μονάδα
- * εκστρατείας (το 70% των οπλιτών οδηγείται απευθείας σε μονάδες συνόρων).
+ * Milestones under the new training model: 10 weeks of basic training at the
+ * training centre, and 14 weeks of training in total before posting to a field
+ * unit — around 70% of conscripts go straight to border units.
  *
- * Επιστρέφει μόνο κλειδιά και ημερομηνίες — οι ετικέτες έρχονται από το i18n.
+ * Returns keys and dates only; the labels come from i18n.
  */
 export function milestones(s: ServiceState): Milestone[] {
   const raw: Array<{ key: MilestoneKey; date: Date }> = [

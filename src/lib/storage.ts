@@ -2,12 +2,12 @@ import type { Profile } from './types'
 import { DEFAULT_PROFILE } from './types'
 
 /**
- * Επίπεδο αποθήκευσης. Σήμερα γράφει σε localStorage· όταν μπει το Firebase,
- * το `syncProfile` στο src/firebase/sync.ts καλύπτει το ανέβασμα/κατέβασμα
- * χωρίς να αλλάξει τίποτε στα components.
+ * The storage layer. It writes to localStorage; `syncProfile` in
+ * src/firebase/sync.ts handles upload and download on top of it, without any
+ * component having to know.
  *
- * Οι εγγραφές επιστρέφουν boolean αντί να καταπίνουν σιωπηλά το σφάλμα, ώστε
- * η διεπαφή να μπορεί να ενημερώσει τον χρήστη (π.χ. ιδιωτική περιήγηση).
+ * Writes return a boolean rather than swallowing the error, so the interface
+ * can tell the user when it failed — private browsing, for instance.
  */
 const KEY = 'army_app.profile.v1'
 

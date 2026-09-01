@@ -2,18 +2,18 @@ import { clearProfile } from './storage'
 import { clearNotifications } from './notify'
 
 /**
- * Αφαιρεί κάθε προσωπικό δεδομένο από **αυτή** τη συσκευή.
+ * Removes every piece of personal data from **this** device.
  *
- * Χρησιμοποιείται σε δύο σημεία: στην αποσύνδεση και στον μηδενισμό. Και στα
- * δύο ο χρήστης περιμένει ότι δεν μένει τίποτα πίσω — σε κοινόχρηστο κινητό ή
- * υπολογιστή αυτό είναι το μόνο που τον προστατεύει.
+ * Called from two places: signing out, and Reset. In both the person expects
+ * nothing to be left behind — on a shared phone or computer that expectation
+ * is the only thing protecting them.
  *
- * Τα προσωπικά δεδομένα δεν ζουν μόνο στο προφίλ: το πρόγραμμα ειδοποιήσεων
- * κρατά ημερομηνίες αδειών και υπηρεσιών, και το σήμα στο εικονίδιο δείχνει
- * πόσες μέρες μένουν. Όλα φεύγουν μαζί.
+ * Personal data does not live in the profile alone: the notification plan
+ * holds leave dates and duty times, and the icon badge shows the days left.
+ * All of it goes together.
  *
- * Δεν αγγίζουμε τη γλώσσα διεπαφής ούτε την απόρριψη του banner εγκατάστασης:
- * είναι προτιμήσεις της συσκευής, όχι στοιχεία του χρήστη.
+ * The interface language and the dismissed install banner are left alone.
+ * Those are device preferences, not facts about the person.
  */
 export async function wipeDevice(): Promise<boolean> {
   const ok = clearProfile()

@@ -1,15 +1,15 @@
 /**
- * Παλιά προφίλ σε νέο build.
+ * Old profiles against a new build.
  *
- * Η εφαρμογή είναι local-first: το προφίλ ζει στη συσκευή και μπορεί να έχει
- * γραφτεί από έκδοση μηνών πριν. Κάθε νέο πεδίο είναι μια ευκαιρία για
- * `Cannot read properties of undefined` — που εδώ δεν σημαίνει σφάλμα σε μια
- * οθόνη, σημαίνει λευκή οθόνη και χαμένα δεδομένα για κάποιον που δεν έκανε
- * τίποτα λάθος.
+ * The app is local-first: the profile lives on the device and may have been
+ * written by a version from months ago. Every new field is an opportunity for
+ * `Cannot read properties of undefined` — which here does not mean a broken
+ * screen, it means a white one and lost data for somebody who did nothing
+ * wrong.
  *
- * Οι δοκιμές μονάδας δεν το πιάνουν, γιατί τα fixture τους φτιάχνονται πάντα
- * από το τρέχον `DEFAULT_PROFILE`. Εδώ φορτώνονται σχήματα προηγούμενων
- * εκδόσεων, όπως ακριβώς θα τα έβρισκε ο browser.
+ * Unit tests cannot catch it, because their fixtures are always built from the
+ * current `DEFAULT_PROFILE`. This loads the shapes earlier releases actually
+ * wrote, exactly as the browser would find them.
  */
 import { chromium } from 'playwright-core'
 const EXEC = process.env.HOME + '/.cache/ms-playwright/chromium-1148/chrome-linux/chrome'
@@ -17,7 +17,7 @@ const browser = await chromium.launch({ executablePath: EXEC })
 let fails = 0
 const check = (l, ok, x='') => { if(!ok) fails++; console.log(`${ok?'ok  ':'FAIL'} ${l}${x?' — '+x:''}`) }
 
-// Το σχήμα της πρώτης έκδοσης: μετρητής αδείας, σκέτη μονάδα, καμία λίστα.
+// The first release's shape: a leave counter, a bare unit, no lists at all.
 for (const [label, legacy] of Object.entries({
   'v1 (counter + unit, no lists)': {
     name:'Old', enlistDate:'2026-02-24', months:12, borderUnit:false,
@@ -51,12 +51,12 @@ for (const [label, legacy] of Object.entries({
     await page.waitForTimeout(350)
     check(`${label}: ${tab} tab renders`, (await page.$$('.band')).length > 0)
   }
-  // Η παλιά μονάδα πρέπει να γίνει τοποθέτηση, όχι να χαθεί.
+  // The old unit has to become a posting, not disappear.
   if (legacy.unit) {
     check(`${label}: legacy unit became a posting`, await page.isVisible('.ps__item'))
   }
-  // Το ζωντανό αρχείο ανακοινώσεων μπορεί να λείπει από το GitHub· η εφαρμογή
-  // πέφτει πίσω στο αντίγραφο του build και δεν σπάει.
+  // The live announcements file may be missing from GitHub; the app falls back
+  // to the copy shipped with the build and does not break.
   const unexpected = errs.filter(e => !e.includes('raw.githubusercontent.com'))
   check(`${label}: no console errors`, unexpected.length === 0, unexpected.slice(0,2).join(' | '))
   await ctx.close()

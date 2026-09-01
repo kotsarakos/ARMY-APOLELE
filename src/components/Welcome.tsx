@@ -2,9 +2,9 @@ import { AuthForm } from './AuthForm'
 import { useI18n } from '../hooks/useI18n'
 
 /**
- * Πρώτη οθόνη για νέο χρήστη: σύνδεση με Google ή email, ή συνέχεια χωρίς
- * λογαριασμό. Η παράλειψη είναι ισότιμη επιλογή, όχι κρυμμένη — η πολιτική
- * απορρήτου υπόσχεται ότι η σύνδεση δεν είναι ποτέ προεπιλογή.
+ * The first screen a new visitor sees: sign in with Google or email, or carry
+ * on without an account. Skipping is an equal option and not hidden — the
+ * privacy policy promises that signing in is never the default.
  */
 export function Welcome({ onSkip }: { onSkip: () => void }) {
   const { t } = useI18n()

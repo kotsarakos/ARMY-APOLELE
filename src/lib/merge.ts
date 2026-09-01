@@ -1,27 +1,26 @@
 import type { Duty, Expense, LeaveEntry, Posting, Profile, Recurring } from './types'
 
 /**
- * Συγχώνευση δύο προφίλ από διαφορετικές συσκευές.
+ * Merging two profiles from different devices.
  *
- * Το πρόβλημα που λύνει: αν γράψεις ένα έξοδο στο κινητό εκτός σήματος και
- * μετά ένα άλλο στον υπολογιστή, ένα σκέτο «κερδίζει το πιο πρόσφατο» θα
- * πετούσε τη μία από τις δύο εγγραφές — σιωπηλά.
+ * The problem it solves: write one expense on your phone with no signal, then
+ * another on your laptop, and a plain "most recent wins" throws one of them
+ * away — silently.
  *
- * Ο κανόνας εδώ:
- *  - **Βαθμωτά πεδία** (όνομα, μονάδα, ημερομηνία κατάταξης): κερδίζει το
- *    μεγαλύτερο `updatedAt`. Δεν υπάρχει καλύτερος κανόνας για ένα πεδίο που
- *    άλλαξε και στις δύο μεριές.
- *  - **Λίστες**: ένωση ανά `id`. Καμία εγγραφή δεν χάνεται.
- *  - **Διαγραφές**: κάθε σβήσιμο αφήνει ταφόπλακα στο `deletedIds`. Χωρίς
- *    αυτές, η ένωση θα ανάσταινε ό,τι έσβησες στη μία συσκευή.
+ * The rules:
+ *  - **Scalar fields** (name, unit, enlistment date): the larger `updatedAt`
+ *    wins. There is no better rule for a field that changed on both sides.
+ *  - **Lists**: unioned by `id`. No entry is ever lost.
+ *  - **Deletions**: every delete leaves a tombstone in `deletedIds`. Without
+ *    them, the union would resurrect whatever you deleted on one device.
  */
 
-/** Πόσες ταφόπλακες κρατάμε πριν αρχίσουν να πέφτουν οι παλιότερες. */
+/** How many tombstones we keep before the oldest start falling off. */
 export const MAX_TOMBSTONES = 500
 
 interface HasId { id: string }
 
-/** Ένωση ανά id· σε σύγκρουση κερδίζει η πλευρά `winner`. */
+/** Union by id; on a clash the `winner` side takes it. */
 function unionById<T extends HasId>(winner: T[], loser: T[], dead: Set<string>): T[] {
   const out = new Map<string, T>()
   for (const item of loser) out.set(item.id, item)
@@ -29,7 +28,7 @@ function unionById<T extends HasId>(winner: T[], loser: T[], dead: Set<string>):
   return [...out.values()].filter((item) => !dead.has(item.id))
 }
 
-/** Όλα τα id που κρατά ένα προφίλ στις λίστες του. */
+/** Every id a profile currently holds across its lists. */
 function idsIn(p: Profile): Set<string> {
   return new Set([
     ...(p.expenses ?? []), ...(p.leaves ?? []), ...(p.duties ?? []),
@@ -42,17 +41,17 @@ export function mergeProfiles(a: Profile, b: Profile): Profile {
 
   const dead = new Set([...(a.deletedIds ?? []), ...(b.deletedIds ?? [])])
 
-  // Μια ταφόπλακα δεν κερδίζει μια εγγραφή που **υπάρχει ακόμη** στην πιο
-  // πρόσφατη συσκευή. Χωρίς αυτόν τον κανόνα, η αναίρεση διαγραφής θα ήταν
-  // τοπική ψευδαίσθηση: το σβήσιμο έχει ήδη συγχρονιστεί, οπότε η ταφόπλακα
-  // υπάρχει αλλού και θα ξανάσβηνε την εγγραφή στην πρώτη συγχώνευση.
+  // A tombstone does not beat a record that the more recently written device
+  // **still holds**. Without this rule, undoing a deletion would be a local
+  // illusion: the delete has already synced, so the tombstone exists elsewhere
+  // and the first merge would delete the row again.
   //
-  // Είναι ο ίδιος κανόνας που ισχύει ήδη για τα βαθμωτά πεδία: σε σύγκρουση,
-  // κερδίζει η συσκευή που έγραψε τελευταία.
+  // It is the same rule the scalar fields already follow: on a clash, the
+  // device that wrote last wins.
   for (const id of idsIn(newer)) dead.delete(id)
 
   return {
-    // Βαθμωτά: από την πιο πρόσφατη συσκευή.
+    // Scalars: taken from the more recently written device.
     ...newer,
     expenses: unionById<Expense>(newer.expenses ?? [], older.expenses ?? [], dead),
     leaves: unionById<LeaveEntry>(newer.leaves ?? [], older.leaves ?? [], dead),
@@ -65,14 +64,14 @@ export function mergeProfiles(a: Profile, b: Profile): Profile {
 }
 
 /**
- * Σβήνει μία εγγραφή από όποια λίστα κι αν βρίσκεται, αφήνοντας ταφόπλακα.
- * Επιστρέφει patch, ώστε να περάσει από το κανονικό `update`.
+ * Removes one entry from whichever list holds it, leaving a tombstone behind.
+ * Returns a patch, so it goes through the normal `update` path.
  */
 export function withDeletion(profile: Profile, id: string): Partial<Profile> {
   return withDeletions(profile, [id])
 }
 
-/** Το ίδιο για πολλά id μαζί — π.χ. πάγιο μαζί με όσα έξοδα παρήγαγε. */
+/** The same for several ids — a recurring charge with everything it created. */
 export function withDeletions(profile: Profile, ids: string[]): Partial<Profile> {
   const dead = new Set(ids)
   return {
@@ -85,9 +84,9 @@ export function withDeletions(profile: Profile, ids: string[]): Partial<Profile>
   }
 }
 
-/* ── Αναίρεση ────────────────────────────────────────────────────────────── */
+/* ── Undo ────────────────────────────────────────────────────────────────── */
 
-/** Ό,τι αφαιρέθηκε, κρατημένο ανά λίστα ώστε να ξέρουμε πού να επιστρέψει. */
+/** What was removed, kept per list so we know where to put it back. */
 export interface Removed {
   expenses: Expense[]
   leaves: LeaveEntry[]
@@ -98,22 +97,23 @@ export interface Removed {
 
 export interface Deletion {
   patch: Partial<Profile>
-  /** Πόσες εγγραφές αφαιρέθηκαν συνολικά. */
+  /** How many entries were removed in total. */
   count: number
   /**
-   * Το patch που τις ξαναβάζει. Παίρνει το **τρέχον** προφίλ, όχι εκείνο της
-   * στιγμής της διαγραφής: ανάμεσα στη διαγραφή και στην αναίρεση μπορεί να
-   * έχει προστεθεί κάτι άλλο, και δεν πρέπει να χαθεί.
+   * The patch that puts them back. It takes the **current** profile, not the
+   * one from the moment of deletion: something else may have been added
+   * between the tap and the undo, and it must not be lost.
    */
   restore: (current: Profile) => Partial<Profile>
 }
 
 /**
- * Διαγραφή με δυνατότητα αναίρεσης.
+ * A deletion that can be undone.
  *
- * Χωρίς αυτό, ένα λάθος πάτημα στο «×» έσβηνε οριστικά μια άδεια — και μαζί
- * της την ημερομηνία που κανείς δεν θυμάται απ' έξω. Η ταφόπλακα φεύγει μαζί
- * με την επαναφορά, αλλιώς η συγχώνευση με άλλη συσκευή θα την ξανάσβηνε.
+ * Without it, one stray tap on the "×" permanently erased a leave entry — and
+ * with it a date nobody remembers off the top of their head. The tombstone is
+ * lifted on restore, otherwise a merge with another device would delete it
+ * again.
  */
 export function deletion(profile: Profile, ids: string[]): Deletion {
   const dead = new Set(ids)

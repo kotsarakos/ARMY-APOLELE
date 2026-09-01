@@ -2,7 +2,7 @@ import { chromium } from 'playwright-core'
 const EXEC = process.env.HOME + '/.cache/ms-playwright/chromium-1148/chrome-linux/chrome'
 const b = await chromium.launch({ executablePath: EXEC })
 
-// Νέα αρχική οθόνη: πρώτα «συνέχεια χωρίς λογαριασμό», μετά το onboarding.
+// The welcome screen comes first: skip the account, then onboarding.
 async function skipAuth(page) {
   const skip = await page.$('.welcome__skip .btn')
   if (skip) { await skip.click(); await page.waitForSelector('.esso') }

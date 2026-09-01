@@ -5,21 +5,21 @@ import { addDays, addMonths, parseISO, toISO } from './dates'
 import { leaveDays } from './leave'
 
 /**
- * Εξαγωγή σε αρχείο ημερολογίου (RFC 5545).
+ * Export to a calendar file (RFC 5545).
  *
- * Το backup σε JSON το διαβάζει μόνο η ίδια η εφαρμογή. Ένα `.ics` μπαίνει στο
- * Google/Apple Calendar του χρήστη, οπότε οι άδειες και οι υπηρεσίες
- * εμφανίζονται εκεί που κοιτάει ήδη κάθε μέρα — και τις βλέπει και το σπίτι
- * του, αν μοιραστεί το ημερολόγιο.
+ * The JSON backup can only be read by this app. An `.ics` goes into the
+ * person's Google or Apple calendar, so leave and duties turn up where they
+ * already look every day — and their family sees them too, if the calendar is
+ * shared.
  *
- * Είναι στιγμιότυπο, όχι συνδρομή: μια εξαγωγή δεν ενημερώνεται μόνη της. Οι
- * συνδρομές (webcal) θέλουν διακομιστή, και ο διακομιστής θα σήμαινε ότι τα
- * δεδομένα φεύγουν από τη συσκευή.
+ * It is a snapshot, not a subscription: an export does not update itself.
+ * Subscriptions (webcal) need a server, and a server would mean the data
+ * leaving the device.
  */
 
 const CRLF = '\r\n'
 
-/** Χαρακτήρες με ειδική σημασία μέσα σε τιμή του ics. */
+/** Characters with special meaning inside an ics value. */
 function escape(text: string): string {
   return text
     .replace(/\\/g, '\\\\')
@@ -29,9 +29,9 @@ function escape(text: string): string {
 }
 
 /**
- * Το πρότυπο ορίζει μέγιστο μήκος 75 **οκτάδων** ανά γραμμή. Με ελληνικά, ένας
- * χαρακτήρας είναι δύο οκτάδες σε UTF-8, οπότε το μέτρημα γίνεται σε bytes —
- * αλλιώς το σπάσιμο πέφτει μέσα σε χαρακτήρα και το αρχείο χαλάει.
+ * The standard caps lines at 75 **octets**. In Greek a character is two octets
+ * of UTF-8, so the count has to be in bytes — otherwise the break lands inside
+ * a character and corrupts the file.
  */
 function fold(line: string): string {
   const enc = new TextEncoder()
@@ -42,7 +42,7 @@ function fold(line: string): string {
   let bytes = 0
   for (const ch of line) {
     const size = enc.encode(ch).length
-    // Οι γραμμές συνέχειας ξεκινούν με κενό, που μετράει κι αυτό.
+    // Continuation lines begin with a space, which counts towards the limit.
     const limit = out.length === 0 ? 75 : 74
     if (bytes + size > limit) {
       out.push(current)
@@ -62,7 +62,7 @@ function stamp(d: Date): string {
     `T${p(d.getUTCHours())}${p(d.getUTCMinutes())}${p(d.getUTCSeconds())}Z`
 }
 
-/** 'YYYY-MM-DD' → 'YYYYMMDD' για ολοήμερα. */
+/** 'YYYY-MM-DD' becomes 'YYYYMMDD' for all-day events. */
 function dateValue(iso: string): string {
   return iso.replace(/-/g, '')
 }
@@ -71,12 +71,12 @@ interface Event {
   uid: string
   summary: string
   description?: string
-  /** Ολοήμερο: ISO αρχής και ISO **επόμενης** μέρας μετά το τέλος. */
+  /** All-day: the ISO start, and the ISO of the day **after** it ends. */
   start: string
   end: string
-  /** 'HH:MM' — αν υπάρχει, το γεγονός παίρνει ώρα αντί για ολόημερο. */
+  /** 'HH:MM' — when present the event is timed rather than all-day. */
   at?: string
-  /** Διάρκεια σε ώρες, όταν υπάρχει ώρα έναρξης. */
+  /** Length in hours, when there is a start time. */
   hours?: number
 }
 
@@ -108,8 +108,8 @@ function renderEvent(e: Event, now: Date, tz: string): string[] {
 }
 
 /**
- * Όλα τα γεγονότα της θητείας σε ένα αρχείο: άδειες, υπηρεσίες, πληρωμές,
- * πιστώσεις αδείας και η απόλυση.
+ * Everything about the term in one file: leave, duties, paydays, leave credits
+ * and the discharge.
  */
 export function buildIcs(
   profile: Profile, s: ServiceState, t: Dict, now: Date = new Date(),
@@ -195,6 +195,6 @@ export function downloadIcs(profile: Profile, s: ServiceState, t: Dict): void {
   a.href = url
   a.download = icsFilename()
   a.click()
-  // Το ανακαλούμε αργότερα: σε Safari, άμεση ανάκληση ακυρώνει τη λήψη.
+  // Revoked later: in Safari, revoking immediately cancels the download.
   setTimeout(() => URL.revokeObjectURL(url), 2000)
 }

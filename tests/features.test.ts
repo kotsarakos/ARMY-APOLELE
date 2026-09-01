@@ -1,6 +1,6 @@
 /**
- * Tests για τα καινούργια κομμάτια: άδειες με ημερομηνίες, υπηρεσίες,
- * πάγια έξοδα, συγχώνευση δύο συσκευών, αντίγραφο ασφαλείας, ειδοποιήσεις.
+ * Tests for everything beyond the core service maths: dated leave, duties,
+ * recurring charges, merging two devices, backups, exports and notifications.
  */
 import { computeService } from '../src/lib/service'
 import { parseISO, toISO } from '../src/lib/dates'
@@ -47,7 +47,7 @@ const base: Profile = {
 }
 const NOW = parseISO('2026-08-31')
 
-/* ── Άδειες ───────────────────────────────────────────────────────────── */
+/* ── Leave ────────────────────────────────────────────────────────────── */
 
 eq('άδεια: μία μέρα μετράει 1', leaveDays(newLeave('regular', '2026-05-03', '2026-05-03')), 1)
 eq('άδεια: 3/5–5/5 μετράει 3 (περιληπτικά)',
@@ -57,8 +57,8 @@ eq('άδεια: ανάποδο διάστημα δίνει 0',
 
 const leaves = [
   newLeave('regular', '2026-04-01', '2026-04-05'),   // 5
-  newLeave('blood', '2026-06-10', '2026-06-12'),     // 3, τιμητική
-  newLeave('regular', '2026-09-10', '2026-09-14'),   // 5, μελλοντική
+  newLeave('blood', '2026-06-10', '2026-06-12'),     // 3 days, honorary
+  newLeave('regular', '2026-09-10', '2026-09-14'),   // 5 days, in the future
 ]
 eq('άδειες: σύνολο όλων', totalLeaveDays(leaves), 13)
 eq('άδειες: μόνο κανονική κόβει το δικαίωμα', regularDaysTaken(leaves), 10)
@@ -86,7 +86,7 @@ eq('έλεγχος: παράλογο διάστημα',
 
 eq('ταξινόμηση: πιο πρόσφατη πρώτη', sortLeaves(leaves)[0].from, '2026-09-10')
 
-// Μεταφορά από τον παλιό μετρητή.
+// Migration from the old counter.
 const legacy = migrateLegacyLeave({ ...base, leaveTaken: 4 }, 'παλιά', NOW)
 eq('μεταφορά: φτιάχνει μία εγγραφή', legacy.leaves.length, 1)
 eq('μεταφορά: κρατά τις ίδιες μέρες', leaveDays(legacy.leaves[0]), 4)
@@ -96,12 +96,12 @@ eq('μεταφορά: δεν ξανατρέχει', migrateLegacyLeave(legacy, '
 eq('μεταφορά: δεν κάνει τίποτε στο μηδέν',
   migrateLegacyLeave(base, 'παλιά', NOW) === base, true)
 
-// Παρελθόν και μέλλον χωριστά: μια κλεισμένη άδεια δεν είναι «παρμένη».
+// Past and future kept apart: booked leave has not been taken.
 const split = splitRegularDays(leaves, NOW)
 eq('χωρισμός: μέρες που πέρασαν', split.past, 5)
 eq('χωρισμός: μέρες κλεισμένες', split.future, 5)
 
-// Άδεια σε εξέλιξη μοιράζεται στη σημερινή μέρα.
+// Leave under way splits at today.
 const straddle = splitRegularDays([newLeave('regular', '2026-08-29', '2026-09-02')], NOW)
 eq('χωρισμός: τρέχουσα άδεια, μέρες που πέρασαν', straddle.past, 3)
 eq('χωρισμός: τρέχουσα άδεια, μέρες που μένουν', straddle.future, 2)
@@ -109,23 +109,23 @@ eq('χωρισμός: το σύνολο διατηρείται', straddle.past +
 eq('χωρισμός: οι τιμητικές δεν μπαίνουν',
   splitRegularDays([newLeave('blood', '2026-04-01', '2026-04-03')], NOW).past, 0)
 
-// Σύνδεση με τον υπολογισμό θητείας.
+// The link to the service calculation.
 const sLeave = computeService({ ...base, leaves }, NOW)
 eq('θητεία: taken μόνο ό,τι πέρασε', sLeave.leave.taken, 5)
 eq('θητεία: planned ό,τι είναι κλεισμένο', sLeave.leave.planned, 5)
 eq('θητεία: committed το άθροισμα', sLeave.leave.committed, 10)
 eq('θητεία: τιμητικές χωριστά', sLeave.leave.otherTaken, 3)
-// Το ζητούμενο: οι κλεισμένες μέρες δεσμεύουν κι αυτές το υπόλοιπο.
+// The point: booked days hold back the balance too.
 eq('θητεία: διαθέσιμες μετά τις κλεισμένες',
   sLeave.leave.available, Math.max(0, sLeave.leave.earned - 10))
 
-/* ── Πληρωμή ──────────────────────────────────────────────────────────── */
+/* ── Pay ──────────────────────────────────────────────────────────────── */
 
 const sPay = computeService(base, NOW)
 eq('πληρωμή: επόμενη στην επέτειο κατάταξης', toISO(sPay.pay.nextPayDate), '2026-09-24')
 eq('πληρωμή: μέρες μέχρι', sPay.pay.daysToPay, 24)
 
-/* ── Υπηρεσίες ────────────────────────────────────────────────────────── */
+/* ── Duties ───────────────────────────────────────────────────────────── */
 
 const duties = [
   newDuty('guard', '2026-08-20', 2, '02:00'),
@@ -149,7 +149,7 @@ eq('υπηρεσίες: οι επόμενες σε αύξουσα σειρά',
 eq('υπηρεσίες: οι περασμένες με την πιο πρόσφατη πρώτη',
   d.past.map((x) => x.date).join(','), '2026-08-25,2026-08-20')
 
-/* ── Πάγια έξοδα ──────────────────────────────────────────────────────── */
+/* ── Recurring charges ────────────────────────────────────────────────── */
 
 const rec = newRecurring(1500, 'phone', 5, 'κινητό', '2026-06-01')
 const withRec: Profile = { ...base, recurring: [rec] }
@@ -158,7 +158,7 @@ eq('πάγια: χρεώσεις Ιουν/Ιουλ/Αυγ', due.length, 3)
 eq('πάγια: πρώτη χρέωση στη σωστή μέρα', due[0].date, '2026-06-05')
 eq('πάγια: ποσό σε λεπτά', due[0].amount, 1500)
 
-// Το σημαντικό: τρέξε το ξανά με τις χρεώσεις ήδη μέσα — δεν διπλογράφει.
+// The important part: run it again with the charges already there — no duplicates.
 const afterFirst: Profile = { ...withRec, expenses: due }
 eq('πάγια: δεύτερη εκτέλεση δεν διπλογράφει', dueRecurring(afterFirst, NOW).length, 0)
 eq('πάγια: το id δείχνει την προέλευση', isFromRecurring(due[0], rec.id), true)
@@ -172,14 +172,14 @@ const mRec = computeMoney(afterFirst, computeService(afterFirst, NOW))
 eq('πάγια: μηνιαίο σύνολο', mRec.recurringMonthly, 1500)
 eq('πάγια: μπαίνουν στα ξοδεμένα', mRec.spent, 4500)
 
-/* ── Ημερομηνία στο έξοδο ─────────────────────────────────────────────── */
+/* ── The date on an expense ───────────────────────────────────────────── */
 
 eq('έξοδο: κρατά την ημερομηνία που δόθηκε',
   newExpense(450, 'canteen', 'καφές', '2026-07-04').date, '2026-07-04')
 eq('έξοδο: χωρίς ημερομηνία παίρνει σήμερα',
   newExpense(450, 'canteen').date, toISO(new Date()))
 
-/* ── Συγχώνευση δύο συσκευών ──────────────────────────────────────────── */
+/* ── Merging two devices ──────────────────────────────────────────────── */
 
 const e1 = { ...newExpense(1000, 'canteen', 'κινητό'), id: 'e1' }
 const e2 = { ...newExpense(2000, 'food', 'σουβλάκι'), id: 'e2' }
@@ -194,7 +194,7 @@ eq('συγχώνευση: updatedAt το μεγαλύτερο', merged.updatedAt
 eq('συγχώνευση: αντιμεταθετική',
   mergeProfiles(laptop, phone).expenses.length, 2)
 
-// Χωρίς ταφόπλακες η διαγραφή θα ακυρωνόταν από την άλλη συσκευή.
+// Without tombstones the deletion would be undone by the other device.
 const afterDelete: Profile = {
   ...phone,
   ...withDeletion({ ...phone, expenses: [e1, e2] }, 'e2'),
@@ -208,13 +208,13 @@ const multi = withDeletions({ ...phone, expenses: [e1, e2] }, ['e1', 'e2'])
 eq('πολλαπλή διαγραφή: άδειασε', multi.expenses?.length, 0)
 eq('πολλαπλή διαγραφή: δύο ταφόπλακες', multi.deletedIds?.length, 2)
 
-// Οι λίστες που δεν αγγίχτηκαν επιβιώνουν ακέραιες.
+// Untouched lists survive intact.
 const withLists: Profile = { ...base, leaves, duties, updatedAt: 10 }
 const merged3 = mergeProfiles(withLists, { ...base, updatedAt: 20 })
 eq('συγχώνευση: άδειες επιβιώνουν', merged3.leaves.length, 3)
 eq('συγχώνευση: υπηρεσίες επιβιώνουν', merged3.duties.length, 4)
 
-/* ── Αντίγραφο ασφαλείας ──────────────────────────────────────────────── */
+/* ── Backup ───────────────────────────────────────────────────────────── */
 
 const full: Profile = { ...base, leaves, duties, expenses: [e1, e2], startingBalance: 100000 }
 const roundTripText = JSON.stringify({
@@ -233,7 +233,7 @@ eq('backup: χωρίς κατάταξη απορρίπτεται',
   })).error, 'empty')
 eq('backup: το blob είναι JSON', exportBackup(full).type, 'application/json')
 
-/* ── Πρόγραμμα ειδοποιήσεων ───────────────────────────────────────────── */
+/* ── The notification plan ────────────────────────────────────────────── */
 
 const planProfile: Profile = {
   ...base,
@@ -253,19 +253,19 @@ eq('ειδοποιήσεις: καμία στο παρελθόν',
 eq('ειδοποιήσεις: όλα έχουν κείμενο',
   plan.items.every((i) => i.title.length > 0 && i.body.length > 0), true)
 
-// Οι δύο γλώσσες πρέπει να βγάζουν το ίδιο πλήθος γεγονότων.
+// Both languages must produce the same number of events.
 const planEn = buildPlan(planProfile, computeService(planProfile, NOW), DICT.en)
 eq('ειδοποιήσεις: ίδια γεγονότα και στα αγγλικά', planEn.items.length, plan.items.length)
 
-/* ── Ημερολόγιο ───────────────────────────────────────────────────────── */
+/* ── The calendar grid ────────────────────────────────────────────────── */
 
-// Η εβδομάδα ξεκινά Δευτέρα, ενώ το getDay() μετράει από Κυριακή.
+// Weeks start on Monday, while getDay() counts from Sunday.
 eq('ημερολόγιο: Δευτέρα είναι 0', mondayIndex(parseISO('2026-08-31')), 0)
 eq('ημερολόγιο: Κυριακή είναι 6', mondayIndex(parseISO('2026-08-30')), 6)
 eq('ημερολόγιο: κεφαλίδα ξεκινά Δευτέρα',
   weekHeader(['ΚΥ', 'ΔΕ', 'ΤΡ', 'ΤΕ', 'ΠΕ', 'ΠΑ', 'ΣΑ']).join(''), 'ΔΕΤΡΤΕΠΕΠΑΣΑΚΥ')
 
-const grid = monthGrid(2026, 7)   // Αύγουστος 2026
+const grid = monthGrid(2026, 7)   // August 2026
 eq('ημερολόγιο: πάντα 42 κελιά', grid.length, 42)
 eq('ημερολόγιο: ξεκινά Δευτέρα', mondayIndex(grid[0].date), 0)
 eq('ημερολόγιο: πρώτο κελί είναι γέμισμα', grid[0].iso, '2026-07-27')
@@ -273,7 +273,7 @@ eq('ημερολόγιο: η 1η Αυγούστου στη σωστή θέση',
 eq('ημερολόγιο: μέρες του μήνα', grid.filter((c) => c.inMonth).length, 31)
 eq('ημερολόγιο: τελευταίο κελί είναι γέμισμα', grid[41].inMonth, false)
 
-// Φεβρουάριος που ξεκινά Κυριακή — η χειρότερη περίπτωση για τη μετατόπιση.
+// A February starting on a Sunday — the worst case for the shift.
 const feb = monthGrid(2026, 1)
 eq('ημερολόγιο: Φεβρουάριος 2026 ξεκινά Κυριακή', feb[6].iso, '2026-02-01')
 eq('ημερολόγιο: 28 μέρες', feb.filter((c) => c.inMonth).length, 28)
@@ -291,7 +291,7 @@ eq('ημερολόγιο: σκουπίδια δεν γίνονται ημερο�
 eq('ημερολόγιο: κενό δεν γίνεται ημερομηνία', safeParse(''), null)
 eq('ημερολόγιο: έγκυρο ISO διαβάζεται', toISO(safeParse('2026-05-03')!), '2026-05-03')
 
-// Και στις δύο γλώσσες χρειάζονται και οι δύο μορφές μήνα.
+// Both languages need both forms of the month name.
 for (const l of ['el', 'en'] as const) {
   eq(`ημερολόγιο: 12 μήνες ονομαστικής (${l})`, DICT[l].monthsAlone.length, 12)
   eq(`ημερολόγιο: 7 συντομογραφίες ημερών (${l})`, DICT[l].weekdaysShort.length, 7)
@@ -300,11 +300,11 @@ eq('ημερολόγιο: η ονομαστική διαφέρει από τη �
   DICT.el.monthsAlone[7] !== DICT.el.months[7], true)
 
 
-/* ── Αναρρωτική που παρατείνει τη θητεία ──────────────────────────────── */
+/* ── Sick leave that extends the term ─────────────────────────────────── */
 
 const shortSick: Profile = {
   ...base,
-  leaves: [newLeave('sick', '2026-03-01', '2026-03-10')],   // 10 μέρες
+  leaves: [newLeave('sick', '2026-03-01', '2026-03-10')],   // 10 days
 }
 eq('αναρρωτική: μέρες', sickDays(shortSick.leaves), 10)
 eq('αναρρωτική: κάτω από το όριο δεν παρατείνει',
@@ -312,7 +312,7 @@ eq('αναρρωτική: κάτω από το όριο δεν παρατείν�
 eq('αναρρωτική: η απόλυση μένει στην κανονική',
   toISO(computeService(shortSick, NOW).discharge), '2027-02-24')
 
-// 45 μέρες: 15 πάνω από το όριο των 30.
+// 45 days: 15 past the limit of 30.
 const longSick: Profile = {
   ...base,
   leaves: [newLeave('sick', '2026-03-01', '2026-04-14')],
@@ -331,7 +331,7 @@ eq('αναρρωτική: μεγαλώνει και η συνολική θητε
 eq('αναρρωτική: δεν κόβει κανονική άδεια',
   computeService(longSick, NOW).leave.taken, 0)
 
-/* ── Πρόβλεψη αδείας ──────────────────────────────────────────────────── */
+/* ── Leave forecast ───────────────────────────────────────────────────── */
 
 const fcState = computeService(base, NOW)
 const fc = leaveForecast(base, fcState)
@@ -353,15 +353,15 @@ eq('πρόβλεψη: και έχουν ημερομηνία', need.date !== nul
 eq('πρόβλεψη: υπερβολικό αίτημα δεν βγαίνει ποτέ',
   whenAvailable(fcState, fc, 99).date, null)
 
-// Ό,τι είναι κλεισμένο δεσμεύεται: η ίδια πρόβλεψη με άδεια στο μέλλον
-// πρέπει να δίνει λιγότερες διαθέσιμες μέρες στο ίδιο σημείο.
+// Booked days are committed: the same forecast with leave in the future must
+// give fewer available days at the same point.
 const booked: Profile = { ...base, leaves: [newLeave('regular', '2026-11-01', '2026-11-03')] }
 const bookedState = computeService(booked, NOW)
 const fcBooked = leaveForecast(booked, bookedState)
 eq('πρόβλεψη: οι κλεισμένες μέρες αφαιρούνται',
   fcBooked[0].available, fc[0].available - 3)
 
-/* ── Ημερολόγιο μήνα ──────────────────────────────────────────────────── */
+/* ── The month agenda ─────────────────────────────────────────────────── */
 
 const busy: Profile = {
   ...base,
@@ -369,7 +369,7 @@ const busy: Profile = {
   duties: [newDuty('guard', '2026-09-15', 2, '18:00')],
   expenses: [newExpense(450, 'canteen', undefined, '2026-09-15')],
 }
-const month = monthAgenda(busy, computeService(busy, NOW), 2026, 8)   // Σεπτέμβριος
+const month = monthAgenda(busy, computeService(busy, NOW), 2026, 8)   // September
 eq('ημερολόγιο μήνα: 42 κελιά', month.length, 42)
 eq('ημερολόγιο μήνα: η άδεια απλώνεται σε όλες τις μέρες της',
   month.filter((d) => d.events.some((e) => e.kind === 'leave')).length, 3)
@@ -384,8 +384,8 @@ eq('ημερολόγιο μήνα: τα έξοδα αθροίζονται ανά
   d15.events.find((e) => e.kind === 'spend')!.amount, 450)
 eq('ημερολόγιο μήνα: υπάρχει πληρωμή τον μήνα',
   month.some((d) => d.inMonth && d.events.some((e) => e.kind === 'pay')), true)
-// Το υπόμνημα πρέπει να εξηγεί κάθε χρώμα που φαίνεται — και οι κουκκίδες των
-// γειτονικών μηνών φαίνονται.
+// The legend has to explain every visible colour — and the dots from
+// neighbouring months are visible.
 const shownKinds = new Set(month.flatMap((d) => d.events.map((e) => e.kind)))
 eq('ημερολόγιο μήνα: το υπόμνημα καλύπτει κάθε ορατό χρώμα',
   [...shownKinds].every((k) => kindsPresent(month).includes(k)), true)
@@ -399,7 +399,7 @@ eq('ημερολόγιο μήνα: κενός μήνας δεν βγάζει υ�
 eq('ημερολόγιο μήνα: η ταξινόμηση βάζει την άδεια πρώτη',
   sortEvents([{ kind: 'spend' }, { kind: 'leave' }])[0].kind, 'leave')
 
-// Δύο έξοδα την ίδια μέρα πρέπει να γίνουν ένα σημάδι, όχι δύο.
+// Two expenses on the same day must become one marker, not two.
 const twice: Profile = {
   ...base,
   expenses: [
@@ -414,7 +414,7 @@ eq('ημερολόγιο μήνα: ένα σημάδι εξόδων ανά μέ�
 eq('ημερολόγιο μήνα: με το άθροισμα των δύο',
   merged15.events.find((e) => e.kind === 'spend')!.amount, 350)
 
-/* ── Μηνιαίο όριο ─────────────────────────────────────────────────────── */
+/* ── Monthly limit ────────────────────────────────────────────────────── */
 
 eq('όριο: έξοδα του τρέχοντος μήνα',
   spentInMonth(
@@ -443,7 +443,7 @@ eq('όριο: η μπάρα δεν ξεπερνά το 100%', bo.budget.share, 1
 eq('όριο: χωρίς όριο δεν υπάρχει υπέρβαση',
   computeMoney(base, computeService(base, NOW)).budget.over, false)
 
-/* ── Ιστορικό μονάδων ─────────────────────────────────────────────────── */
+/* ── Posting history ──────────────────────────────────────────────────── */
 
 const posted: Profile = {
   ...base,
@@ -462,7 +462,7 @@ eq('μονάδες: η τρέχουσα δεν έχει τέλος', spans[1].un
 eq('μονάδες: τώρα βρίσκεται εδώ',
   currentPosting(posted.postings, NOW)!.unit, '2ο ΕΠ')
 
-// Μελλοντική μετάθεση: την ξέρεις, αλλά δεν έχεις πάει.
+// A future transfer: you know about it, but you have not been.
 const future: Profile = {
   ...posted,
   postings: [...posted.postings, newPosting('Έβρος', '2026-12-01')],
@@ -481,7 +481,7 @@ eq('μονάδες: δεύτερη φορά δεν διπλασιάζει',
 eq('μονάδες: χωρίς μονάδα δεν φτιάχνει τίποτα',
   migrateLegacyUnit(base).postings.length, 0)
 
-/* ── Αναίρεση διαγραφής ───────────────────────────────────────────────── */
+/* ── Undoing a deletion ───────────────────────────────────────────────── */
 
 const withStuff: Profile = {
   ...base,
@@ -495,8 +495,8 @@ const undoneState: Profile = { ...withStuff, ...del.patch }
 eq('αναίρεση: η εγγραφή έφυγε', undoneState.leaves.length, 0)
 eq('αναίρεση: έμεινε ταφόπλακα', undoneState.deletedIds.includes(target), true)
 
-// Ανάμεσα στη διαγραφή και στην αναίρεση προστίθεται κάτι άλλο· δεν πρέπει
-// να χαθεί. Γι' αυτό το `restore` παίρνει το τρέχον προφίλ, όχι στιγμιότυπο.
+// Something else is added between the delete and the undo, and must not be
+// lost. That is why `restore` takes the current profile, not a snapshot.
 const meanwhile: Profile = {
   ...undoneState,
   duties: [...undoneState.duties, newDuty('kitchen', '2026-05-20', 6)],
@@ -507,9 +507,9 @@ eq('αναίρεση: με το ίδιο id', restored.leaves[0].id, target)
 eq('αναίρεση: η ταφόπλακα φεύγει', restored.deletedIds.includes(target), false)
 eq('αναίρεση: ό,τι μπήκε στο μεταξύ έμεινε', restored.duties.length, 2)
 
-// Η άλλη συσκευή έχει ήδη δει τη διαγραφή και κρατά την ταφόπλακα. Χωρίς
-// τον κανόνα «η πιο πρόσφατη συσκευή νικά την ταφόπλακα», η αναίρεση θα ήταν
-// τοπική ψευδαίσθηση: η πρώτη συγχώνευση θα ξανάσβηνε την εγγραφή.
+// The other device has already seen the deletion and holds the tombstone.
+// Without the "most recently written device beats the tombstone" rule, undo
+// would be a local illusion: the first merge would delete the row again.
 eq('αναίρεση: επιβιώνει της συγχώνευσης',
   mergeProfiles(
     { ...restored, updatedAt: 2 },
@@ -521,15 +521,16 @@ eq('αναίρεση: και η ταφόπλακα δεν επιβιώνει',
     { ...undoneState, updatedAt: 1 },
   ).deletedIds.includes(target), false)
 
-// Ο κανόνας δεν πρέπει να αναστήσει κανονικές διαγραφές: αν η **πιο πρόσφατη**
-// συσκευή έσβησε κάτι, μένει σβηστό όσο κι αν το κρατά η παλιότερη.
+// The rule must not resurrect ordinary deletions: if the **more recently
+// written** device deleted something, it stays deleted however long the older
+// one holds on to it.
 eq('διαγραφή: η πιο πρόσφατη συσκευή εξακολουθεί να σβήνει',
   mergeProfiles(
     { ...undoneState, updatedAt: 2 },
     { ...withStuff, updatedAt: 1 },
   ).leaves.length, 0)
 
-/* ── Εξαγωγή σε ημερολόγιο (.ics) ─────────────────────────────────────── */
+/* ── Calendar export (.ics) ───────────────────────────────────────────── */
 
 const icsProfile: Profile = {
   ...base,
@@ -556,8 +557,8 @@ eq('ics: 6 πιστώσεις άδειας', (ics.match(/UID:accrual-/g) ?? []).
 eq('ics: καμία γραμμή πάνω από 75 οκτάδες',
   ics.split('\r\n').every((l) => new TextEncoder().encode(l).length <= 75), true)
 
-// Το «;» και το «,» έχουν σημασία μέσα σε τιμή — αν δεν γίνουν escape, ο
-// υπόλοιπος τίτλος διαβάζεται ως άλλη παράμετρος.
+// ";" and "," carry meaning inside a value — unescaped, the rest of the title
+// is read as another parameter.
 const tricky: Profile = {
   ...base,
   leaves: [newLeave('regular', '2026-05-01', '2026-05-02', 'σπίτι; μετά, ταξίδι')],
@@ -570,7 +571,7 @@ eq('ics: βγαίνει και στα αγγλικά',
   buildIcs(icsProfile, computeService(icsProfile, NOW), DICT.en, NOW)
     .includes(DICT.en.calendarExport.dischargeTitle), true)
 
-/* ── Το αντίγραφο κρατά και τα νέα πεδία ──────────────────────────────── */
+/* ── The backup keeps the newer fields too ────────────────────────────── */
 
 const backupSource: Profile = { ...posted, monthlyBudget: 8000 }
 const round = parseBackup(await exportBackup(backupSource).text()).profile!
@@ -582,7 +583,7 @@ eq('αντίγραφο: παλιό αρχείο χωρίς τοποθετήσε�
     profile: { enlistDate: '2026-02-24', months: 12 },
   })).profile!.postings.length, 0)
 
-/* ── Ανακοινώσεις: τι είναι «νέο» ──────────────────────────────────────── */
+/* ── Announcements: what counts as "new" ──────────────────────────────── */
 
 const news = [
   { id: 'a', title: 'Α', summary: '', link: 'https://x/1', date: '2026-08-20' },
@@ -591,7 +592,7 @@ const news = [
 eq('ανακοινώσεις: μετά την τελευταία επίσκεψη', unreadCount(news, '2026-02-01'), 1)
 eq('ανακοινώσεις: τίποτα νεότερο', unreadCount(news, '2026-08-20'), 0)
 eq('ανακοινώσεις: όλες μετά από παλιά επίσκεψη', unreadCount(news, '2024-01-01'), 2)
-// Πρώτο άνοιγμα: χωρίς ιστορικό δεν σημαιοδοτούμε ολόκληρο το αρχείο ως «νέο».
+// A first open: with no history, the whole archive is not flagged as new.
 eq('ανακοινώσεις: πρώτη επίσκεψη δεν είναι όλα νέα', unreadCount(news, ''), 0)
 eq('ανακοινώσεις: κενή λίστα', unreadCount([], '2026-01-01'), 0)
 

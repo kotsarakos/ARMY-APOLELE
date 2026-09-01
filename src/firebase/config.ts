@@ -1,15 +1,15 @@
 import type { FirebaseApp } from 'firebase/app'
 
 /**
- * Ρύθμιση Firebase — project `army-apolele`.
+ * Firebase configuration — the `army-apolele` project.
  *
- * Οι τιμές έρχονται από το .env.local (δες .env.example). Ενσωματώνονται στο
- * bundle και είναι ορατές στον browser· για Firebase web αυτό είναι φυσιολογικό.
- * Το apiKey **ταυτοποιεί** το project, δεν το προστατεύει — η προστασία είναι
- * οι κανόνες στο firestore.rules.
+ * The values come from .env.local (see .env.example). They are bundled and
+ * visible in the browser, which is normal for Firebase on the web. The apiKey
+ * **identifies** the project, it does not protect it — the protection is
+ * firestore.rules.
  *
- * Το SDK φορτώνεται δυναμικά ώστε όποιος δεν συνδεθεί ποτέ να μην κατεβάζει
- * καθόλου τον κώδικα του Firebase.
+ * The SDK is loaded dynamically, so anyone who never signs in downloads no
+ * Firebase code at all.
  */
 export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -26,7 +26,7 @@ export function isFirebaseConfigured(): boolean {
 
 let appPromise: Promise<FirebaseApp> | null = null
 
-/** Αρχικοποιεί το Firebase μία φορά, με καθυστερημένη φόρτωση του SDK. */
+/** Initialises Firebase once, loading the SDK lazily. */
 export async function getFirebaseApp(): Promise<FirebaseApp | null> {
   if (!isFirebaseConfigured()) return null
   if (!appPromise) {
@@ -38,8 +38,8 @@ export async function getFirebaseApp(): Promise<FirebaseApp | null> {
 }
 
 /*
- * Το Firebase Analytics ΔΕΝ αρχικοποιείται σκόπιμα.
- * Η σελίδα απορρήτου της εφαρμογής δηλώνει ρητά «δεν υπάρχει analytics».
- * Αν κάποτε προστεθεί, πρέπει να ενημερωθεί πρώτα το κείμενο στο
- * src/lib/i18n.ts (privacy.sections) — αλλιώς η εφαρμογή λέει ψέματα.
+ * Firebase Analytics is deliberately NOT initialised.
+ * The privacy page states plainly that there is no analytics. If it is ever
+ * added, the text in src/lib/i18n.ts (privacy.sections) has to be updated
+ * first — otherwise the app is lying.
  */

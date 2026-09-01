@@ -7,10 +7,10 @@ interface Props { children: ReactNode }
 interface State { hasError: boolean }
 
 /**
- * Πιάνει σφάλματα απόδοσης ώστε ένα bug να μη δείχνει λευκή σελίδα.
- * Είναι class component επειδή τα hooks δεν καλύπτουν ακόμη error boundaries.
- * Διαβάζει τη γλώσσα απευθείας, χωρίς context, γιατί το context μπορεί να
- * είναι ακριβώς αυτό που έσπασε.
+ * Catches render errors so a bug does not become a white page.
+ * It is a class component because hooks still do not cover error boundaries.
+ * It reads the language directly rather than from context, because the context
+ * may be exactly what broke.
  */
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false }

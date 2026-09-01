@@ -5,14 +5,14 @@ import type { AuthUser } from '../firebase/auth'
 
 interface AuthValue {
   user: AuthUser | null
-  /** false μέχρι να απαντήσει το Firebase — αποφεύγει αναλαμπή της φόρμας. */
+  /** False until Firebase answers — this avoids a flash of the sign-in form. */
   ready: boolean
   enabled: boolean
 }
 
 const AuthContext = createContext<AuthValue | null>(null)
 
-/** Υπάρχει ήδη προφίλ σε αυτή τη συσκευή; Καθορίζει πόσο επείγει το auth. */
+/** Is there already a profile on this device? It decides how urgent auth is. */
 function hasLocalProfile(): boolean {
   try { return Boolean(localStorage.getItem('army_app.profile.v1')) } catch { return false }
 }
@@ -22,9 +22,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [ready, setReady] = useState(!enabled)
 
-  // Το SDK του Firebase είναι βαρύ. Η εφαρμογή είναι local-first και αποδίδει
-  // πλήρως χωρίς αυτό, οπότε η παρακολούθηση σύνδεσης ξεκινά μόλις ηρεμήσει
-  // ο browser — ο μετρητής εμφανίζεται αμέσως και το SDK κατεβαίνει μετά.
+  // The Firebase SDK is heavy. The app is local-first and renders fully
+  // without it, so auth watching starts once the browser goes idle — the
+  // counter appears immediately and the SDK downloads afterwards.
   useEffect(() => {
     if (!enabled) return
     let cancelled = false
@@ -41,9 +41,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .catch(() => { if (!cancelled) setReady(true) })
     }
 
-    // Νέος χρήστης: η αρχική οθόνη προσφέρει σύνδεση, άρα το auth χρειάζεται
-    // αμέσως. Χρήστης με προφίλ: ο μετρητής αποδίδει από το localStorage και
-    // το SDK περιμένει να ηρεμήσει ο browser.
+    // A new visitor sees a sign-in offer first, so auth is needed right away.
+    // Someone with a profile gets the counter straight from localStorage, and
+    // the SDK waits for the browser to go idle.
     if (!hasLocalProfile()) {
       start()
       return () => { cancelled = true; unsub?.() }

@@ -152,7 +152,7 @@ export function Settings({
             accept="application/json,.json"
             onChange={(e) => {
               const file = e.target.files?.[0]
-              // Καθαρίζουμε την τιμή, ώστε το ίδιο αρχείο να ξαναδιαβάζεται.
+              // Clear the value so the same file can be picked again.
               e.target.value = ''
               if (file) void importData(file)
             }}

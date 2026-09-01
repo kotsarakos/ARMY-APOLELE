@@ -7,16 +7,16 @@ import { formatDate, parseISO } from '../lib/dates'
 import { useI18n } from '../hooks/useI18n'
 import { upperGreek as caps } from '../lib/greek'
 
-/** Πόσες δείχνουμε. Παραπάνω γίνεται αρχείο, και δεν είμαστε αρχείο. */
+/** How many to show. More than this becomes an archive, and we are not one. */
 const SHOWN = 4
 
 /**
- * Ανακοινώσεις της Στρατολογίας.
+ * Announcements from the recruitment service.
  *
- * Είναι αντίγραφο, όχι πηγή: κάθε τίτλος οδηγεί στην επίσημη σελίδα, και η
- * ημερομηνία τελευταίου ελέγχου φαίνεται πάντα. Η εφαρμογή δεν σχετίζεται με
- * το ΓΕΕΘΑ, οπότε δεν επιτρέπεται να μοιάζει με επίσημο κανάλι — ειδικά όταν
- * το περιεχόμενο αφορά προθεσμίες.
+ * This is a copy, not the source: every title leads to the official page, and
+ * the date it was last checked is always visible. The app is unaffiliated, so
+ * it must not look like an official channel — least of all when the content is
+ * about deadlines.
  */
 export function Announcements() {
   const { t } = useI18n()
@@ -28,13 +28,13 @@ export function Announcements() {
     let cancelled = false
 
     void (async () => {
-      // Πρώτα ό,τι υπάρχει ήδη εδώ: η οθόνη γεμίζει χωρίς να περιμένει δίκτυο.
+      // Whatever is already here first: the screen fills without waiting on the network.
       const local = await localAnnouncements()
       if (cancelled) return
       if (local) setFeed(local)
       setLoading(false)
 
-      // Μετά, και μόνο αν άνοιξε η ενότητα, ένας έλεγχος για κάτι νεότερο.
+      // Then, and only once the section is open, a check for something newer.
       const fresh = await refreshAnnouncements(local)
       if (!cancelled && fresh) setFeed(fresh)
     })()
@@ -42,8 +42,8 @@ export function Announcements() {
     return () => { cancelled = true }
   }, [])
 
-  // Η σήμανση γίνεται αφού δει ο χρήστης τη λίστα, όχι τη στιγμή που φορτώνει:
-  // αλλιώς το «νέο» θα έσβηνε πριν προλάβει να το διαβάσει.
+  // Marked as seen after the list has been looked at, not the moment it loads:
+  // otherwise "new" would disappear before it could be read.
   useEffect(() => {
     if (!feed) return
     const id = setTimeout(() => markSeen(feed.items), 1500)
@@ -75,9 +75,9 @@ export function Announcements() {
                 >
                   {i.title}
                 </a>
-                {/* Το σήμα μπαίνει στη γραμμή της ημερομηνίας και όχι μέσα στον
-                    τίτλο: με τίτλο δύο σειρών έπεφτε άλλοτε δίπλα του και
-                    άλλοτε από κάτω, ανάλογα με το πού τύχαινε να σπάσει. */}
+                {/* The badge sits on the date line rather than inside the
+                    title: with a two-line title it landed sometimes beside it
+                    and sometimes below, depending on where the text broke. */}
                 <p className="nw__meta">
                   {seen && i.date > seen && (
                     <span className="tag tag--live">{t.news.fresh}</span>

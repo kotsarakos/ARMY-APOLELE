@@ -3,12 +3,12 @@ import { useI18n } from '../hooks/useI18n'
 import type { Platform } from '../hooks/useInstall'
 
 /**
- * Μικρογραφίες συσκευής για τον οδηγό εγκατάστασης.
+ * Device mock-ups for the install guide.
  *
- * Είναι HTML/CSS και όχι screenshots: μένουν ευκρινείς σε κάθε ανάλυση,
- * ακολουθούν τα χρώματα του DESIGN.md και μεταφράζονται μαζί με το υπόλοιπο
- * κείμενο. Το στοιχείο που πρέπει να πατήσει ο χρήστης είναι πάντα το μόνο
- * τονισμένο σε πορτοκαλί.
+ * They are HTML and CSS rather than screenshots: they stay sharp at any
+ * resolution, follow the colours in DESIGN.md, and translate along with the
+ * rest of the text. The control the reader has to press is always the only
+ * thing picked out in amber.
  */
 
 function Skeleton() {
@@ -116,7 +116,7 @@ function AndroidBar() {
         <span className="mk__ico">⋮</span>
       </div>
       <Skeleton />
-      {/* Το banner της ίδιας της εφαρμογής, όπως θα το δει ο χρήστης. */}
+      {/* The app's own banner, exactly as it will appear. */}
       <div className="mk__banner">
         <img src="/icon-192.png" alt="" width="18" height="18" className="mk__appicon" />
         <div className="mk__btext">

@@ -32,20 +32,20 @@ export function Account({ syncing, profile }: { syncing: boolean; profile: Profi
 
 
   /**
-   * Η αποσύνδεση καθαρίζει τη συσκευή.
+   * Signing out clears the device.
    *
-   * Χωρίς αυτό, ο επόμενος που άνοιγε την εφαρμογή έβλεπε ολόκληρο το προφίλ
-   * του προηγούμενου — σε κοινόχρηστο κινητό αυτό είναι διαρροή, όχι ευκολία.
+   * Without it, the next person to open the app saw the previous one's entire
+   * profile — on a shared phone that is a leak, not a convenience.
    *
-   * Πρώτα όμως ένα τελευταίο ανέβασμα: αν ο χρήστης έγραψε κάτι εκτός δικτύου,
-   * το σβήσιμο θα το εξαφάνιζε. Αν δεν φτάσει, ζητάμε επιβεβαίωση αντί να
-   * αποφασίσουμε εμείς για λογαριασμό του.
+   * But one last upload comes first: if something was written offline, wiping
+   * would make it vanish. When that upload does not land, we ask rather than
+   * decide on their behalf.
    */
   const finish = async () => {
     await signOutUser()
     await wipeDevice()
     toast.success(t.account.okSignedOut)
-    // Πλήρες reload: κανένα υπόλειμμα του προηγούμενου χρήστη στη μνήμη.
+    // A full reload: nothing of the previous user is left in memory.
     setTimeout(() => window.location.reload(), 700)
   }
 
@@ -59,8 +59,8 @@ export function Account({ syncing, profile }: { syncing: boolean; profile: Profi
 
   const outAnyway = () => withBusy(finish)
 
-  // Πρώτα το έγγραφο, μετά ο χρήστης: μετά τη διαγραφή του λογαριασμού οι
-  // κανόνες του Firestore δεν επιτρέπουν πια εγγραφή και θα έμενε ορφανό.
+  // The document first, then the user: once the account is gone the Firestore
+  // rules allow no further writes, and it would be orphaned.
   const wipe = () => withBusy(async () => {
     if (user) await deleteRemoteProfile(user.uid)
     await deleteAccount()

@@ -5,16 +5,16 @@ import { useI18n } from '../hooks/useI18n'
 import { upperGreek as caps } from '../lib/greek'
 
 /**
- * Επιλογή ημερομηνίας με στρογγυλά κουμπιά.
+ * A date picker built from round buttons.
  *
- * Αντικαθιστά το `<input type="date">`, που σε κάθε browser δείχνει άλλο
- * πράγμα: στο Chrome desktop βγάζει MM/DD/YYYY ανεξάρτητα από τη γλώσσα της
- * σελίδας, και στο κινητό ανοίγει ένα χειριστήριο που δεν ελέγχουμε.
+ * It replaces `<input type="date">`, which shows something different in every
+ * browser: Chrome on desktop renders MM/DD/YYYY regardless of the page
+ * language, and on a phone it opens a control we do not govern.
  *
- * Ανοίγει ως φύλλο πάνω από τη σελίδα, όχι ως popover μέσα στη φόρμα: με δύο
- * πεδία δίπλα-δίπλα (Από / Έως) ένα popover θα έσπρωχνε το περιεχόμενο και θα
- * χανόταν το σημείο που κοιτάς. Το φύλλο παίρνει και όλο το πλάτος, οπότε τα
- * κελιά μένουν πάνω από 44px ακόμη και στα 320px.
+ * It opens as a sheet over the page rather than a popover inside the form:
+ * with two fields side by side (From / To) a popover would shove the content
+ * and lose the spot you were looking at. The sheet also gets the full width,
+ * so cells stay above 44px even at 320px.
  */
 export function DateField({
   value, onChange, min, max, label, id,
@@ -35,21 +35,21 @@ export function DateField({
   const sheetRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
 
-  // Κάθε άνοιγμα ξεκινά από τον μήνα της επιλεγμένης ημερομηνίας, όχι από
-  // εκεί που είχε μείνει η προηγούμενη περιήγηση.
+  // Each opening starts at the month of the selected date, not wherever the
+  // last browse happened to leave off.
   useEffect(() => {
     if (open) setView(safeParse(value) ?? now)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  // Escape κλείνει, και η εστίαση γυρίζει στο κουμπί που το άνοιξε.
+  // Escape closes it, and focus returns to the button that opened it.
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { e.preventDefault(); close() }
     }
     document.addEventListener('keydown', onKey)
-    // Το φύλλο πιάνει όλη την οθόνη· χωρίς αυτό η σελίδα από κάτω κυλάει μαζί.
+    // The sheet covers the screen; without this the page beneath scrolls with it.
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {

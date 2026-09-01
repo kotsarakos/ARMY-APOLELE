@@ -5,11 +5,11 @@
 html, body, #root { min-height: 100%; }
 
 html {
-  /* Το iOS δεν κάνει ρελάνς στο μέγεθος κειμένου σε landscape. */
+  /* Stops iOS inflating text size in landscape. */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* Ορατή, διακριτική μπάρα κύλισης — αλλιώς σε Linux/WSL οι overlay
-     scrollbars κρύβονται τελείως και η σελίδα μοιάζει να μην κυλάει. */
+  /* A visible but discreet scrollbar — on Linux and WSL the overlay
+     scrollbars hide completely and the page looks like it does not scroll. */
   scrollbar-width: thin;
   scrollbar-color: var(--hairline-strong) transparent;
 }
@@ -36,8 +36,8 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Ένα ήσυχο πλέγμα στο βάθος — κάνει τον καμβά να διαβάζεται ως όργανο,
-   όχι ως κενή σελίδα. Καμία κίνηση, καμία λάμψη. */
+/* A quiet grid in the background — it makes the canvas read as an instrument
+   rather than an empty page. No motion, no glow. */
 body::before {
   content: '';
   position: fixed;
@@ -51,9 +51,9 @@ body::before {
   mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 20%, transparent 75%);
 }
 
-/* ΠΡΟΣΟΧΗ: κανένα text-transform: uppercase σε ελληνικό κείμενο.
-   Ο browser αφαιρεί τον τόνο ΚΑΙ από το αρχικό γράμμα (ΑΔΕΙΕΣ αντί ΆΔΕΙΕΣ).
-   Η κεφαλαιοποίηση γίνεται στη JS με το upperGreek() — δες src/lib/greek.ts. */
+/* CAREFUL: never text-transform: uppercase on Greek text.
+   The browser strips the accent from the first letter too (ΑΔΕΙΕΣ instead of
+   ΆΔΕΙΕΣ). Capitalisation goes through upperGreek() — see src/lib/greek.ts. */
 .eyebrow {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -72,13 +72,13 @@ body::before {
   padding: var(--s-lg);
 }
 
-/* Κανένα στοιχείο δεν ξεπερνά το πλάτος του γονέα του. */
+/* Nothing is allowed to exceed the width of its parent. */
 img, svg, video, canvas { max-width: 100%; height: auto; }
 p, h1, h2, h3, span, strong, em, li { overflow-wrap: break-word; }
 
 button { font-family: inherit; cursor: pointer; }
 
-/* Στόχοι αφής τουλάχιστον 44px, ώστε να μη χρειάζεται ζουμ για να πατηθούν. */
+/* Tap targets of at least 44px, so no zoom is needed to press them. */
 button, a, select, input[type="checkbox"] { min-height: 44px; }
 input[type="checkbox"] { min-height: 0; width: 20px; height: 20px; }
 button:focus-visible,
@@ -88,7 +88,7 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
-/* Μόνο σε συσκευές αφής: διπλό tap = zoom, και χωρίς scroll chaining. */
+/* Touch devices only: a double tap would zoom, and scroll chaining is off. */
 @media (hover: none) and (pointer: coarse) {
   body {
     touch-action: manipulation;

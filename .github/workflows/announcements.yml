@@ -1,23 +1,24 @@
-# Κατεβάζει τις ανακοινώσεις της Στρατολογίας μία φορά την ημέρα.
+# Downloads the recruitment service's announcements once a day.
 #
-# Γιατί εδώ και όχι σε διακομιστή: το feed δεν στέλνει CORS headers, οπότε ο
-# browser δεν μπορεί να το διαβάσει μόνος του, και μια Cloud Function θα
-# απαιτούσε αναβάθμιση σε πληρωμένο πλάνο για κάτι που τρέχει 365 φορές τον
-# χρόνο. Ένα GitHub Action σε δημόσιο repo το κάνει δωρεάν, και το αποτέλεσμα
-# είναι ένα στατικό αρχείο — καμία υποδομή που να μπορεί να πέσει.
+# Why here rather than on a server: the feed sends no CORS headers, so the
+# browser cannot read it itself, and a Cloud Function would mean upgrading to a
+# paid plan for something that runs 365 times a year. A GitHub Action on a
+# public repo does it free, and the result is a static file — no infrastructure
+# that can fall over.
 #
-# Το commit δεν κάνει από μόνο του deploy. Η εφαρμογή διαβάζει το αρχείο απευθείας
-# από το raw.githubusercontent.com (που στέλνει `access-control-allow-origin: *`),
-# οπότε μια νέα ανακοίνωση φτάνει στους χρήστες χωρίς να χρειαστεί build.
+# The commit does not deploy anything by itself. The app reads the file
+# directly from raw.githubusercontent.com, which sends
+# `access-control-allow-origin: *`, so a new announcement reaches users with no
+# build needed.
 name: Ανακοινώσεις στρατολογίας
 
 on:
   schedule:
-    # 05:00 UTC — νωρίς το πρωί σε ελληνική ώρα, πριν τη χρήση της ημέρας.
+    # 05:00 UTC — early morning Greek time, before the day's use.
     - cron: '0 5 * * *'
   workflow_dispatch:
 
-# Το μόνο δικαίωμα που χρειάζεται: να γράψει το αρχείο πίσω στο repo.
+# The only permission needed: writing the file back to the repository.
 permissions:
   contents: write
 
@@ -35,12 +36,12 @@ jobs:
         with:
           node-version: '20'
 
-      # Πρώτα ο parser σε αποθηκευμένο feed: αν έχει σπάσει, δεν έχει νόημα
-      # να γράψουμε σκουπίδια στο repo.
+      # The parser against a saved feed first: if it has broken, there is no
+      # point writing rubbish into the repository.
       - name: Έλεγχος parser
         run: node scripts/fetch-announcements.mjs --selftest
 
-      # Καμία εξάρτηση: το script χρησιμοποιεί μόνο το fetch του Node.
+      # No dependencies: the script uses nothing but Node's own fetch.
       - name: Ανάκτηση feed
         run: node scripts/fetch-announcements.mjs
 

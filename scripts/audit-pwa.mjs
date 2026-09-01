@@ -48,8 +48,8 @@ let offlineOk = true
 try {
   await p2.goto(BASE + '/', { waitUntil:'domcontentloaded', timeout: 15000 })
   await p2.waitForTimeout(1500)
-  // Το #root υπάρχει στο HTML αλλά είναι κενό μέχρι να τρέξει το React —
-  // ελέγχουμε ότι όντως αποδόθηκε περιεχόμενο, όχι απλώς ότι φόρτωσε το HTML.
+  // #root exists in the HTML but is empty until React runs — check that
+  // content actually rendered, not merely that the HTML loaded.
   offlineOk = await p2.evaluate(() => (document.getElementById('root')?.children.length ?? 0) > 0)
 } catch { offlineOk = false }
 check('η εφαρμογή ανοίγει OFFLINE', offlineOk)
@@ -66,7 +66,7 @@ const second = await p3.textContent('.ig__h')
 check('η αλλαγή καρτέλας αλλάζει τα βήματα', first !== second, `${first} → ${second}`)
 await p3.screenshot({ path:'/tmp/claude-1000/-home-kotsaras-army-app/826ac12f-be3d-4713-ac77-1b62fc73d73b/scratchpad/install.png' })
 
-// ── Ο auto-εντοπισμός πλατφόρμας διαλέγει τη σωστή καρτέλα ─────────────
+// ── Platform auto-detection picks the right tab ────────────────────────
 const UAS = [
   ['iPhone', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1', 'IPHONE & IPAD'],
   ['Android', 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36', 'ANDROID'],
@@ -77,16 +77,16 @@ for (const [label, ua, expect] of UAS) {
   const pg = await c.newPage()
   await pg.goto(BASE + '/install', { waitUntil:'networkidle' })
   await pg.waitForTimeout(300)
-  // Το κείμενο κεφαλαιοποιείται στη JS με τον ελληνικό κανόνα (upperGreek),
-  // οπότε συγκρίνουμε με το ίδιο μετασχηματισμένο αναμενόμενο.
+  // The text is capitalised in JS by the Greek rule (upperGreek), so the
+  // expectation is put through the same transform before comparing.
   const on = (await pg.textContent('.ig__tab--on'))?.trim()
   check(`auto-tab για ${label}`, on === expect, `${on}`)
-  // Κάθε βήμα έχει τη δική του μικρογραφία.
+  // Every step has its own mock-up.
   const mocks = (await pg.$$('.ig__step .mk')).length
   check(`${label}: 3 μικρογραφίες`, mocks === 3, String(mocks))
-  // Ποτέ ΠΑΝΩ από ένα τονισμένο στοιχείο ανά μικρογραφία: δύο πορτοκαλί
-  // σημεία σημαίνει ότι ο χρήστης δεν ξέρει πού να πατήσει. Το μηδέν είναι
-  // αποδεκτό για βήματα που δείχνουν αποτέλεσμα αντί για ενέργεια.
+  // Never MORE than one highlighted element per mock-up: two amber spots
+  // means the reader does not know where to press. Zero is fine for steps that
+  // show a result rather than an action.
   const per = await pg.evaluate(() =>
     [...document.querySelectorAll('.ig__step .mk')]
       .map(m => m.querySelectorAll('.mk__hi, .mk__ico--hi').length))

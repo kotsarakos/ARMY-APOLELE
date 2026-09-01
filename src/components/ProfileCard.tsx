@@ -11,7 +11,7 @@ import { upperGreek as caps } from '../lib/greek'
 import { useI18n } from '../hooks/useI18n'
 import { useToast } from '../hooks/useToast'
 
-/** Τα αρχικά για το «σήμα» — δύο γράμματα το πολύ. */
+/** Initials for the badge — two letters at most. */
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (!parts.length) return '—'
@@ -30,7 +30,7 @@ export function ProfileCard({
   const toast = useToast()
   const tier = tierFor(service)
 
-  // Η ΕΣΣΟ βρίσκεται από την ημερομηνία κατάταξης, αν ταιριάζει με γνωστή σειρά.
+  // The intake is found from the enlistment date, when it matches a known one.
   const esso = ALL_ESSO.find((e) => e.from === profile.enlistDate)
   const pct = Math.round(service.progress * 100)
 
@@ -45,8 +45,8 @@ export function ProfileCard({
   const addPosting = () => {
     if (!unit.trim()) return toast.error(t.profile.errPostingUnit)
     const entry = newPosting(unit, since, pnote)
-    // Η μονάδα που φαίνεται στην μπάρα ακολουθεί την πιο πρόσφατη τοποθέτηση
-    // που έχει ήδη αρχίσει — αλλιώς θα έδειχνε ακόμη το ΚΕΝ.
+    // The unit shown in the bar follows the most recent posting that has
+    // already begun — otherwise it would still read the training centre.
     const next = currentPosting([...(profile.postings ?? []), entry], service.now)
     update({
       postings: [...(profile.postings ?? []), entry],
@@ -128,7 +128,7 @@ export function ProfileCard({
         </div>
       </section>
 
-      {/* Πού υπηρέτησε — το σκέτο `unit` έσβηνε το ΚΕΝ με την πρώτη μετάθεση. */}
+      {/* Where they served — a bare `unit` lost the training centre on the first transfer. */}
       <section className="band">
         <p className="eyebrow band__label">{caps(t.profile.postingsTitle)}</p>
         <div className="panel ps">

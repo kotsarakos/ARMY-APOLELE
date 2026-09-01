@@ -1,33 +1,33 @@
 /*
  * Service worker — Army Apolele
  *
- * Υπάρχει για δύο λόγους:
- *  1. Χωρίς αυτόν το Chrome δεν πυροδοτεί ποτέ το `beforeinstallprompt`,
- *     άρα δεν υπάρχει εγκατάσταση σε Android.
- *  2. Η εφαρμογή είναι local-first — ο μετρητής δουλεύει από το localStorage —
- *     οπότε μπορεί κάλλιστα να ανοίγει και χωρίς δίκτυο.
+ * It exists for two reasons:
+ *  1. Without it Chrome never fires `beforeinstallprompt`, so there is no way
+ *     to install on Android.
+ *  2. The app is local-first — the counter runs off localStorage — so it may
+ *     as well open with no network at all.
  *
- * Στρατηγική: network-first για πλοήγηση (ώστε μια νέα έκδοση να φτάνει
- * αμέσως και να μην κολλάει ο χρήστης σε παλιό build), cache-first για τα
- * hashed assets (που δεν αλλάζουν ποτέ με το ίδιο όνομα).
+ * Strategy: network-first for navigation, so a new version arrives at once and
+ * nobody is stranded on an old build; cache-first for hashed assets, which
+ * never change under the same name.
  */
 
-// Οι δύο γραμμές παρακάτω γράφονται κατά το build από το scripts/build-sw.mjs.
-// Τα assets έχουν hash στο όνομα, οπότε ο service worker δεν μπορεί να τα
-// μαντέψει — και χωρίς αυτά η εφαρμογή ανοίγει offline αλλά μένει λευκή.
+// The two lines below are written at build time by scripts/build-sw.mjs.
+// Assets carry a hash in their name, so the service worker cannot guess them —
+// and without them the app opens offline but stays blank.
 const VERSION = '__BUILD_ID__'
 const BUILD_ASSETS = [/* __ASSETS__ */]
 const SHELL = `shell-${VERSION}`
 const ASSETS = `assets-${VERSION}`
 
 /*
- * ignoreVary είναι απαραίτητο, όχι προαιρετικό.
+ * ignoreVary is required, not optional.
  *
- * Ο server στέλνει `Vary: Origin`. Το precache κατεβάζει τα αρχεία χωρίς
- * header `Origin`, ενώ ο Vite σημειώνει τα module scripts με `crossorigin`,
- * οπότε ο browser τα ζητά ΜΕ `Origin`. Χωρίς ignoreVary το caches.match
- * θεωρεί ότι δεν ταιριάζουν, δεν βρίσκει τίποτα, και η εφαρμογή ανοίγει
- * offline αλλά μένει λευκή — το HTML φορτώνει, JS και CSS όχι.
+ * The server sends `Vary: Origin`. The precache fetches files without an
+ * `Origin` header, while Vite marks module scripts `crossorigin`, so the
+ * browser requests them WITH one. Without ignoreVary, caches.match decides
+ * they do not match, finds nothing, and the app opens offline but stays blank
+ * — the HTML loads, the JS and CSS do not.
  */
 const MATCH = { ignoreVary: true }
 
@@ -48,9 +48,9 @@ self.addEventListener('install', (event) => {
   )
 })
 
-// Τα caches των ειδοποιήσεων δεν έχουν έκδοση στο όνομά τους και **δεν**
-// πρέπει να καθαρίζονται: κρατούν το πρόγραμμα και ό,τι έχει ήδη σταλεί.
-// Χωρίς αυτή την εξαίρεση, κάθε νέα έκδοση θα ξανάστελνε τις ίδιες ειδοποιήσεις.
+// The notification caches have no version in their names and must **not** be
+// cleared: they hold the plan and everything already sent. Without this
+// exception, every new release would fire the same notifications again.
 const KEEP = ['army-notify-plan', 'army-notify-shown']
 
 self.addEventListener('activate', (event) => {
@@ -70,9 +70,9 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return
 
   const url = new URL(request.url)
-  if (url.origin !== self.location.origin) return   // Google Fonts, Firebase κ.λπ.
+  if (url.origin !== self.location.origin) return   // Google Fonts, Firebase, etc.
 
-  // Πλοήγηση: δίκτυο πρώτα, cache ως δίχτυ ασφαλείας.
+  // Navigation: network first, cache as the safety net.
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -86,7 +86,7 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Assets με hash στο όνομα: cache πρώτα.
+  // Assets with a hash in the name: cache first.
   event.respondWith(
     caches.match(request, MATCH).then((hit) => hit ?? fetch(request).then((res) => {
       if (res.ok && res.type === 'basic') {
@@ -98,16 +98,16 @@ self.addEventListener('fetch', (event) => {
   )
 })
 
-/* ── Ειδοποιήσεις ─────────────────────────────────────────────────────────
+/* ── Notifications ────────────────────────────────────────────────────────
  *
- * Ο browser δεν επιτρέπει σε web εφαρμογή να προγραμματίσει ειδοποίηση για
- * μελλοντική ώρα χωρίς διακομιστή. Το Periodic Background Sync είναι το
- * κοντινότερο: ο Chrome ξυπνά τον service worker περίπου μία φορά την ημέρα,
- * σε εγκατεστημένη PWA, και εμείς κοιτάμε τι ωρίμασε.
+ * A browser will not let a web app schedule a notification for a future time
+ * without a server. Periodic Background Sync is the closest thing: Chrome
+ * wakes the service worker roughly once a day, in an installed PWA, and we
+ * look at what has come due.
  *
- * Το «πρόγραμμα» το γράφει το κύριο νήμα στο Cache API — ο service worker δεν
- * βλέπει localStorage. Τα κείμενα είναι ήδη μεταφρασμένα μέσα του, οπότε εδώ
- * δεν χρειάζεται λεξικό. Βλ. src/lib/notify.ts.
+ * The "plan" is written by the main thread into the Cache API — the service
+ * worker cannot see localStorage. Its text is already translated, so no
+ * dictionary is needed here. See src/lib/notify.ts.
  */
 
 const PLAN_CACHE = 'army-notify-plan'
@@ -143,12 +143,12 @@ async function showDue() {
   const plan = await readJSON(PLAN_CACHE, PLAN_URL, null)
   if (!plan || !Array.isArray(plan.items)) return
 
-  // Ο service worker κρατά δικό του σύνολο· το κύριο νήμα κρατά το δικό του
-  // σε localStorage. Το `tag` εμποδίζει τη διπλή εμφάνιση αν συμπέσουν.
+  // The service worker keeps its own set; the main thread keeps one in
+  // localStorage. The `tag` prevents a double showing if they overlap.
   const shown = new Set(await readJSON(SHOWN_CACHE, SHOWN_URL, []))
   const iso = todayISO()
-  // Η ώρα που διάλεξε ο χρήστης ταξιδεύει μέσα στο πρόγραμμα: εδώ δεν υπάρχει
-  // localStorage για να τη διαβάσουμε.
+  // The chosen hour travels inside the plan: there is no localStorage here to
+  // read it from.
   const hour = Number.isInteger(plan.hour) ? plan.hour : 20
   const clock = new Date().getHours()
   let changed = false
@@ -178,7 +178,7 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close()
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-      // Αν η εφαρμογή είναι ήδη ανοιχτή, την εστιάζουμε αντί να ανοίξουμε δεύτερη.
+      // If the app is already open, focus it rather than opening a second one.
       for (const client of list) {
         if (client.url.includes(self.location.origin) && 'focus' in client) return client.focus()
       }

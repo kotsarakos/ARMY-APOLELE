@@ -3,10 +3,10 @@ import { useI18n } from '../hooks/useI18n'
 import { useToast } from '../hooks/useToast'
 
 /**
- * Το widget που εμφανίζεται στο κινητό.
+ * The prompt that appears on a phone.
  *
- * Σε Android/Chrome πυροδοτεί το πραγματικό native prompt εγκατάστασης.
- * Σε iOS δεν υπάρχει τέτοιο API, οπότε στέλνει στις οδηγίες βήμα-βήμα.
+ * On Android and Chrome it fires the real native install prompt. iOS has no
+ * such API, so it sends the reader to the step-by-step guide instead.
  */
 export function InstallBanner({ onOpenGuide }: { onOpenGuide: () => void }) {
   const { t } = useI18n()

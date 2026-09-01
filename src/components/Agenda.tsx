@@ -11,12 +11,12 @@ import { upperGreek as caps } from '../lib/greek'
 import { tap } from '../lib/haptics'
 
 /**
- * Ο μήνας με όλα μαζί.
+ * The month, with everything on it.
  *
- * Οι άδειες, οι υπηρεσίες και τα έξοδα ήταν σε τρεις καρτέλες, ενώ η ερώτηση
- * είναι μία: «τι έχω τον Οκτώβρη». Κάθε μέρα δείχνει έως τρεις κουκκίδες· το
- * πάτημα ανοίγει την πλήρη λίστα της μέρας από κάτω, ώστε το πλέγμα να μένει
- * αναγνώσιμο και τα κελιά πάνω από 44px.
+ * Leave, duties and spending sat in three tabs while the question is one:
+ * "what have I got in October". Each day shows up to three dots; tapping it
+ * opens that day's full list below, so the grid stays readable and the cells
+ * stay above 44px.
  */
 export function Agenda({ profile, state }: { profile: Profile; state: ServiceState }) {
   const { t, lang } = useI18n()
@@ -114,7 +114,7 @@ export function Agenda({ profile, state }: { profile: Profile; state: ServiceSta
   )
 }
 
-/** Έως τρεις κουκκίδες ανά μέρα — παραπάνω γίνονται μουτζούρα στα 44px. */
+/** At most three dots per day — more than that is a smudge at 44px. */
 function Cell({ day, selected, label, onPick }: {
   day: AgendaDay
   selected: boolean
@@ -149,7 +149,7 @@ function Cell({ day, selected, label, onPick }: {
 
 type Dict = ReturnType<typeof useI18n>['t']
 
-/** Η μετάφραση γίνεται εδώ: το agenda.ts επιστρέφει μόνο κλειδιά. */
+/** Translation happens here: agenda.ts returns keys only. */
 function describe(e: AgendaEvent, t: Dict, lang: 'el' | 'en'): string {
   switch (e.kind) {
     case 'leave':

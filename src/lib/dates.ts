@@ -1,6 +1,5 @@
-/** Date helpers. Όλες οι ημερομηνίες κρατούνται ως 'YYYY-MM-DD' και
- *  ερμηνεύονται στο τοπικό μεσημέρι, ώστε η αλλαγή ώρας (DST) να μην
- *  μετακινεί ποτέ μια ημέρα μπρος ή πίσω. */
+/** Date helpers. Every date is stored as 'YYYY-MM-DD' and read at local noon,
+ *  so that a daylight-saving shift can never move a day forwards or back. */
 
 const MS_PER_DAY = 86_400_000
 
@@ -16,13 +15,13 @@ export function toISO(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
-/** Σημερινή ημερομηνία στο τοπικό μεσημέρι. */
+/** Today's date, at local noon. */
 export function today(): Date {
   const n = new Date()
   return new Date(n.getFullYear(), n.getMonth(), n.getDate(), 12, 0, 0, 0)
 }
 
-/** Ακέραιες ημέρες από το a στο b (θετικό αν το b είναι μετά). */
+/** Whole days from a to b — positive when b is the later one. */
 export function daysBetween(a: Date, b: Date): number {
   return Math.round((b.getTime() - a.getTime()) / MS_PER_DAY)
 }
@@ -33,8 +32,8 @@ export function addDays(date: Date, days: number): Date {
   return d
 }
 
-/** Προσθήκη ημερολογιακών μηνών, με συγκράτηση στο τέλος του μήνα
- *  (31 Ιαν + 1 μήνας = 28/29 Φεβ, όχι 3 Μαρ). */
+/** Adds calendar months, clamping to the end of the month:
+ *  31 Jan + 1 month is 28/29 Feb, not 3 Mar. */
 export function addMonths(date: Date, months: number): Date {
   const d = new Date(date)
   const targetDay = d.getDate()
@@ -45,7 +44,7 @@ export function addMonths(date: Date, months: number): Date {
   return d
 }
 
-/** Πλήρεις ημερολογιακοί μήνες που συμπληρώθηκαν μεταξύ δύο ημερομηνιών. */
+/** Whole calendar months completed between two dates. */
 export function fullMonthsBetween(from: Date, to: Date): number {
   let months = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth())
   if (to.getDate() < from.getDate()) months -= 1
@@ -59,7 +58,7 @@ export function formatDate(date: Date, dict: Dict, withWeekday = false): string 
   return withWeekday ? `${dict.weekdays[date.getDay()]}, ${base}` : base
 }
 
-/** Σύντομη μορφή — ίδια και στις δύο γλώσσες. */
+/** Short form — identical in both languages. */
 export function formatShort(date: Date): string {
   const d = String(date.getDate()).padStart(2, '0')
   const m = String(date.getMonth() + 1).padStart(2, '0')

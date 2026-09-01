@@ -1,12 +1,13 @@
 /**
- * Δόνηση επιβεβαίωσης.
+ * A confirming buzz.
  *
- * Σε κινητό, μια καταχώρηση που δεν «ακουμπάει» πίσω μοιάζει να μην έγινε —
- * ειδικά όταν το toast εμφανίζεται κάτω από τον αντίχειρα. Ένας πολύ σύντομος
- * παλμός λύνει το θέμα χωρίς ήχο, που στη σκοπιά δεν θα ήταν ευπρόσδεκτος.
+ * On a phone, an entry that does not push back feels like it did not happen —
+ * especially when the toast appears underneath your thumb. A very short pulse
+ * settles it without sound, which on guard duty would not be welcome.
  *
- * Δεν γίνεται τίποτα σε επιτραπέζιο (δεν υπάρχει μηχανισμός), στο iOS Safari
- * (δεν υλοποιεί το Vibration API) και σε όποιον έχει ζητήσει λιγότερη κίνηση.
+ * Nothing happens on desktop (no hardware for it), on iOS Safari (which does
+ * not implement the Vibration API), or for anyone who has asked for less
+ * motion.
  */
 
 type Pattern = number | number[]
@@ -14,21 +15,21 @@ type Pattern = number | number[]
 function allowed(): boolean {
   if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return false
   if (typeof matchMedia === 'undefined') return true
-  // Το «λιγότερη κίνηση» είναι η καθιερωμένη δήλωση «λιγότερα ερεθίσματα».
+  // "Reduced motion" is the established way of saying "fewer stimuli".
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return false
   return matchMedia('(hover: none) and (pointer: coarse)').matches
 }
 
 function buzz(pattern: Pattern): void {
   if (!allowed()) return
-  try { navigator.vibrate(pattern) } catch { /* το αγνοούν κάποιοι browsers */ }
+  try { navigator.vibrate(pattern) } catch { /* some browsers just ignore it */ }
 }
 
-/** Ελαφρύ άγγιγμα — επιλογή, άνοιγμα φύλλου. */
+/** A light tap — a selection, a sheet opening. */
 export function tap(): void { buzz(8) }
 
-/** Κάτι καταχωρήθηκε. */
+/** Something was recorded. */
 export function ok(): void { buzz(14) }
 
-/** Κάτι δεν έγινε — δύο σύντομοι παλμοί, αισθητά διαφορετικοί από το «ok». */
+/** Something failed — two short pulses, clearly unlike the "ok" one. */
 export function warn(): void { buzz([10, 70, 10]) }

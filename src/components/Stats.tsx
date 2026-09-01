@@ -4,10 +4,10 @@ import { useI18n } from '../hooks/useI18n'
 import { upperGreek as caps } from '../lib/greek'
 
 /**
- * Έξι πλακίδια με το ίδιο οπτικό βάρος σημαίνουν ότι κανένα δεν ξεχωρίζει, και
- * το μάτι τα διαβάζει όλα ή κανένα. Δύο από αυτά απαντούν στην ερώτηση που
- * κάνει κανείς κάθε μέρα — «πόσο ακόμη μέσα» και «πότε» — οπότε παίρνουν το
- * διπλάσιο πλάτος και μεγαλύτερο νούμερο. Τα υπόλοιπα μένουν υποστηρικτικά.
+ * Six tiles of equal weight mean none of them stands out, and the eye reads
+ * all or nothing. Two of them answer the question people ask daily — "how much
+ * longer inside" and "when" — so they take double the width and a larger
+ * number. The rest stay supporting.
  */
 function Tile({ label, value, hint, text, big }: {
   label: string

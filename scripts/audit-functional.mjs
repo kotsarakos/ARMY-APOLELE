@@ -3,7 +3,7 @@ const EXEC = process.env.HOME + '/.cache/ms-playwright/chromium-1148/chrome-linu
 const BASE = 'http://localhost:4173'
 let fails = 0
 
-// Νέα αρχική οθόνη: πρώτα «συνέχεια χωρίς λογαριασμό», μετά το onboarding.
+// The welcome screen comes first: skip the account, then onboarding.
 async function skipAuth(page) {
   const skip = await page.$('.welcome__skip .btn')
   if (skip) { await skip.click(); await page.waitForSelector('.esso') }
@@ -15,9 +15,9 @@ const ctx = await browser.newContext({ viewport:{width:390,height:844}, isMobile
 const page = await ctx.newPage()
 const errs = []
 page.on('pageerror', e => errs.push(e.message))
-// Η διεύθυνση ενός σφάλματος δικτύου υπάρχει μόνο στο `location()` — το
-// κείμενο λέει σκέτο «Failed to load resource». Χωρίς αυτήν δεν ξεχωρίζει
-// ένα αναμενόμενο 404 από πραγματικό σφάλμα.
+// A network error's address exists only in `location()` — the text says a bare
+// "Failed to load resource". Without it, an expected 404 is indistinguishable
+// from a real fault.
 page.on('console', m => {
   if (m.type() !== 'error') return
   const at = m.location()?.url
@@ -25,7 +25,7 @@ page.on('console', m => {
 })
 
 await page.goto(BASE + '/', { waitUntil:'networkidle' })
-// 0. Η αρχική οθόνη προσφέρει σύνδεση πριν από οτιδήποτε άλλο.
+// 0. The welcome screen offers sign-in before anything else.
 check('welcome screen shown first', await page.isVisible('.welcome'))
 check('welcome offers Google', await page.isVisible('.btn--google'))
 check('welcome offers email + password',
@@ -34,18 +34,18 @@ check('welcome offers skip', await page.isVisible('.welcome__skip .btn'))
 await skipAuth(page)
 check('skip leads to onboarding', await page.isVisible('.esso'))
 
-// 1. Ανίχνευση γλώσσας από τον browser (el-GR -> ελληνικά)
+// 1. Language detected from the browser (el-GR gives Greek)
 check('auto-detects Greek from locale', (await page.textContent('.onboard__title')) === 'Πότε κατατάσσεσαι;')
 check('html lang=el', (await page.getAttribute('html','lang')) === 'el')
 check('meta description is Greek',
   (await page.getAttribute('meta[name=description]','content')).startsWith('Μέτρησε'))
 
-// 2. Σφάλμα: υποβολή χωρίς ημερομηνία
+// 2. Error: submitting with no date
 await page.click('.btn--primary')
 await page.waitForSelector('.toast--error')
 check('error toast on missing date', (await page.textContent('.toast--error')).includes('Διάλεξε ημερομηνία'))
 
-// 3. Εναλλαγή γλώσσας
+// 3. Switching language
 await page.click('.langsw__b >> nth=1')   // EN
 await page.waitForTimeout(200)
 check('switches to English', (await page.textContent('.onboard__title')) === 'When do you enlist?')
@@ -60,34 +60,34 @@ check('language switch marks active segment',
   (await page.getAttribute('.langsw__b >> nth=1', 'aria-pressed')) === 'true' &&
   (await page.getAttribute('.langsw__b >> nth=0', 'aria-pressed')) === 'false')
 
-// 4. Επιτυχία: συμπλήρωση προφίλ
+// 4. Success: completing the profile
 await skipAuth(page)
 await page.click('.esso')
 await page.click('.btn--primary')
 await page.waitForSelector('.clock__num')
 check('success toast on save', (await page.textContent('.toast--success')).includes('All set'))
-// Τα eyebrows κεφαλαιοποιούνται πλέον στη JS, όχι με CSS.
+// The eyebrows are capitalised in JS now, not in CSS.
 check('English counter', (await page.textContent('.eyebrow')).toUpperCase().includes('DAYS UNTIL'))
 const days = await page.textContent('.clock__num')
 check('counter shows a number', /^\d+$/.test(days.trim()), days)
 
-// 5. Η γλώσσα επιβιώνει σε reload
+// 5. The language survives a reload
 await page.reload({ waitUntil:'networkidle' })
 check('language persists after reload', (await page.getAttribute('html','lang')) === 'en')
 check('profile persists after reload', await page.isVisible('.clock__num'))
 
-// 6. Άδειες με ημερομηνίες
+// 6. Leave, by date
 await page.click('[data-tab="leave"]')
 check('leave screen shows next-leave clock', await page.isVisible('.clock__num, .clock__sub--empty'))
 
-// Το ημερολόγιο είναι δικό μας: επιλέγουμε μέρα πατώντας τον κύκλο της.
+// The calendar is ours: a day is chosen by pressing its circle.
 async function pickDate(page, fieldIndex, iso) {
   await page.click(`.mn__add .datef >> nth=${fieldIndex}`)
   await page.waitForSelector('.cal')
   const [y, m] = iso.split('-').map(Number)
-  // Πλοήγηση στον σωστό μήνα με τα βελάκια, ό,τι κι αν δείχνει τώρα.
+  // Navigate to the right month with the arrows, wherever it starts.
   for (let i = 0; i < 36; i++) {
-    // `$` επιστρέφει null αμέσως· το `getAttribute` θα περίμενε 30s ανά γύρο.
+    // `$` returns null at once; `getAttribute` would wait 30s per round.
     if (await page.$(`[data-day="${iso}"]`)) break
     const mid = await page.getAttribute('.cal__grid > button:nth-child(16)', 'data-day')
     const [curY, curM] = mid.split('-').map(Number)
@@ -104,13 +104,13 @@ await pickDate(page, 1, '2026-05-05')
 await page.click('.mn__add .btn--primary')
 await page.waitForSelector('.mn__item')
 check('leave recorded', (await page.$$('.mn__item')).length === 1)
-// 3/5 έως 5/5 είναι τρεις μέρες, όχι δύο — μετριέται περιληπτικά.
+// 3 May to 5 May is three days, not two — the count is inclusive.
 check('leave counts inclusive days',
   (await page.textContent('.mn__item .mn__iamt')).includes('3'))
 check('leave taken reflected in the summary',
   (await page.textContent('.leave__side')).includes('3'))
 
-// Η ίδια περίοδος δεύτερη φορά πρέπει να απορρίπτεται.
+// The same span a second time has to be rejected.
 await pickDate(page, 0, '2026-05-04')
 await pickDate(page, 1, '2026-05-06')
 await page.click('.mn__add .btn--primary')
@@ -118,7 +118,7 @@ await page.waitForSelector('.toast--error')
 check('overlapping leave rejected',
   (await page.textContent('.toast--error')).includes('already have leave'))
 
-// Ανάποδο διάστημα: το ημερολόγιο του «Έως» δεν επιτρέπει καν μέρα πριν το «Από».
+// A backwards range: the "To" calendar does not even allow a day before "From".
 await page.click('.mn__add .datef >> nth=1')
 await page.waitForSelector('.cal')
 check('end-date calendar disables days before the start',
@@ -132,11 +132,11 @@ await page.click('.mn__item .mn__idel')
 await page.waitForTimeout(300)
 check('leave deleted', (await page.$$('.mn__item')).length === 0)
 
-for (let i=0;i<3;i++) await page.click('.stepper .btn--ghost >> nth=1')  // αιμοδοσίες > 2
+for (let i=0;i<3;i++) await page.click('.stepper .btn--ghost >> nth=1')  // blood donations above 2
 await page.waitForSelector('.toast--error')
 check('blood donation cap error', (await page.textContent('.toast--error')).includes('at most 2'))
 
-// 6β. Υπηρεσίες
+// 6b. Duties
 await page.click('[data-tab="duty"]')
 check('duty screen renders', await page.isVisible('.mn__add'))
 await page.click('.mn__add .btn--primary')
@@ -146,13 +146,13 @@ check('duty totals update', (await page.textContent('.tiles')).includes('1'))
 await page.fill('.mn__add input[inputmode="decimal"]', '99')
 await page.click('.mn__add .btn--primary')
 await page.waitForTimeout(400)
-// Το τελευταίο toast, όχι το πρώτο: προηγούμενα σφάλματα μπορεί να είναι
-// ακόμη στην οθόνη και θα διαβάζαμε λάθος μήνυμα.
+// The last toast, not the first: earlier errors may still be on screen and we
+// would read the wrong message.
 check('impossible duty length rejected',
   (await page.textContent('.toast--error >> nth=-1')).includes('between 0 and 24'),
   await page.textContent('.toasts'))
 
-// 7. Ταμείο
+// 7. Money
 await page.click('[data-tab="money"]')
 check('money screen renders', await page.isVisible('.mn__add'))
 await page.fill('.mn__f--amt input', '4,50')
@@ -166,7 +166,7 @@ await page.click('.mn__add .btn--primary')
 await page.waitForSelector('.toast--error')
 check('invalid amount rejected', (await page.textContent('.toast--error')).length > 0)
 
-// Η ημερομηνία γράφεται μαζί με το έξοδο και μπορεί να αλλάξει.
+// The date is stored with the expense and can be changed.
 await page.fill('.mn__f--amt input', '7,20')
 await pickDate(page, 0, '2026-07-04')
 await page.click('.mn__add .btn--primary')
@@ -174,7 +174,7 @@ await page.waitForTimeout(300)
 check('expense keeps the chosen date',
   (await page.textContent('.mn__list')).includes('04/07/2026'))
 
-// Επεξεργασία υπάρχοντος εξόδου.
+// Editing an existing expense.
 await page.click('.mn__item .mn__iedit >> nth=0')
 await page.waitForSelector('.mn__edit')
 await page.fill('.mn__edit .mn__f--amt input', '9,99')
@@ -182,21 +182,21 @@ await page.click('.mn__edit .btn--primary')
 await page.waitForTimeout(300)
 check('expense edited', (await page.textContent('.mn__list')).includes('9.99'))
 
-// Πάγιο έξοδο: χρεώνεται μόνο του και φεύγει μαζί με τις χρεώσεις του.
+// A recurring charge: it posts itself and leaves with everything it charged.
 const before = (await page.$$('.mn__item')).length
 await page.click('.mn__rec .btn--secondary')
 await page.waitForSelector('.mn__recform')
 await page.fill('.mn__recform .mn__f--amt input', '15')
-// Η μέρα χρέωσης πρέπει να είναι μελλοντική **μέσα στον μήνα**, αλλιώς ο
-// έλεγχος εξαρτάται από το πότε τρέχει. Με προεπιλογή «1» και σημερινή μέρα
-// την 1η του μήνα, η χρέωση όντως ωριμάζει σήμερα και ο έλεγχος αποτυγχάνει
-// χωρίς να υπάρχει σφάλμα στην εφαρμογή.
+// The charge day has to be in the future **within the month**, or the check
+// depends on when it runs. With the default of 1 and today being the 1st, the
+// charge genuinely falls due today and the check fails with nothing wrong in
+// the app.
 const dom = new Date().getDate()
 await page.fill('.mn__recform input[type=number]', String(dom < 28 ? 28 : 1))
 await page.click('.mn__recform .btn--primary')
 await page.waitForSelector('.mn__recitem')
 check('recurring added', (await page.$$('.mn__recitem')).length === 1)
-// Καμία αναδρομική χρέωση για μήνα που δεν παρακολουθούσε ο χρήστης.
+// No back-charging for a month the user was not tracking.
 await page.reload({ waitUntil: 'networkidle' })
 await page.click('[data-tab="money"]')
 await page.waitForSelector('.mn__item')
@@ -218,7 +218,7 @@ while ((await page.$$('.mn__item')).length > 0) {
 }
 check('expense deleted', (await page.$$('.mn__item')).length === 0)
 
-// Το αντίγραφο ασφαλείας πρέπει να είναι έγκυρο JSON με τα δεδομένα μέσα.
+// The backup has to be valid JSON with the data inside it.
 const backup = await page.evaluate(() => {
   const raw = localStorage.getItem('army_app.profile.v1')
   return raw ? JSON.parse(raw) : null
@@ -229,14 +229,14 @@ check('profile has the new collections',
 check('deleting leaves tombstones behind', backup.deletedIds.length > 0)
 
 
-/* ── Ενιαίο ημερολόγιο μήνα ─────────────────────────────────────────────── */
+/* ── The unified month calendar ─────────────────────────────────────────── */
 
 await page.click('[data-tab="clock"]')
 await page.waitForSelector('.ag__grid')
 check('agenda renders 42 cells', (await page.$$('.ag__cell')).length === 42)
 check('agenda marks today', (await page.$$('.ag__cell--today')).length === 1)
-// Η άδεια και η υπηρεσία που καταχωρήθηκαν παραπάνω πρέπει να φαίνονται εδώ:
-// αυτός είναι όλος ο λόγος ύπαρξης της οθόνης.
+// The leave and the duty recorded above have to show up here: that is the
+// entire reason this screen exists.
 check('agenda shows entries from other tabs',
   (await page.$$('.ag__dot--duty, .ag__dot--leave')).length > 0)
 check('agenda has a legend', await page.isVisible('.ag__legend'))
@@ -251,7 +251,7 @@ await page.click('.ag__back .btn')
 await page.waitForTimeout(150)
 check('and it returns', (await page.textContent('.ag__month')) === monthBefore)
 
-// Πάτημα μέρας ανοίγει τη λίστα της, χωρίς να φύγει από τη σελίδα.
+// Pressing a day opens its list, without leaving the page.
 const dutyCell = await page.$('.ag__cell:has(.ag__dot--duty)')
 if (dutyCell) {
   await dutyCell.click()
@@ -262,7 +262,7 @@ if (dutyCell) {
   check('tapping a day opens its list', false, 'no duty cell found')
 }
 
-/* ── Χρονολόγιο: πρόοδος και ορόσημα σε ένα ─────────────────────────────── */
+/* ── Timeline: progress and milestones in one ───────────────────────────── */
 
 check('timeline replaces the duplicated progress bar',
   (await page.$$('.clock .progress__track')).length === 0)
@@ -270,7 +270,7 @@ check('timeline carries the progress bar', await page.isVisible('.tl .progress__
 check('timeline lists milestones', (await page.$$('.tl .ms__item')).length > 0)
 check('timeline marks where you are now', (await page.$$('.ms__item--now')).length === 1)
 
-/* ── Μηνιαίο όριο εξόδων ────────────────────────────────────────────────── */
+/* ── Monthly spending limit ─────────────────────────────────────────────── */
 
 await page.click('[data-tab="money"]')
 await page.waitForSelector('.bd')
@@ -281,7 +281,7 @@ await page.waitForTimeout(250)
 check('budget can be set', await page.isVisible('.bd__big'))
 check('budget counts only this month', (await page.$$('.bd__nums > div')).length === 2)
 
-// Ένα έξοδο πάνω από το όριο πρέπει να το δηλώνει, όχι να το κρύβει.
+// Going over the limit has to be stated, not hidden.
 await page.fill('.mn__add .mn__f--amt input', '80')
 await page.click('.mn__add .btn--primary')
 await page.waitForTimeout(300)
@@ -296,7 +296,7 @@ await page.click('.bd .btn--ghost')
 await page.waitForTimeout(250)
 check('budget can be removed', !(await page.isVisible('.bd__big')))
 
-/* ── Αναίρεση διαγραφής ─────────────────────────────────────────────────── */
+/* ── Undoing a deletion ─────────────────────────────────────────────────── */
 
 const beforeUndo = (await page.$$('.mn__item')).length
 await page.click('.mn__item .mn__idel >> nth=0')
@@ -307,14 +307,14 @@ await page.click('.toast__action')
 await page.waitForTimeout(300)
 check('undo brings the row back', (await page.$$('.mn__item')).length === beforeUndo)
 check('and the toast closes', !(await page.isVisible('.toast__action')))
-// Η ταφόπλακα πρέπει να φύγει, αλλιώς η επόμενη συγχώνευση θα το ξανάσβηνε.
+// The tombstone has to go, or the next merge would delete it again.
 const tombstones = await page.evaluate(() =>
   JSON.parse(localStorage.getItem('army_app.profile.v1')).deletedIds)
 const ids = await page.evaluate(() =>
   JSON.parse(localStorage.getItem('army_app.profile.v1')).expenses.map((e) => e.id))
 check('undo also removes the tombstone', ids.every((id) => !tombstones.includes(id)))
 
-/* ── Ιστορικό μονάδων ───────────────────────────────────────────────────── */
+/* ── Posting history ────────────────────────────────────────────────────── */
 
 await page.click('[data-tab="profile"]')
 await page.waitForSelector('.ps')
@@ -336,9 +336,9 @@ await page.click('.toast__action')
 await page.waitForTimeout(300)
 check('posting deletion can be undone', (await page.$$('.ps__item')).length === 1)
 
-/* ── Συντομεύσεις του εικονιδίου ────────────────────────────────────────── */
+/* ── Home-screen shortcuts ──────────────────────────────────────────────── */
 
-// Το manifest δηλώνει /?add=duty· η εφαρμογή πρέπει να ανοίγει στη φόρμα.
+// The manifest declares /?add=duty; the app has to open on that form.
 await page.goto(BASE + '/?add=duty', { waitUntil: 'networkidle' })
 await page.waitForTimeout(400)
 check('shortcut opens the duty tab',
@@ -354,12 +354,12 @@ await page.waitForTimeout(300)
 check('an unknown shortcut is ignored',
   (await page.getAttribute('[data-tab="clock"]', 'aria-current')) === 'page')
 
-/* ── Εικονίδια στις ενότητες ────────────────────────────────────────────── */
+/* ── Tab icons ──────────────────────────────────────────────────────────── */
 
 check('every tab has an icon', (await page.$$('.tabs__b svg')).length === 5)
 check('and keeps its label', (await page.$$('.tabs__t')).length === 5)
 
-// 8. Προφίλ + επιβεβαίωση μηδενισμού
+// 8. Profile, and the reset confirmation
 await page.click('[data-tab="profile"]')
 check('profile renders', await page.isVisible('.pf__name'))
 check('milestones moved to counter tab', (await page.$$('.ms__item')).length === 0)
@@ -368,7 +368,7 @@ check('reset asks for confirmation', await page.isVisible('.set__confirm'))
 await page.click('.btn--ghost.btn--sm')
 check('reset can be cancelled', !(await page.isVisible('.set__confirm')))
 
-// 9. Απόρρητο
+// 9. Privacy
 await page.click('.foot__link')
 await page.waitForSelector('.page__title')
 check('privacy page opens', (await page.textContent('.page__title')) === 'Privacy Policy')
@@ -382,20 +382,20 @@ await page.click('.notfound .btn--primary')
 await page.waitForTimeout(200)
 check('404 back button returns home', page.url() === BASE + '/')
 
-// 11. Κλείδωμα ζουμ
+// 11. Zoom lock
 const vp = await page.getAttribute('meta[name=viewport]','content')
 check('viewport locks zoom', vp.includes('user-scalable=no') && vp.includes('maximum-scale=1'), vp)
 
-// Το ζωντανό αρχείο ανακοινώσεων στο GitHub μπορεί να λείπει — πριν τρέξει
-// το Action για πρώτη φορά, ή σε ένα fork. Η εφαρμογή το αντέχει σιωπηλά
-// (ελέγχεται στο audit-extras)· ο browser όμως γράφει το 404 μόνος του.
+// The live announcements file on GitHub may be missing — before the Action
+// first runs, or in a fork. The app absorbs that silently (checked in
+// audit-extras), but the browser logs the 404 on its own.
 const unexpected = errs.filter(e => !e.includes('raw.githubusercontent.com'))
 check('no console/page errors', unexpected.length === 0, unexpected.slice(0,3).join(' | '))
 
-// Στιγμιότυπα
+// Screenshots
 await page.goto(BASE + '/', { waitUntil:'networkidle' })
 await page.screenshot({ path:'/tmp/claude-1000/-home-kotsaras-army-app/826ac12f-be3d-4713-ac77-1b62fc73d73b/scratchpad/shot-clock-en.png' })
-await page.click('.langsw__b >> nth=0'); await page.waitForTimeout(250)  // ΕΛ
+await page.click('.langsw__b >> nth=0'); await page.waitForTimeout(250)  // the Greek button
 await page.screenshot({ path:'/tmp/claude-1000/-home-kotsaras-army-app/826ac12f-be3d-4713-ac77-1b62fc73d73b/scratchpad/shot-clock-el.png' })
 await page.click('[data-tab="leave"]'); await page.waitForTimeout(200)
 await page.screenshot({ path:'/tmp/claude-1000/-home-kotsaras-army-app/826ac12f-be3d-4713-ac77-1b62fc73d73b/scratchpad/shot-leave-el.png' })

@@ -3,19 +3,20 @@ import { addDays, daysBetween, parseISO, toISO, today } from './dates'
 import { newId } from './id'
 
 /**
- * Άδειες με ημερομηνίες.
+ * Leave, recorded by date.
  *
- * Η παλιά έκδοση κρατούσε έναν αριθμό (`leaveTaken`). Αυτό απαντούσε «πόσες
- * έκαψα», που δεν είναι η ερώτηση του φαντάρου — η ερώτηση είναι «πότε
- * ξαναβγαίνω». Με ημερομηνίες βγαίνουν και τα δύο, χωρίς χειροκίνητο μέτρημα.
+ * The old version stored a single number (`leaveTaken`). That answered "how
+ * many have I burned", which is not the question a conscript asks — the
+ * question is "when am I out again". Dates answer both, with no counting by
+ * hand.
  *
- * Οι μέρες μετριούνται **περιληπτικά**: από 3/5 έως 5/5 είναι 3 μέρες, όπως
- * τις μετράει και το φύλλο πορείας.
+ * Days are counted **inclusively**: 3 May to 5 May is three days, the same way
+ * the travel warrant counts them.
  */
 
 export const LEAVE_KINDS: LeaveKind[] = ['regular', 'honorary', 'blood', 'march', 'sick']
 
-/** Είδη που αφαιρούνται από την κανονική δικαιούμενη άδεια. */
+/** The kinds that come out of the regular entitlement. */
 const COUNTS_AGAINST_REGULAR: LeaveKind[] = ['regular']
 
 export function leaveDays(entry: LeaveEntry): number {
@@ -23,33 +24,32 @@ export function leaveDays(entry: LeaveEntry): number {
   return d < 0 ? 0 : d + 1
 }
 
-/** Το `?? []` δεν είναι διακοσμητικό: ένα προφίλ γραμμένο πριν υπάρξουν οι
- *  λίστες θα έριχνε ολόκληρη την εφαρμογή σε λευκή οθόνη. */
+/** The `?? []` is not decoration: a profile written before these lists existed
+ *  would take the whole app down to a white screen. */
 export function totalLeaveDays(leaves: LeaveEntry[], kinds?: LeaveKind[]): number {
   return (leaves ?? [])
     .filter((l) => !kinds || kinds.includes(l.kind))
     .reduce((sum, l) => sum + leaveDays(l), 0)
 }
 
-/** Μέρες κανονικής άδειας που έχουν καταναλωθεί (όλες, παρελθόν και μέλλον). */
+/** Regular-leave days spent — all of them, past and future alike. */
 export function regularDaysTaken(leaves: LeaveEntry[]): number {
   return totalLeaveDays(leaves, COUNTS_AGAINST_REGULAR)
 }
 
 export interface DaysSplit {
-  /** Μέρες που έχουν ήδη περάσει — μαζί με τη σημερινή αν είσαι σε άδεια. */
+  /** Days already gone — including today if you are on leave right now. */
   past: number
-  /** Μέρες κλεισμένες για το μέλλον. Δεσμεύουν το υπόλοιπο αλλά δεν «πάρθηκαν». */
+  /** Days booked ahead. They hold back the balance, but were not "taken". */
   future: number
 }
 
 /**
- * Χωρίζει τις μέρες σε «πέρασαν» και «κλεισμένες».
+ * Splits days into "gone" and "booked".
  *
- * Χωρίς αυτόν τον διαχωρισμό, μια άδεια που καταχωρείς για τον επόμενο μήνα
- * εμφανίζεται ως «πήρα» — που δεν ισχύει — και ο χρήστης δεν καταλαβαίνει
- * γιατί έπεσε το υπόλοιπό του. Άδεια που είναι σε εξέλιξη μετριέται και στα δύο,
- * όσες μέρες της ανήκουν σε κάθε πλευρά.
+ * Without the split, leave entered for next month shows up as already taken —
+ * which is not true — and the balance drops for no visible reason. Leave that
+ * is under way counts on both sides, by however many days fall on each.
  */
 export function splitRegularDays(leaves: LeaveEntry[], now: Date = today()): DaysSplit {
   const iso = toISO(now)
@@ -62,7 +62,7 @@ export function splitRegularDays(leaves: LeaveEntry[], now: Date = today()): Day
     if (total === 0) continue
     if (l.to <= iso) { past += total; continue }
     if (l.from > iso) { future += total; continue }
-    // Σε εξέλιξη: μοιράζεται στη σημερινή μέρα.
+    // Under way: it splits at today.
     const done = daysBetween(parseISO(l.from), now) + 1
     past += done
     future += total - done
@@ -71,18 +71,17 @@ export function splitRegularDays(leaves: LeaveEntry[], now: Date = today()): Day
   return { past, future }
 }
 
-/* ── Αναρρωτική ──────────────────────────────────────────────────────────── */
+/* ── Sick leave ──────────────────────────────────────────────────────────── */
 
 /**
- * Πόσες μέρες αναρρωτικής «χωράνε» μέσα στη θητεία χωρίς να την παρατείνουν.
+ * How many days of sick leave fit inside the term without extending it.
  *
- * Πέρα από αυτό το όριο, ο χρόνος δεν λογίζεται ως πραγματική στρατιωτική
- * υπηρεσία και η απόλυση μετατίθεται ισόποσα. Είναι ο πιο συχνός λόγος που η
- * ημερομηνία απόλυσης δεν βγαίνει «κατάταξη + μήνες», και μέχρι τώρα η
- * εφαρμογή τον αγνοούσε τελείως — έδειχνε δηλαδή λάθος μέρα σε όποιον είχε
- * μακρά αναρρωτική.
+ * Past that limit the time does not count as service, and discharge moves back
+ * by the same amount. It is the most common reason a discharge date is not
+ * simply "enlistment + months", and the app ignored it entirely until now —
+ * meaning it showed the wrong day to anyone with a long sick leave.
  *
- * Η τελική ημερομηνία βγαίνει πάντα από τη μονάδα· εδώ δίνουμε την εκτίμηση.
+ * The final date always comes from the unit; this is only the estimate.
  */
 export const SICK_LEAVE_FREE_DAYS = 30
 
@@ -90,7 +89,7 @@ export function sickDays(leaves: LeaveEntry[]): number {
   return totalLeaveDays(leaves, ['sick'])
 }
 
-/** Μέρες που προστίθενται στη θητεία λόγω αναρρωτικής πέρα από το όριο. */
+/** Days added to the term by sick leave beyond the limit. */
 export function sickExtensionDays(leaves: LeaveEntry[]): number {
   return Math.max(0, sickDays(leaves) - SICK_LEAVE_FREE_DAYS)
 }
@@ -100,13 +99,13 @@ export function sortLeaves(leaves: LeaveEntry[]): LeaveEntry[] {
 }
 
 export interface LeaveTimeline {
-  /** Η άδεια που τρέχει τώρα, αν υπάρχει. */
+  /** The leave running right now, if any. */
   current: LeaveEntry | null
-  /** Η πρώτη άδεια που δεν έχει αρχίσει ακόμη. */
+  /** The first leave that has not started yet. */
   next: LeaveEntry | null
-  /** Μέρες μέχρι την έναρξη της επόμενης. */
+  /** Days until the next one begins. */
   daysToNext: number
-  /** Μέρες που απομένουν στην τρέχουσα, μαζί με τη σημερινή. */
+  /** Days left of the current one, today included. */
   daysLeftOfCurrent: number
   past: LeaveEntry[]
 }
@@ -130,11 +129,11 @@ export function leaveTimeline(leaves: LeaveEntry[], now: Date = today()): LeaveT
   }
 }
 
-/* ── Έλεγχοι εγκυρότητας ──────────────────────────────────────────────────── */
+/* ── Validation ───────────────────────────────────────────────────────────── */
 
 export type LeaveProblem = 'range' | 'overlap' | 'tooLong'
 
-/** Το μεγαλύτερο εύλογο διάστημα — πιάνει τυπογραφικά λάθη στη χρονιά. */
+/** The longest plausible span — this catches a typo in the year. */
 const MAX_SPAN_DAYS = 120
 
 export function validateLeave(
@@ -155,13 +154,13 @@ export function newLeave(
   return { id: newId('lv'), kind, from, to, note: note?.trim() || undefined }
 }
 
-/* ── Μεταφορά από το παλιό πεδίο ──────────────────────────────────────────── */
+/* ── Migration from the old field ─────────────────────────────────────────── */
 
 /**
- * Προφίλ γραμμένα πριν τις ημερομηνίες κρατούσαν μόνο έναν μετρητή. Το
- * μετατρέπουμε σε μία εγγραφή που τελειώνει χθες, ώστε να υπάρχει μία πηγή
- * αλήθειας. Οι ημερομηνίες είναι κατά προσέγγιση και η εγγραφή το δηλώνει
- * μέσω `note`, ώστε ο χρήστης να τη διορθώσει ή να τη σβήσει.
+ * Profiles written before dates existed held only a counter. It becomes a
+ * single entry ending yesterday, so there is one source of truth. The dates
+ * are approximate and the entry says so in its `note`, so it can be corrected
+ * or deleted.
  */
 export function migrateLegacyLeave(profile: Profile, note: string, now: Date = today()): Profile {
   if ((profile.leaves ?? []).length > 0 || profile.leaveTaken <= 0) return profile

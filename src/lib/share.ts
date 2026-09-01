@@ -5,11 +5,11 @@ import { upperGreek } from './greek'
 import { formatShort } from './dates'
 
 /**
- * Κάρτα κοινοποίησης.
+ * The share card.
  *
- * Ζωγραφίζεται σε canvas αντί για screenshot, ώστε να βγαίνει πάντα στο ίδιο
- * μέγεθος (1080×1350, η αναλογία 4:5 που δεν κόβει το Instagram) και με τα
- * χρώματα της εφαρμογής, ανεξάρτητα από τη συσκευή.
+ * Drawn on a canvas rather than screenshotted, so it always comes out at the
+ * same size (1080x1350, the 4:5 ratio Instagram does not crop) and in the
+ * app's colours, whatever the device.
  */
 
 const W = 1080
@@ -24,7 +24,7 @@ const HAIRLINE = '#212429'
 const DISPLAY = "'Roboto Condensed', 'Arial Narrow', sans-serif"
 const BODY = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
 
-/** Τα γράμματα αραιώνουν με το χέρι — το canvas δεν έχει letter-spacing παντού. */
+/** Letters are spaced by hand: canvas letter-spacing is not universally supported. */
 function tracked(
   ctx: CanvasRenderingContext2D, text: string, x: number, y: number, spacing: number,
 ): number {
@@ -47,14 +47,14 @@ function trackedWidth(
 export async function renderShareCard(
   profile: Profile, s: ServiceState, t: Dict,
 ): Promise<Blob> {
-  // Χωρίς αυτό η πρώτη κάρτα βγαίνει σε εφεδρική γραμματοσειρά.
+  // Without this the first card comes out in a fallback typeface.
   if (typeof document !== 'undefined' && document.fonts) {
     try {
       await Promise.all([
         document.fonts.load("700 240px 'Roboto Condensed'"),
         document.fonts.load("600 28px 'Roboto Condensed'"),
       ])
-    } catch { /* συνεχίζουμε με ό,τι υπάρχει */ }
+    } catch { /* carry on with whatever is loaded */ }
   }
 
   const canvas = document.createElement('canvas')
@@ -66,18 +66,18 @@ export async function renderShareCard(
   ctx.fillStyle = CANVAS
   ctx.fillRect(0, 0, W, H)
 
-  // Λεπτό πλαίσιο, όπως τα panel της εφαρμογής.
+  // A hairline frame, like the app's panels.
   ctx.strokeStyle = HAIRLINE
   ctx.lineWidth = 2
   ctx.strokeRect(56, 56, W - 112, H - 112)
 
-  // Σήμα πάνω αριστερά.
+  // Wordmark, top left.
   ctx.fillStyle = OLIVE
   ctx.font = `600 26px ${DISPLAY}`
   ctx.textBaseline = 'alphabetic'
   tracked(ctx, t.app.mark, 108, 148, 5)
 
-  // Ο μεγάλος αριθμός.
+  // The big number.
   const days = s.hasEnlisted ? s.daysLeft : s.daysUntilEnlist
   const label = s.isDischarged
     ? t.share.done
@@ -95,7 +95,7 @@ export async function renderShareCard(
   const lw = trackedWidth(ctx, capsLabel, 8)
   tracked(ctx, capsLabel, (W - lw) / 2, 690, 8)
 
-  // Μπάρα προόδου.
+  // Progress bar.
   const barX = 140, barY = 780, barW = W - 280, barH = 10
   ctx.fillStyle = HAIRLINE
   ctx.fillRect(barX, barY, barW, barH)
@@ -110,7 +110,7 @@ export async function renderShareCard(
     W / 2, barY + 70,
   )
 
-  // Τρεις στήλες με τα βασικά.
+  // Three columns with the essentials.
   const cols: Array<[string, string]> = [
     [t.share.enlisted, formatShort(s.enlist)],
     [t.share.discharge, formatShort(s.discharge)],
@@ -122,8 +122,8 @@ export async function renderShareCard(
     const cx = W / 2 + (i - 1) * 300
     ctx.fillStyle = MUTED
     const kc = upperGreek(k)
-    // Οι ετικέτες έχουν διαφορετικό μήκος ανά γλώσσα. Μικραίνουμε όσο χρειάζεται
-    // ώστε καμία να μη βγει από τη στήλη της ή να ακουμπήσει το πλαίσιο.
+    // Labels differ in length between languages. Shrink as far as needed so
+    // none escapes its column or touches the frame.
     let size = 24
     ctx.font = `600 ${size}px ${DISPLAY}`
     while (trackedWidth(ctx, kc, 4) > COL_W && size > 15) {
@@ -164,8 +164,8 @@ export async function renderShareCard(
 export type ShareOutcome = 'shared' | 'downloaded' | 'cancelled'
 
 /**
- * Μοιράζεται την κάρτα. Το Web Share με αρχεία δουλεύει σε κινητά· αλλού
- * κατεβάζει το PNG, που είναι το ίδιο αποτέλεσμα με ένα βήμα παραπάνω.
+ * Shares the card. Web Share with files works on phones; elsewhere the PNG is
+ * downloaded, which is the same outcome with one more step.
  */
 export async function shareCard(blob: Blob, title: string): Promise<ShareOutcome> {
   const file = new File([blob], 'army-apolele.png', { type: 'image/png' })
@@ -178,7 +178,7 @@ export async function shareCard(blob: Blob, title: string): Promise<ShareOutcome
       await navigator.share({ files: [file], title })
       return 'shared'
     } catch (err) {
-      // AbortError σημαίνει ότι το ακύρωσε ο χρήστης — δεν είναι σφάλμα.
+      // AbortError means the user cancelled — that is not a failure.
       if (err instanceof DOMException && err.name === 'AbortError') return 'cancelled'
     }
   }

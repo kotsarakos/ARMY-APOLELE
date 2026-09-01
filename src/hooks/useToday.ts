@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { today } from '../lib/dates'
 
-/** Κρατά τη «σημερινή» ημερομηνία φρέσκια: ελέγχει κάθε λεπτό και όταν η
- *  καρτέλα ξαναγίνεται ορατή, ώστε ο μετρητής να γυρίζει τα μεσάνυχτα
- *  ακόμη κι αν η εφαρμογή έμεινε ανοιχτή. */
+/** Keeps "today" fresh: it checks every minute and whenever the tab becomes
+ *  visible again, so the counter turns over at midnight even if the app was
+ *  left open. */
 export function useToday(): Date {
   const [date, setDate] = useState(today)
 

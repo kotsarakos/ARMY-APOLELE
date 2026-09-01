@@ -4,13 +4,13 @@ export interface AuthUser {
   uid: string
   name: string | null
   email: string | null
-  /** 'google' ή 'password' — για να ξέρει η διεπαφή τι να δείξει. */
+  /** 'google' or 'password', so the interface knows what to show. */
   provider: string
 }
 
 /**
- * Κωδικοί σφαλμάτων του Firebase Auth που μπορεί να δει ο χρήστης.
- * Μεταφράζονται στο i18n· ό,τι δεν αναγνωρίζεται πέφτει στο 'unknown'.
+ * The Firebase Auth error codes a user might actually see.
+ * They are translated in i18n; anything unrecognised falls back to 'unknown'.
  */
 export type AuthErrorCode =
   | 'invalid-email' | 'invalid-credential' | 'email-in-use' | 'weak-password'
@@ -40,9 +40,9 @@ function mapError(err: unknown): AuthError {
     case 'auth/popup-blocked':            return new AuthError('popup-blocked', err)
     case 'auth/network-request-failed':   return new AuthError('network', err)
     case 'auth/too-many-requests':        return new AuthError('too-many-requests', err)
-    // Ο πάροχος δεν έχει ενεργοποιηθεί στο Firebase Console.
+    // The provider has not been enabled in the Firebase Console.
     case 'auth/operation-not-allowed':    return new AuthError('provider-disabled', err)
-    // Η διαγραφή λογαριασμού θέλει πρόσφατη σύνδεση.
+    // Deleting an account requires a recent sign-in.
     case 'auth/requires-recent-login':    return new AuthError('requires-recent-login', err)
     default:                              return new AuthError('unknown', err)
   }
@@ -67,7 +67,7 @@ function toUser(u: {
   }
 }
 
-/** Παρακολούθηση κατάστασης σύνδεσης. Επιστρέφει συνάρτηση αποσύνδεσης. */
+/** Watches the sign-in state. Returns an unsubscribe function. */
 export async function watchAuth(
   onChange: (user: AuthUser | null) => void,
 ): Promise<() => void> {
@@ -124,9 +124,9 @@ export async function resetPassword(email: string): Promise<void> {
 }
 
 /**
- * Διαγράφει οριστικά τον λογαριασμό. Το έγγραφο στο Firestore σβήνεται πρώτα
- * από τον καλούντα — μετά τη διαγραφή του χρήστη οι κανόνες δεν επιτρέπουν
- * πλέον καμία εγγραφή, οπότε θα έμενε ορφανό για πάντα.
+ * Permanently deletes the account. The caller removes the Firestore document
+ * first: once the user is gone the rules allow no further writes, so it would
+ * be orphaned forever.
  */
 export async function deleteAccount(): Promise<void> {
   try {

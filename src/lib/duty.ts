@@ -3,16 +3,17 @@ import { daysBetween, parseISO, toISO, today } from './dates'
 import { newId } from './id'
 
 /**
- * Υπηρεσίες: σκοπιές, θάλαμος, αγγαρείες.
+ * Duties: guard shifts, barracks orderly, fatigues.
  *
- * Είναι το πράγμα που ο φαντάρος σημειώνει σε χαρτάκι — πότε έχω, τι ώρα,
- * πόσες έκανα. Κρατάμε ημερομηνία, ώρα ανάληψης και διάρκεια, ώστε να βγαίνει
- * και «η επόμενη σε πόσο» και «πόσες ώρες έχω δώσει συνολικά».
+ * This is the thing conscripts scribble on a scrap of paper — when is mine,
+ * what time, how many have I done. Storing the date, the start time and the
+ * length gives both "how long until the next one" and "how many hours in
+ * total".
  */
 
 export const DUTY_KINDS: DutyKind[] = ['guard', 'kitchen', 'orderly', 'patrol', 'other']
 
-/** Τυπική διάρκεια ανά είδος, ως αρχική τιμή στη φόρμα. */
+/** The usual length of each type, used to prefill the form. */
 export const DEFAULT_HOURS: Record<DutyKind, number> = {
   guard: 2, kitchen: 6, orderly: 8, patrol: 4, other: 2,
 }
@@ -24,16 +25,16 @@ export interface DutyCount {
 }
 
 export interface DutyState {
-  /** Η αμέσως επόμενη υπηρεσία, σήμερα ή μετά. */
+  /** The next duty due, today or later. */
   next: Duty | null
-  /** Μέρες μέχρι την επόμενη· 0 σημαίνει σήμερα. */
+  /** Days until the next one; 0 means today. */
   daysToNext: number
   total: number
   totalHours: number
-  /** Υπηρεσίες που έχουν ήδη γίνει. */
+  /** Duties already done. */
   done: number
   byKind: DutyCount[]
-  /** Μέσος όρος υπηρεσιών ανά μήνα υπηρεσίας — δείχνει αν σε «φορτώνουν». */
+  /** Average duties per month served — shows whether you are being piled on. */
   perMonth: number
   upcoming: Duty[]
   past: Duty[]
@@ -41,8 +42,8 @@ export interface DutyState {
 
 export function sortDuties(duties: Duty[], newestFirst = true): Duty[] {
   duties = duties ?? []
-  // `dir` είναι η τιμή που επιστρέφεται όταν το a προηγείται χρονικά του b:
-  // +1 το στέλνει πίσω (πιο πρόσφατο πρώτο), −1 μπροστά.
+  // `dir` is what we return when a comes before b in time: +1 sends it to the
+  // back (most recent first), -1 to the front.
   const dir = newestFirst ? 1 : -1
   return [...duties].sort((a, b) => {
     if (a.date !== b.date) return a.date < b.date ? dir : -dir
@@ -76,8 +77,8 @@ export function computeDuties(
     totalHours,
     done: past.length,
     byKind: [...sums.values()].sort((a, b) => b.count - a.count),
-    // Στρογγυλοποίηση στο ένα δεκαδικό: «3,5 υπηρεσίες τον μήνα» λέει κάτι,
-    // το «3,4827» όχι.
+    // Rounded to one decimal: "3.5 duties a month" says something,
+    // "3.4827" does not.
     perMonth: monthsServed > 0 ? Math.round((duties.length / monthsServed) * 10) / 10 : 0,
     upcoming,
     past,

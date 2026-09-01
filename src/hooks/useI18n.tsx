@@ -41,8 +41,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const t = DICT[lang]
 
-  // Κρατά τα <html lang>, <title> και τη meta description συγχρονισμένα με
-  // τη γλώσσα — μετράει τόσο για τους αναγνώστες οθόνης όσο και για το SEO.
+  // Keeps <html lang>, <title> and the meta description in step with the
+  // language — this matters for screen readers as much as for search.
   useEffect(() => {
     document.documentElement.lang = lang
     document.title = t.meta.title

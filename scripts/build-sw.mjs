@@ -1,9 +1,9 @@
 /*
- * Μετά το vite build: γράφει στη dist/sw.js τη λίστα των πραγματικών assets
- * (που έχουν hash στο όνομα) και ένα build id για ακύρωση της cache.
+ * After `vite build`: writes the real asset list — the ones with a hash in
+ * their name — and a build id for cache busting into dist/sw.js.
  *
- * Χωρίς αυτό ο service worker αποθηκεύει μόνο το HTML — η εφαρμογή ανοίγει
- * offline αλλά μένει λευκή, επειδή λείπουν JS και CSS.
+ * Without it the service worker caches the HTML alone, and the app opens
+ * offline but stays blank, because the JS and CSS are missing.
  */
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
@@ -23,8 +23,8 @@ function walk(dir, base = '') {
 }
 
 const assets = walk('assets').filter((f) => /\.(js|css|woff2?)$/.test(f))
-// Τα lazy Firebase chunks είναι ~700 kB· δεν τα κατεβάζουμε προληπτικά σε
-// κινητό δίκτυο. Μπαίνουν στην cache όταν και αν ζητηθούν.
+// The lazy Firebase chunks are around 700 kB; they are not precached over a
+// mobile connection. They enter the cache if and when they are requested.
 const shell = assets.filter((f) => !f.includes('index.esm'))
 
 const src = readFileSync(SW, 'utf8')

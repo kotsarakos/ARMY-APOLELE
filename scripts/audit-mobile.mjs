@@ -4,7 +4,7 @@ const EXEC = process.env.HOME + '/.cache/ms-playwright/chromium-1148/chrome-linu
 const BASE = 'http://localhost:4173'
 
 
-// Νέα αρχική οθόνη: πρώτα «συνέχεια χωρίς λογαριασμό», μετά το onboarding.
+// The welcome screen comes first: skip the account, then onboarding.
 async function skipAuth(page) {
   const skip = await page.$('.welcome__skip .btn')
   if (skip) { await skip.click(); await page.waitForSelector('.esso') }
@@ -44,12 +44,12 @@ async function audit(width, setup, name) {
         )
       }
     }
-    // Πεδία κάτω από 16px προκαλούν αυτόματο zoom στο iOS.
+    // Fields under 16px trigger automatic zoom on iOS.
     const smallInputs = [...document.querySelectorAll('input,select,textarea')]
       .filter((el) => !['checkbox', 'radio', 'range'].includes(el.type))
       .filter((el) => parseFloat(getComputedStyle(el).fontSize) < 16)
       .map((el) => el.tagName.toLowerCase() + '#' + (el.id || el.type))
-    // Στόχοι αφής κάτω από 44px.
+    // Tap targets under 44px.
     const smallTargets = [...document.querySelectorAll('button,a')]
       .filter((el) => {
         const b = el.getBoundingClientRect()
@@ -80,8 +80,8 @@ async function audit(width, setup, name) {
 
 const fillProfile = async (page) => {
   await skipAuth(page)
-  await page.click('.esso')                       // διάλεξε ΕΣΣΟ
-  await page.click('.btn--primary')               // ξεκίνα
+  await page.click('.esso')                       // pick an intake
+  await page.click('.btn--primary')               // start
   await page.waitForSelector('.clock__num')
 }
 
@@ -105,7 +105,7 @@ console.log('\n── Ταμείο με έξοδα ──')
 for (const w of WIDTHS) {
   await audit(w, async (p) => {
     await fillProfile(p); await p.click('[data-tab="money"]')
-    // Καταχώρηση εξόδου: ελέγχει και τη λίστα και την ανάλυση κατηγοριών.
+    // Recording an expense: checks both the list and the category breakdown.
     await p.fill('.mn__f--amt input', '12,50')
     await p.click('.mn__add .btn--primary')
     await p.waitForSelector('.mn__item')

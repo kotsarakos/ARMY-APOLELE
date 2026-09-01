@@ -4,17 +4,17 @@ import { useI18n } from '../hooks/useI18n'
 import { upperGreek as caps } from '../lib/greek'
 
 /**
- * Χρονολόγιο θητείας — η πρόοδος και τα ορόσημα σε ένα πράγμα.
+ * The service timeline — progress and milestones as one thing.
  *
- * Ήταν δύο ενότητες που έλεγαν το ίδιο: μια μπάρα με ποσοστό, και από κάτω μια
- * λίστα ημερομηνιών. Η μπάρα δεν έλεγε *τι* έρχεται, η λίστα δεν έλεγε *πού*
- * βρίσκεσαι.
+ * They were two sections saying the same thing: a bar with a percentage, and a
+ * list of dates below it. The bar did not say *what* was coming; the list did
+ * not say *where* you were.
  *
- * Οι θέσεις δεν είναι αναλογικές με τον χρόνο. Δοκιμάστηκε, και δεν δουλεύει:
- * η ορκωμοσία (μέρα 21) και η πρώτη άδεια (μέρα 24) απέχουν λιγότερο από 1%
- * της θητείας, οπότε οι ετικέτες τους θα έπεφταν η μία πάνω στην άλλη. Αντί
- * γι' αυτό, οι σειρές είναι ισαπέχουσες και η θέση του «τώρα» δηλώνεται με
- * δική της σειρά, χωμένη στη σωστή χρονική θέση.
+ * Positions are not proportional to time. That was tried, and does not work:
+ * the oath (day 21) and first leave (day 24) are less than 1% of the term
+ * apart, so their labels would land on top of each other. Instead the rows are
+ * evenly spaced and "now" gets a row of its own, slotted into the right place
+ * chronologically.
  */
 export function Timeline({
   items, months, state,
@@ -26,7 +26,7 @@ export function Timeline({
   const { t } = useI18n()
   const pct = Math.round(state.progress * 100)
 
-  // Πόσα ορόσημα έχουν περάσει — εκεί μπαίνει η σειρά του «σήμερα».
+  // How many milestones have passed — that is where the "today" row goes.
   const passed = items.filter((m) => m.done).length
   const showNow = state.hasEnlisted && !state.isDischarged
 
@@ -62,7 +62,7 @@ export function Timeline({
               <Row m={m} months={months} />
             </li>
           ))}
-          {/* Αν έχουν περάσει όλα τα ορόσημα, το «τώρα» πάει στο τέλος. */}
+          {/* When every milestone has passed, "now" goes at the end. */}
           {showNow && passed === items.length && (
             <li><NowRow state={state} /></li>
           )}

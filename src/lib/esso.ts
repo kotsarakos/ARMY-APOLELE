@@ -2,21 +2,21 @@ import type { EssoCode } from './types'
 import type { Dict } from './i18n'
 
 /**
- * ΕΣΣΟ = Εκπαιδευτική Σειρά Στρατευσίμων Οπλιτών.
+ * ΕΣΣΟ (ESSO) = the intake a conscript enlists with.
  *
- * Ν. 5265/2026: οι ΕΣΣΟ μειώθηκαν από 6 σε 4 τον χρόνο — Φεβρουάριος, Μάιος,
- * Αύγουστος, Νοέμβριος. Από 1/1/2026 καταργήθηκε η υποχρεωτική θητεία σε
- * Ναυτικό και Αεροπορία· όλοι οι στρατεύσιμοι κατατάσσονται στον Στρατό Ξηράς
- * και μόνο όσοι έχουν εξειδικευμένα προσόντα μετατάσσονται εσωτερικά.
+ * Law 5265/2026 cut them from six a year to four — February, May, August,
+ * November. From 1 January 2026 conscription into the Navy and Air Force
+ * ended: every conscript joins the Army, and only those with specialised
+ * qualifications are transferred on internally.
  */
 export interface Esso {
   code: EssoCode
   year: number
-  /** Ημερομηνία έναρξης κατάταξης, ISO. */
+  /** First day of the enlistment window, ISO. */
   from: string
-  /** Ημερομηνία λήξης κατάταξης, ISO. */
+  /** Last day of the enlistment window, ISO. */
   to: string
-  /** true όταν η ημερομηνία δεν έχει ακόμη επιβεβαιωθεί επίσημα. */
+  /** True while the date has not been officially confirmed yet. */
   provisional?: boolean
 }
 
@@ -34,7 +34,7 @@ export const ESSO_2027: Esso[] = [
   { code: 'D', year: 2027, from: '2027-11-16', to: '2027-11-19', provisional: true },
 ]
 
-/** Η ετικέτα φτιάχνεται στη γλώσσα του χρήστη — δεν αποθηκεύεται. */
+/** The label is built in the reader's language — it is never stored. */
 export function essoLabel(e: Esso, dict: Dict): string {
   return dict.essoLabel(e.year, e.code)
 }

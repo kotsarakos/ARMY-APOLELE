@@ -1,18 +1,18 @@
 /**
- * Κατεβάζει τις ανακοινώσεις της Στρατολογίας σε στατικό JSON.
+ * Downloads the recruitment service's announcements into a static JSON file.
  *
- * Τρέχει σε GitHub Action, όχι στον browser, για δύο λόγους:
+ * It runs in a GitHub Action rather than the browser, for two reasons:
  *
- *  1. Το feed δεν στέλνει `Access-Control-Allow-Origin`, οπότε ο browser δεν
- *     επιτρέπεται να το διαβάσει απευθείας.
- *  2. Η εφαρμογή είναι local-first. Ένας διακομιστής που θα έκανε το ίδιο
- *     θα σήμαινε ότι κάθε άνοιγμα της εφαρμογής περνά από κάπου· εδώ το
- *     αποτέλεσμα είναι ένα αρχείο, ίδιο για όλους, χωρίς αίτημα ανά χρήστη.
+ *  1. The feed sends no `Access-Control-Allow-Origin`, so a browser is not
+ *     allowed to read it directly.
+ *  2. The app is local-first. A server doing the same would mean every opening
+ *     of the app passes through somewhere; here the result is a file, the same
+ *     for everyone, with no per-user request.
  *
- * Το αποτέλεσμα γράφεται στο `public/announcements.json`, οπότε ταξιδεύει
- * μαζί με το build και δουλεύει και offline. Το ίδιο αρχείο σερβίρεται και
- * από το raw.githubusercontent.com, που το χρησιμοποιεί η εφαρμογή για να
- * φρεσκάρει χωρίς νέο deploy — δες src/lib/announcements.ts.
+ * The result is written to `public/announcements.json`, so it travels with the
+ * build and works offline. The same file is served from
+ * raw.githubusercontent.com, which the app uses to refresh without a new
+ * deploy — see src/lib/announcements.ts.
  */
 import { writeFileSync, readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -21,14 +21,14 @@ const FEED = 'https://www.stratologia.gr/rss.xml'
 const SITE = 'https://www.stratologia.gr/'
 const OUT = new URL('../public/announcements.json', import.meta.url)
 
-/** Πόσες κρατάμε. Η υπηρεσία δημοσιεύει λίγες φορές τον χρόνο. */
+/** How many to keep. The service publishes a handful of times a year. */
 const MAX_ITEMS = 8
 const MAX_SUMMARY = 220
 
 /**
- * Ο ιστότοπος τρέχει Drupal με το THEME DEBUG ανοιχτό, οπότε τυπώνει σχόλια
- * HTML **πριν** από τη δήλωση `<?xml`. Αυτό κάνει το feed άκυρο XML και κάθε
- * αυστηρός parser το απορρίπτει. Κόβουμε ό,τι προηγείται.
+ * The site runs Drupal with THEME DEBUG left on, so it prints HTML comments
+ * **before** the `<?xml` declaration. That makes the feed invalid XML and any
+ * strict parser refuses it. Everything before the declaration is cut.
  */
 function cleanXml(raw) {
   const start = raw.indexOf('<?xml')
@@ -48,9 +48,8 @@ function decodeOnce(text) {
 }
 
 /**
- * Το feed είναι διπλά κωδικοποιημένο: το `&amp;nbsp;` γίνεται `&nbsp;` στο
- * πρώτο πέρασμα και κενό μόνο στο δεύτερο. Δύο περάσματα φτάνουν και δεν
- * μπορούν να τρέξουν ατέρμονα.
+ * The feed is double-encoded: `&amp;nbsp;` becomes `&nbsp;` on the first pass
+ * and a space only on the second. Two passes are enough, and cannot loop.
  */
 function decode(text) {
   const once = decodeOnce(text)
@@ -58,15 +57,14 @@ function decode(text) {
 }
 
 /**
- * Το κείμενο ενός στοιχείου, καθαρό από CDATA, σχόλια και HTML.
+ * The text of one element, cleaned of CDATA, comments and HTML.
  *
- * Η **σειρά είναι ουσιώδης**: το `<description>` περιέχει το HTML σε
- * κωδικοποιημένη μορφή (`&lt;!-- ... --&gt;`), οπότε αν αφαιρέσουμε πρώτα τα
- * σχόλια δεν βρίσκουμε τίποτα — και μετά η αποκωδικοποίηση τα ξαναφέρνει ως
- * ορατό κείμενο. Αποκωδικοποιούμε πρώτα, καθαρίζουμε μετά.
+ * The **order matters**: `<description>` holds its HTML encoded
+ * (`&lt;!-- ... --&gt;`), so stripping comments first finds nothing — and then
+ * decoding brings them back as visible prose. Decode first, clean afterwards.
  *
- * Χωρίς αυτό, η περίληψη κάθε ανακοίνωσης ήταν το THEME DEBUG του Drupal:
- * λίστες αρχείων twig από τον ιστότοπό τους.
+ * Without this, every announcement's summary was Drupal's THEME DEBUG output:
+ * lists of twig files from their own site.
  */
 function tag(block, name) {
   const m = block.match(new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`, 'i'))
@@ -80,30 +78,30 @@ function tag(block, name) {
 }
 
 /**
- * Το Drupal δεν αποδίδει μια περίληψη — αποδίδει ολόκληρο τον κόμβο. Έτσι το
- * `<description>` ξεκινά με τον τίτλο ξανά, το username του συντάκτη και τη
- * σφραγίδα ώρας, και μόνο μετά έρχεται το κείμενο:
+ * Drupal does not render a summary — it renders the whole node. So
+ * `<description>` opens with the title again, the author's username and a
+ * timestamp, and only then the text:
  *
- *   «Νέος Νόμος… rodopoulou.g Τετ, 01/14/2026 - 08:07 Δημοσιεύτηκε ο Νόμος…»
+ *   "Νέος Νόμος... rodopoulou.g Τετ, 01/14/2026 - 08:07 Δημοσιεύτηκε ο Νόμος..."
  *
- * Η σφραγίδα είναι το πιο αξιόπιστο σημάδι για το πού αρχίζει η ουσία.
+ * The timestamp is the most reliable marker of where the substance begins.
  */
 function stripDrupalByline(text, title) {
   const stamp = text.match(/\d{1,2}\/\d{1,2}\/\d{4}\s*-\s*\d{1,2}:\d{2}\s*/)
   if (stamp) return text.slice(stamp.index + stamp[0].length).trim()
-  // Χωρίς σφραγίδα, τουλάχιστον δεν επαναλαμβάνουμε τον τίτλο.
+  // With no timestamp, at least do not repeat the title.
   return text.startsWith(title) ? text.slice(title.length).trim() : text
 }
 
 function shorten(text, max) {
   if (text.length <= max) return text
-  // Κόβουμε σε όριο λέξης, ώστε να μη μένει μισή λέξη πριν τα αποσιωπητικά.
+  // Cut on a word boundary, so no half word is left before the ellipsis.
   const cut = text.slice(0, max)
   const space = cut.lastIndexOf(' ')
   return `${(space > max * 0.6 ? cut.slice(0, space) : cut).trimEnd()}…`
 }
 
-/** 'Wed, 14 Jan 2026 10:00:00 +0200' → '2026-01-14'. Κενό αν δεν διαβάζεται. */
+/** 'Wed, 14 Jan 2026 10:00:00 +0200' becomes '2026-01-14'. Empty if unreadable. */
 function isoDate(pubDate) {
   const d = new Date(pubDate)
   return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10)
@@ -116,8 +114,8 @@ function parseFeed(xml) {
       const title = tag(block, 'title')
       const body = stripDrupalByline(tag(block, 'description'), title)
       return {
-        // Ο σύνδεσμος είναι σταθερός ανά ανακοίνωση και κάνει καλό κλειδί·
-        // αν λείψει, πέφτουμε στον τίτλο ώστε να μη χαθεί η εγγραφή.
+        // The link is stable per announcement and makes a good key; if it is
+        // missing we fall back to the title so the entry is not lost.
         id: link || title,
         title,
         summary: shorten(body, MAX_SUMMARY),
@@ -141,8 +139,8 @@ async function main() {
 
   const next = { source: SITE, feed: FEED, checkedAt: new Date().toISOString(), items }
 
-  // Η `checkedAt` αλλάζει σε κάθε τρέξιμο. Αν συγκρίναμε ολόκληρο το αρχείο,
-  // θα γραφόταν commit κάθε μέρα χωρίς να έχει αλλάξει τίποτε ουσιαστικό.
+  // `checkedAt` changes on every run. Comparing the whole file would mean a
+  // commit every day with nothing of substance changed.
   const changed = !existsSync(OUT) ||
     JSON.stringify(JSON.parse(readFileSync(OUT, 'utf8')).items) !== JSON.stringify(items)
 
@@ -157,13 +155,13 @@ async function main() {
 }
 
 /**
- * Δοκιμή του parser πάνω σε αποθηκευμένο, πραγματικό feed.
+ * Runs the parser against a saved copy of the real feed.
  *
- * Το ζητούμενο δεν είναι να δούμε αν ο ιστότοπος απαντά — αυτό το δείχνει το
- * ίδιο το Action. Είναι να κλειδώσουμε τις ιδιομορφίες που ήδη βρήκαμε:
- * σχόλια πριν τη δήλωση XML, HTML διπλά κωδικοποιημένο μέσα στην περιγραφή,
- * και το byline του Drupal μπροστά από το κείμενο. Καθεμιά τους, αν σπάσει,
- * δεν ρίχνει τίποτα — απλώς γεμίζει την εφαρμογή με σκουπίδια.
+ * The point is not to see whether the site answers — the Action itself shows
+ * that. It is to lock in the quirks already found: comments before the XML
+ * declaration, HTML double-encoded inside the description, and Drupal's byline
+ * in front of the text. If any of them breaks, nothing crashes — the app just
+ * fills up with rubbish.
  */
 function selfTest() {
   const fixture = new URL('../tests/fixtures/stratologia-rss.xml', import.meta.url)

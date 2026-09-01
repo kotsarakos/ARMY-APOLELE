@@ -2,7 +2,7 @@ export type Lang = 'el' | 'en'
 
 export const LANGS: Lang[] = ['el', 'en']
 
-/** Ανίχνευση γλώσσας από τον browser, με ελληνικά ως προεπιλογή. */
+/** Detects the language from the browser, defaulting to Greek. */
 export function detectLang(): Lang {
   if (typeof navigator === 'undefined') return 'el'
   const langs = navigator.languages ?? [navigator.language]
@@ -640,8 +640,8 @@ const el = {
     boundaryBody: 'Η εφαρμογή συνάντησε απρόσμενο σφάλμα. Δοκίμασε ανανέωση.',
     reload: 'Ανανέωση',
   },
-  /* Γενική: «24 Φεβρουαρίου 2026». Για σκέτη επικεφαλίδα μήνα χρειάζεται
-     ονομαστική — δες `monthsAlone`. */
+  /* Genitive, as in "24 Φεβρουαρίου 2026". A month heading on its own needs
+     the nominative instead — see `monthsAlone`. */
   months: [
     'Ιανουαρίου', 'Φεβρουαρίου', 'Μαρτίου', 'Απριλίου', 'Μαΐου', 'Ιουνίου',
     'Ιουλίου', 'Αυγούστου', 'Σεπτεμβρίου', 'Οκτωβρίου', 'Νοεμβρίου', 'Δεκεμβρίου',
@@ -651,8 +651,8 @@ const el = {
     'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος',
   ],
   weekdays: ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'],
-  /* Δύο γράμματα: το ένα δεν φτάνει στα ελληνικά — Τρίτη/Τετάρτη και
-     Πέμπτη/Παρασκευή ξεκινούν με το ίδιο. Σειρά από Κυριακή, όπως το getDay(). */
+  /* Two letters: one is not enough in Greek, where Τρίτη/Τετάρτη and
+     Πέμπτη/Παρασκευή share a first letter. Ordered from Sunday, like getDay(). */
   weekdaysShort: ['ΚΥ', 'ΔΕ', 'ΤΡ', 'ΤΕ', 'ΠΕ', 'ΠΑ', 'ΣΑ'],
   cal: {
     open: 'Επιλογή ημερομηνίας',
@@ -666,8 +666,8 @@ const el = {
   essoLabel: (year: number, code: string) => `${year} ${code}' ΕΣΣΟ`,
 }
 
-/** Το αγγλικό λεξικό έχει ακριβώς το ίδιο σχήμα — το `satisfies` παρακάτω
- *  το επιβάλλει, ώστε ένα ξεχασμένο κλειδί να γίνεται σφάλμα μεταγλώττισης. */
+/** The English dictionary has exactly the same shape — the `satisfies` below
+ *  enforces it, so a forgotten key becomes a compile error. */
 const en: typeof el = {
   meta: {
     title: 'Army Apolele — Greek Military Service Countdown',
@@ -1295,7 +1295,7 @@ const en: typeof el = {
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December',
   ],
-  // Στα αγγλικά δεν αλλάζει πτώση· υπάρχει για να ταιριάζει το σχήμα.
+  // English has no case change here; this exists to match the shape.
   monthsAlone: [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December',

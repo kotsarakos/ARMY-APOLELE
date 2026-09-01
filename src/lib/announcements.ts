@@ -1,21 +1,20 @@
 /**
- * Ανακοινώσεις της Στρατολογίας.
+ * Announcements from the recruitment service.
  *
- * Η ροή έχει τρία σκαλοπάτια, με αυτή τη σειρά:
+ * There are three steps, tried in this order:
  *
- *  1. **Το αρχείο του build** (`/announcements.json`) — ίδιας προέλευσης, στην
- *     cache του service worker, δουλεύει offline. Είναι πάντα εκεί.
- *  2. **Ό,τι έχει κρατηθεί τοπικά** από προηγούμενο φρεσκάρισμα.
- *  3. **Το ζωντανό αρχείο** από το raw.githubusercontent.com, που το ενημερώνει
- *     ένα GitHub Action κάθε μέρα. Έτσι μια νέα ανακοίνωση φτάνει χωρίς νέο
- *     deploy.
+ *  1. **The file shipped with the build** (`/announcements.json`) — same
+ *     origin, in the service-worker cache, works offline. Always there.
+ *  2. **Whatever was cached locally** by an earlier refresh.
+ *  3. **The live file** from raw.githubusercontent.com, which a GitHub Action
+ *     updates daily. That is how a new notice arrives without a new deploy.
  *
- * Το τρίτο βήμα είναι το μόνο αίτημα που βγαίνει έξω, γίνεται μόνο όταν
- * ανοίξει η ενότητα, και η αποτυχία του δεν φαίνεται πουθενά: η οθόνη έχει ήδη
- * περιεχόμενο από τα δύο πρώτα.
+ * The third step is the only request that leaves the device, happens only when
+ * the section is opened, and its failure is invisible: the screen already has
+ * content from the first two.
  *
- * Καμία πληροφορία του χρήστη δεν συνοδεύει το αίτημα — είναι ένα στατικό
- * αρχείο, ίδιο για όλους.
+ * Nothing about the user travels with the request — it is a static file, the
+ * same for everyone.
  */
 
 const BUNDLED_URL = '/announcements.json'
@@ -30,19 +29,19 @@ export interface Announcement {
   title: string
   summary: string
   link: string
-  /** ISO 'YYYY-MM-DD'. Κενό αν το feed δεν έδωσε έγκυρη ημερομηνία. */
+  /** ISO 'YYYY-MM-DD'. Empty when the feed gave no valid date. */
   date: string
 }
 
 export interface AnnouncementFeed {
   source: string
   feed: string
-  /** ISO timestamp της τελευταίας φοράς που ελέγχθηκε η πηγή. */
+  /** ISO timestamp of the last time the source was checked. */
   checkedAt: string
   items: Announcement[]
 }
 
-/** Δέχεται μόνο ό,τι έχει το σχήμα που περιμένουμε — το δίκτυο δίνει ό,τι να 'ναι. */
+/** Accepts only the shape we expect — the network will hand back anything. */
 function valid(data: unknown): data is AnnouncementFeed {
   if (typeof data !== 'object' || data === null) return false
   const f = data as Partial<AnnouncementFeed>
@@ -75,10 +74,10 @@ function readCache(): AnnouncementFeed | null {
 }
 
 function writeCache(feed: AnnouncementFeed): void {
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify(feed)) } catch { /* ιδιωτική περιήγηση */ }
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(feed)) } catch { /* private browsing */ }
 }
 
-/** Από δύο εκδόσεις κρατάμε αυτή που ελέγχθηκε πιο πρόσφατα. */
+/** Between two versions, keep the one checked more recently. */
 function newer(a: AnnouncementFeed | null, b: AnnouncementFeed | null): AnnouncementFeed | null {
   if (!a) return b
   if (!b) return a
@@ -86,17 +85,17 @@ function newer(a: AnnouncementFeed | null, b: AnnouncementFeed | null): Announce
 }
 
 /**
- * Ό,τι υπάρχει ήδη στη συσκευή, χωρίς κανένα αίτημα προς τα έξω.
- * Το `/announcements.json` είναι ίδιας προέλευσης και το σερβίρει ο service
- * worker, οπότε αυτό δουλεύει και χωρίς δίκτυο.
+ * Whatever is already on the device, with no outbound request.
+ * `/announcements.json` is same-origin and served by the service worker, so
+ * this works with no network at all.
  */
 export async function localAnnouncements(): Promise<AnnouncementFeed | null> {
   return newer(readCache(), await get(BUNDLED_URL, 4000))
 }
 
 /**
- * Ελέγχει την πηγή για κάτι νεότερο. Επιστρέφει `null` αν δεν βρήκε τίποτα
- * καλύτερο από αυτό που ήδη έχουμε — ο καλών κρατά ό,τι είχε.
+ * Checks the source for something newer. Returns `null` when it found nothing
+ * better than what we hold — the caller keeps what it had.
  */
 export async function refreshAnnouncements(
   current: AnnouncementFeed | null,
@@ -108,12 +107,12 @@ export async function refreshAnnouncements(
   return live
 }
 
-/* ── Τι έχει ήδη διαβαστεί ────────────────────────────────────────────────── */
+/* ── What has already been read ───────────────────────────────────────────── */
 
 /**
- * Η υπηρεσία δημοσιεύει λίγες φορές τον χρόνο. Το ζητούμενο δεν είναι να
- * διαβάζεις μια λίστα κάθε μέρα — είναι να καταλάβεις τη μέρα που εμφανίστηκε
- * κάτι. Γι' αυτό κρατάμε την ημερομηνία της νεότερης που έχει ήδη ιδωθεί.
+ * The service publishes a handful of times a year. The point is not to reread
+ * a list every day — it is to notice the day something appears. So we keep the
+ * date of the newest one already seen.
  */
 export function lastSeen(): string {
   try { return localStorage.getItem(SEEN_KEY) ?? '' } catch { return '' }
@@ -122,17 +121,17 @@ export function lastSeen(): string {
 export function markSeen(items: Announcement[]): void {
   const newest = items.reduce((max, i) => (i.date > max ? i.date : max), '')
   if (!newest) return
-  try { localStorage.setItem(SEEN_KEY, newest) } catch { /* ιδιωτική περιήγηση */ }
+  try { localStorage.setItem(SEEN_KEY, newest) } catch { /* private browsing */ }
 }
 
 export function unreadCount(items: Announcement[], seen: string = lastSeen()): number {
-  // Χωρίς προηγούμενη επίσκεψη δεν είναι «αδιάβαστες»: θα σημαιοδοτούσαμε
-  // ολόκληρο το ιστορικό στον καθένα που ανοίγει την εφαρμογή πρώτη φορά.
+  // With no previous visit nothing is "unread": we would otherwise flag the
+  // entire back catalogue at everyone opening the app for the first time.
   if (!seen) return 0
   return items.filter((i) => i.date > seen).length
 }
 
-/** Τα προσωπικά δεδομένα της στρατολογίας δεν αγγίζονται ποτέ — δες README. */
+/** The recruitment service's personal area is never touched — see the README. */
 export const OFFICIAL_LINKS = [
   { key: 'stratologia', url: 'https://www.stratologia.gr/' },
   { key: 'govgr', url: 'https://www.gov.gr/ipiresies/strateuse' },

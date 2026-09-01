@@ -15,7 +15,7 @@ const DURATIONS: Array<{ value: ServiceMonths; key: 'd12' | 'd9' | 'd6' | 'd3' }
   { value: 3, key: 'd3' },
 ]
 
-/** Δεχόμαστε ημερομηνίες μόνο σε λογικό εύρος γύρω από σήμερα. */
+/** Only dates within a sensible range around today are accepted. */
 function isPlausibleDate(iso: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false
   const d = parseISO(iso)

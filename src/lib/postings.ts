@@ -3,15 +3,15 @@ import { addDays, daysBetween, parseISO, toISO, today } from './dates'
 import { newId } from './id'
 
 /**
- * Ιστορικό μονάδων.
+ * Posting history.
  *
- * Μια θητεία δεν γίνεται σε ένα μέρος: ΚΕΝ, μετάθεση, ίσως απόσπαση. Το
- * προφίλ κρατούσε ένα μόνο `unit`, οπότε η πρώτη μετάθεση έσβηνε το ΚΕΝ και
- * μαζί την πληροφορία «πόσο έμεινα εκεί».
+ * Service does not happen in one place: the training centre, a transfer,
+ * perhaps a detachment. The profile held a single `unit`, so the first
+ * transfer erased the training centre and, with it, how long was spent there.
  *
- * Η λίστα είναι απλή: κάθε εγγραφή δηλώνει πότε **άρχισε**. Το τέλος της
- * βγαίνει από την αρχή της επόμενης, οπότε δεν μπορεί να υπάρξει κενό ή
- * επικάλυψη που να χρειάζεται έλεγχο.
+ * The list is deliberately simple: each entry records only when it **began**.
+ * The end comes from the start of the next one, so there can be no gap or
+ * overlap that would need validating.
  */
 
 export function sortPostings(postings: Posting[]): Posting[] {
@@ -20,16 +20,16 @@ export function sortPostings(postings: Posting[]): Posting[] {
 
 export interface PostingSpan {
   posting: Posting
-  /** ISO της τελευταίας μέρας εκεί, ή null αν είναι η τρέχουσα. */
+  /** ISO of the last day there, or null when this is the current posting. */
   until: string | null
-  /** Μέρες παρουσίας — μέχρι σήμερα αν είναι η τρέχουσα. */
+  /** Days present — counted up to today for the current posting. */
   days: number
   current: boolean
 }
 
 /**
- * Οι τοποθετήσεις με διάρκεια. Μελλοντικές εγγραφές (μετάθεση που ξέρεις ότι
- * έρχεται) επιτρέπονται και βγάζουν `days: 0` — δεν έχεις πάει ακόμη.
+ * Postings with their durations. Future entries are allowed — a transfer you
+ * already know about — and report `days: 0`, because you have not been yet.
  */
 export function postingSpans(postings: Posting[], now: Date = today()): PostingSpan[] {
   const list = sortPostings(postings)
@@ -39,8 +39,8 @@ export function postingSpans(postings: Posting[], now: Date = today()): PostingS
     const next = list[i + 1]
     const started = posting.from <= iso
     const from = parseISO(posting.from)
-    // Η επόμενη τοποθέτηση αρχίζει τη μέρα που τελειώνει αυτή, οπότε η
-    // τελευταία μέρα εδώ είναι η προηγούμενή της.
+    // The next posting starts on the day this one ends, so the last day here
+    // is the day before it.
     const until = next ? toISO(addDays(parseISO(next.from), -1)) : null
     const to = next ? parseISO(next.from) : now
 
@@ -53,7 +53,7 @@ export function postingSpans(postings: Posting[], now: Date = today()): PostingS
   })
 }
 
-/** Η μονάδα στην οποία βρίσκεται σήμερα — η τελευταία που έχει ήδη αρχίσει. */
+/** Where they are today — the most recent posting that has already begun. */
 export function currentPosting(postings: Posting[], now: Date = today()): Posting | null {
   const iso = toISO(now)
   const started = sortPostings(postings).filter((p) => p.from <= iso)
@@ -65,9 +65,9 @@ export function newPosting(unit: string, from: string, note?: string): Posting {
 }
 
 /**
- * Μεταφορά παλιών προφίλ: ένα σκέτο `unit` γίνεται η πρώτη τοποθέτηση, με
- * ημερομηνία την κατάταξη. Είναι η μόνη ημερομηνία που ξέρουμε σίγουρα, και
- * ο χρήστης μπορεί να τη διορθώσει.
+ * Migrates older profiles: a bare `unit` becomes the first posting, dated to
+ * enlistment. That is the only date we know for certain, and it can be
+ * corrected by hand.
  */
 export function migrateLegacyUnit(profile: Profile): Profile {
   const unit = profile.unit?.trim()

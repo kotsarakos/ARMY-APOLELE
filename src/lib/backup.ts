@@ -3,11 +3,11 @@ import { DEFAULT_PROFILE } from './types'
 import { toISO, today } from './dates'
 
 /**
- * Αντίγραφο ασφαλείας σε JSON.
+ * A JSON backup.
  *
- * Ο λόγος που υπάρχει: όλα τα δεδομένα ζουν σε localStorage. Ένα «καθάρισμα
- * ιστορικού» στον browser τα σβήνει χωρίς προειδοποίηση. Το αρχείο είναι
- * αναγνώσιμο από άνθρωπο και ανήκει στον χρήστη — ούτε κλειδωμένο ούτε δικό μας.
+ * Why it exists: all the data lives in localStorage, and a browser "clear
+ * history" wipes it without warning. The file is human-readable and belongs to
+ * the person who made it — not locked, and not ours.
  */
 
 const FORMAT = 'army-apolele/backup'
@@ -47,8 +47,8 @@ export interface ImportResult {
 }
 
 /**
- * Διαβάζει αρχείο αντιγράφου. Δέχεται μόνο ό,τι έχει γραφτεί από εδώ — ένα
- * τυχαίο JSON θα περνούσε σιωπηλά και θα άφηνε το προφίλ μισοάδειο.
+ * Reads a backup file. Only accepts what was written from here: an arbitrary
+ * JSON file would pass silently and leave the profile half empty.
  */
 export function parseBackup(text: string): ImportResult {
   let raw: unknown
@@ -63,7 +63,7 @@ export function parseBackup(text: string): ImportResult {
   const p = { ...DEFAULT_PROFILE, ...b.profile } as Profile
   if (!p.enlistDate) return { profile: null, error: 'empty' }
 
-  // Οι λίστες μπορεί να λείπουν ή να έχουν αλλοιωθεί σε παλιότερο αρχείο.
+  // The lists may be missing or malformed in an older file.
   return {
     profile: {
       ...p,

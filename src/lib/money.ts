@@ -4,11 +4,11 @@ import { daysBetween, parseISO, toISO, today } from './dates'
 import { newId } from './id'
 
 /**
- * Οικονομικά της θητείας.
+ * The money side of service.
  *
- * Όλα τα ποσά κρατούνται σε **λεπτά** ως ακέραιοι. Με δεκαδικά, το
- * 0.1 + 0.2 δεν κάνει 0.3 σε JavaScript, και μετά από μερικές δεκάδες
- * καταχωρήσεις το υπόλοιπο θα ήταν αισθητά λάθος.
+ * Every amount is stored in **cents**, as an integer. In floating point
+ * 0.1 + 0.2 is not 0.3, and after a few dozen entries the balance would be
+ * visibly wrong.
  */
 
 export const CATEGORIES: ExpenseCategory[] = [
@@ -18,60 +18,60 @@ export const CATEGORIES: ExpenseCategory[] = [
 export interface CategoryTotal {
   category: ExpenseCategory
   total: number
-  /** 0..1 του συνολικού εξόδου. */
+  /** 0..1 of total spending. */
   share: number
 }
 
 export interface MoneyState {
-  /** Αρχικά χρήματα εκτός στρατού. */
+  /** Money held before enlisting, outside the army. */
   starting: number
-  /** Αποζημίωση που έχει ήδη δικαιωθεί. */
+  /** Pay already earned. */
   earned: number
-  /** Συνολική αποζημίωση για όλη τη θητεία. */
+  /** Total pay across the whole term. */
   totalPay: number
-  /** Αποζημίωση που δεν έχει έρθει ακόμη. */
+  /** Pay still to come. */
   upcomingPay: number
   spent: number
   /** starting + earned − spent */
   balance: number
-  /** Μέσο ημερήσιο έξοδο μέχρι σήμερα. */
+  /** Average daily spend so far. */
   dailyBurn: number
-  /** Μέσο μηνιαίο έξοδο. */
+  /** Average monthly spend. */
   monthlyBurn: number
-  /** Πρόβλεψη υπολοίπου την ημέρα της απόλυσης, με τον τρέχοντα ρυθμό. */
+  /** Projected balance on discharge day, at the current rate. */
   projected: number
-  /** true αν η πρόβλεψη βγάζει το υπόλοιπο κάτω από το μηδέν. */
+  /** True when the projection puts the balance below zero. */
   willRunOut: boolean
   /**
-   * Πόσα μπορεί να ξοδεύει την ημέρα ώστε να φτάσει στο απολυτήριο με μηδέν.
-   * Είναι το «όριο», όχι πρόταση.
+   * How much can be spent per day to reach discharge at exactly zero.
+   * It is the ceiling, not a suggestion.
    */
   dailyAllowance: number
   byCategory: CategoryTotal[]
   count: number
-  /** Άθροισμα των πάγιων ανά μήνα. */
+  /** Sum of the recurring charges per month. */
   recurringMonthly: number
   budget: BudgetState
 }
 
 export interface BudgetState {
-  /** Το όριο σε λεπτά· 0 σημαίνει ότι δεν έχει οριστεί. */
+  /** The limit in cents; 0 means none has been set. */
   limit: number
   set: boolean
-  /** Ξοδεμένα μέσα στον τρέχοντα ημερολογιακό μήνα. */
+  /** Spent within the current calendar month. */
   spent: number
-  /** Όσα απομένουν από το όριο· μπορεί να είναι αρνητικό. */
+  /** What is left of the limit; can go negative. */
   left: number
-  /** 0..1 του ορίου — κόβεται στο 1 για τη μπάρα. */
+  /** 0..1 of the limit — clipped at 1 so the bar cannot overflow. */
   share: number
   over: boolean
-  /** Μέρες που απομένουν στον μήνα, μαζί με τη σημερινή. */
+  /** Days left in the month, today included. */
   daysLeftInMonth: number
-  /** Πόσα αντέχει την ημέρα ώστε να μη σπάσει το όριο μέχρι το τέλος του μήνα. */
+  /** Daily room left to stay inside the limit until the month ends. */
   perDay: number
 }
 
-/** Έξοδα μέσα στον ημερολογιακό μήνα της `now`. */
+/** Spending within the calendar month that `now` falls in. */
 export function spentInMonth(expenses: Expense[], now: Date): number {
   const prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   return (expenses ?? [])
@@ -84,8 +84,8 @@ function computeBudget(profile: Profile, now: Date): BudgetState {
   const spent = spentInMonth(profile.expenses, now)
   const left = limit - spent
 
-  // Μέρες που μένουν στον μήνα, με τη σημερινή να μετράει: αν είναι 28 Απριλίου,
-  // έχει ακόμη τρεις μέρες να ξοδέψει (28, 29, 30).
+  // Days left in the month, counting today: on 28 April there are still three
+  // days to spend across (28, 29, 30).
   const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
   const daysLeftInMonth = lastDay - now.getDate() + 1
 
@@ -112,8 +112,8 @@ export function computeMoney(profile: Profile, service: ServiceState): MoneyStat
   const spent = totalSpent(profile.expenses)
   const balance = starting + earned - spent
 
-  // Ο ρυθμός μετριέται πάνω στις μέρες που έχουν πραγματικά περάσει· την
-  // πρώτη μέρα δεν υπάρχει ιστορικό, οπότε ο ρυθμός είναι μηδέν αντί άπειρο.
+  // The rate is measured over days that have actually passed. On day one
+  // there is no history, so the rate is zero rather than infinite.
   const daysIn = Math.max(1, service.daysServed)
   const dailyBurn = service.daysServed > 0 ? Math.round(spent / daysIn) : 0
   const monthlyBurn = dailyBurn * 30
@@ -123,7 +123,7 @@ export function computeMoney(profile: Profile, service: ServiceState): MoneyStat
   const upcomingPay = totalPay - earned
   const projected = balance + upcomingPay - futureSpend
 
-  // Πόσα αντέχει την ημέρα ώστε να μη μείνει από λεφτά.
+  // How much a day is affordable without running out.
   const dailyAllowance = daysLeft > 0
     ? Math.max(0, Math.floor((balance + upcomingPay) / daysLeft))
     : 0
@@ -152,14 +152,14 @@ export function computeMoney(profile: Profile, service: ServiceState): MoneyStat
   }
 }
 
-/* ── Πάγια έξοδα ─────────────────────────────────────────────────────────── */
+/* ── Recurring charges ───────────────────────────────────────────────────── */
 
 /**
- * Τα πάγια δεν είναι έξοδα από μόνα τους — γίνονται. Για κάθε μήνα που έχει
- * περάσει από την έναρξή τους παράγουμε ένα κανονικό `Expense`.
+ * A recurring charge is not an expense in itself — it becomes one. For every
+ * month that has passed since it started, an ordinary `Expense` is produced.
  *
- * Το id είναι ντετερμινιστικό (`rec-<id>-<YYYY-MM>`), οπότε αν η συνάρτηση
- * τρέξει δέκα φορές — ή σε δύο συσκευές — η χρέωση γράφεται μία μόνο φορά.
+ * The id is deterministic (`rec-<id>-<YYYY-MM>`), so whether this runs ten
+ * times or on two devices, the charge is written exactly once.
  */
 export function dueRecurring(profile: Profile, now: Date = today()): Expense[] {
   if ((profile.recurring ?? []).length === 0) return []
@@ -170,7 +170,7 @@ export function dueRecurring(profile: Profile, now: Date = today()): Expense[] {
   for (const r of profile.recurring) {
     const start = parseISO(r.since)
     const cursor = new Date(start.getFullYear(), start.getMonth(), 1, 12)
-    // Ανώτατο όριο επαναλήψεων: 5 χρόνια. Προστατεύει από `since` με λάθος έτος.
+    // Capped at five years of repeats, which guards against a `since` with the wrong year.
     for (let guard = 0; guard < 60; guard++) {
       const y = cursor.getFullYear()
       const m = cursor.getMonth()
@@ -203,14 +203,14 @@ export function newRecurring(
   }
 }
 
-/** Τα έξοδα που παρήγαγε ένα πάγιο — για να φύγουν μαζί του. */
+/** The expenses a recurring charge produced, so they can go with it. */
 export function isFromRecurring(expense: Expense, recurringId: string): boolean {
   return expense.id.startsWith(`rec-${recurringId}-`)
 }
 
-/* ── Μετατροπές και μορφοποίηση ──────────────────────────────────────────── */
+/* ── Parsing and formatting ──────────────────────────────────────────────── */
 
-/** «12,50» ή «12.5» → 1250 λεπτά. Επιστρέφει null αν δεν είναι έγκυρο. */
+/** "12,50" or "12.5" becomes 1250 cents. Returns null when it is not valid. */
 export function parseAmount(input: string): number | null {
   const cleaned = input.trim().replace(',', '.').replace(/[€\s]/g, '')
   if (!/^\d*\.?\d*$/.test(cleaned) || cleaned === '' || cleaned === '.') return null
@@ -243,7 +243,7 @@ export function newExpense(
   }
 }
 
-/** Έξοδα ταξινομημένα από το πιο πρόσφατο. */
+/** Expenses, most recent first. */
 export function recentFirst(expenses: Expense[]): Expense[] {
   return [...expenses].sort((a, b) => {
     const d = daysBetween(parseISO(a.date), parseISO(b.date))

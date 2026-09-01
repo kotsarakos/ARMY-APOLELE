@@ -1,4 +1,4 @@
-/* Layout & components — υλοποίηση του DESIGN.md */
+/* Layout & components — the implementation of DESIGN.md */
 
 .boot { min-height: 100vh; background: var(--canvas); }
 
@@ -30,7 +30,7 @@
   letter-spacing: 1.2px; color: var(--ink-tertiary);
 }
 
-/* ── Το ρολόι ───────────────────────────────────────────────────────────── */
+/* ── The clock ──────────────────────────────────────────────────────────── */
 .clock { margin-bottom: var(--s-section); }
 .clock__top {
   display: flex; align-items: baseline; justify-content: space-between;
@@ -69,7 +69,7 @@
 .clock__blurb { font-size: 13px; color: var(--ink-subtle); }
 .clock__note { margin-top: var(--s-md); color: var(--ink-muted); font-size: 14px; }
 
-/* ── Πρόοδος ────────────────────────────────────────────────────────────── */
+/* ── Progress ───────────────────────────────────────────────────────────── */
 .progress { margin-top: var(--s-xl); }
 .progress__meta {
   display: flex; align-items: baseline; justify-content: space-between;
@@ -112,9 +112,9 @@
 .tile__value--text { font-size: 21px; letter-spacing: -0.3px; overflow-wrap: normal; }
 .tile__hint { margin: 6px 0 0; font-size: 12px; color: var(--ink-tertiary); line-height: 1.4; }
 
-/* Δύο βαθμίδες πλακιδίων. Έξι ίδια πλακίδια δεν έχουν ιεραρχία: το μάτι δεν
-   ξέρει πού να πάει πρώτα. Τα δύο που απαντούν στην καθημερινή ερώτηση —
-   «πόσο ακόμη μέσα» και «πότε» — παίρνουν μεγαλύτερο νούμερο και τόνο. */
+/* Two tiers of tile. Six identical tiles have no hierarchy: the eye does not
+   know where to go first. The two that answer the daily question — "how much
+   longer inside" and "when" — get a larger number and more weight. */
 .tiles--lead { margin-bottom: var(--s-sm); }
 .tiles--lead .tile { border-color: var(--hairline-strong); }
 .tile--lead .tile__value { font-size: 40px; letter-spacing: -1px; }
@@ -122,11 +122,11 @@
 .tiles--rest .tile { background: transparent; padding: var(--s-sm) var(--s-md); }
 .tiles--rest .tile__value { font-size: 21px; }
 
-/* Το χρυσό σημαίνει «κάτι πλησιάζει» — παντού στην εφαρμογή, όχι μόνο στο tier. */
+/* Amber means "something is approaching" — everywhere, not only in the tier. */
 .tile--soon { border-color: var(--signal-dim); }
 .tile--soon .tile__value { color: var(--signal); }
 
-/* ── Άδειες ─────────────────────────────────────────────────────────────── */
+/* ── Leave ──────────────────────────────────────────────────────────────── */
 .leave__head {
   display: flex; justify-content: space-between; gap: var(--s-lg);
   flex-wrap: wrap; margin-bottom: var(--s-md);
@@ -154,7 +154,7 @@
 }
 .stepper__hint { margin: 6px 0 0; font-size: 11px; color: var(--ink-tertiary); }
 
-/* ── Ορόσημα ────────────────────────────────────────────────────────────── */
+/* ── Milestones ─────────────────────────────────────────────────────────── */
 .ms { list-style: none; margin: 0; padding: 0; }
 .ms__item {
   position: relative; display: flex; gap: var(--s-md);
@@ -201,7 +201,7 @@
   background: var(--surface-2); color: var(--ink);
   border: 1px solid var(--hairline-strong); border-radius: var(--r-md);
   padding: 11px var(--s-sm); font-family: inherit;
-  font-size: 16px; /* ΜΗΝ το μειώσεις: <16px ενεργοποιεί αυτόματο zoom στο iOS */
+  font-size: 16px; /* DO NOT lower this: under 16px iOS zooms automatically on focus */
   min-height: 44px; max-width: 100%;
 }
 .input--sm {
@@ -243,7 +243,7 @@
 .check strong { display: block; font-size: 14px; font-weight: 500; }
 .check em { font-style: normal; font-size: 12px; color: var(--ink-tertiary); }
 
-/* ── Ρυθμίσεις ──────────────────────────────────────────────────────────── */
+/* ── Settings ───────────────────────────────────────────────────────────── */
 .set { display: grid; gap: var(--s-sm); }
 .set__row {
   display: flex; align-items: center; justify-content: space-between;
@@ -259,7 +259,7 @@
   border-top: 1px solid var(--hairline);
 }
 
-/* ── Κουμπιά ────────────────────────────────────────────────────────────── */
+/* ── Buttons ────────────────────────────────────────────────────────────── */
 .btn {
   border: 1px solid transparent; border-radius: var(--r-md);
   padding: 11px 18px; font-size: 14px; font-weight: 500;
@@ -289,9 +289,9 @@
   background: var(--surface-1); border: 1px solid var(--hairline-strong);
   border-radius: var(--r-pill);
 }
-/* Εικονίδιο πάνω από ετικέτα: πέντε ελληνικές λέξεις στα 320px δεν χωρούν
-   αναγνώσιμες, και το σχήμα διαβάζεται πριν τη λέξη — και στις δύο γλώσσες,
-   όπου τα μήκη αλλάζουν. */
+/* Icon above label: five Greek words do not fit legibly at 320px, and the
+   shape is read before the word — in both languages, where the lengths
+   differ. */
 .tabs__b {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   background: transparent; border: 0; border-radius: var(--r-lg);
@@ -311,7 +311,7 @@
 }
 .foot p { margin: 0; font-size: 12px; color: var(--ink-tertiary); line-height: 1.6; }
 
-/* ── Στενές οθόνες ──────────────────────────────────────────────────────── */
+/* ── Narrow screens ─────────────────────────────────────────────────────── */
 @media (max-width: 420px) {
   .shell {
     padding-left: max(var(--s-sm), env(safe-area-inset-left));
@@ -334,14 +334,14 @@
   .clock__num { font-size: 68px; }
 }
 
-/* Σε χαμηλά landscape παράθυρα τα tabs δεν πρέπει να καλύπτουν περιεχόμενο. */
+/* In short landscape windows the tabs must not cover content. */
 @media (max-height: 460px) and (orientation: landscape) {
   .shell { padding-bottom: 96px; }
   .clock__num { font-size: clamp(56px, 12vw, 96px); }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Toasts — μηνύματα επιτυχίας και σφάλματος
+   Toasts — success and error messages
    ═══════════════════════════════════════════════════════════════════════════ */
 .toasts {
   position: fixed; z-index: 50;
@@ -351,8 +351,8 @@
   width: min(440px, calc(100vw - 24px));
   pointer-events: none;
 }
-/* Το μήνυμα είναι πλέον δοχείο με δύο στόχους: το σώμα το κλείνει, το κουμπί
-   εκτελεί την αναίρεση. Κουμπί μέσα σε κουμπί δεν είναι έγκυρο HTML. */
+/* The message is now a container with two targets: the body dismisses it, the
+   button runs the undo. A button inside a button is not valid HTML. */
 .toast {
   display: flex; align-items: stretch;
   width: 100%; text-align: left; pointer-events: auto;
@@ -380,9 +380,9 @@
   font-family: var(--font-mono);
 }
 .toast--success .toast__icon { background: var(--primary); color: var(--on-primary); }
-/* Λευκό πάνω στο πιο ανοιχτό κόκκινο του σκοτεινού θέματος έβγαζε 3.97:1.
-   Το `--on-primary` είναι εξ ορισμού το χρώμα που διαβάζεται πάνω σε γέμισμα,
-   και δουλεύει και στα δύο θέματα. */
+/* White on the dark theme's lighter red measured 3.97:1. `--on-primary` is by
+   definition the colour that reads on a filled shape, and it works in both
+   themes. */
 .toast--error   .toast__icon { background: var(--danger); color: var(--on-primary); }
 .toast__text { flex: 1; min-width: 0; }
 .toast__action {
@@ -400,7 +400,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Topbar: γλώσσα
+   Topbar: language
    ═══════════════════════════════════════════════════════════════════════════ */
 .topbar__mark {
   background: none; border: 0; padding: 0;
@@ -413,11 +413,11 @@
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   max-width: 40vw;
 }
-/* Διακόπτης γλώσσας — δύο τμήματα με ολισθαίνον highlight. */
-/* Εναλλαγή γλώσσας.
-   Χωρίς πλαίσιο και χωρίς γεμάτο pill: στην μπάρα κάθεται δίπλα στο σήμα, και
-   ένα δεύτερο έντονο σχήμα εκεί τραβούσε περισσότερη προσοχή απ' όση αξίζει.
-   Μένουν τα δύο κείμενα, με το ενεργό φωτεινό και μια λεπτή λαδί γραμμή. */
+/* Language switch — two segments with a sliding highlight. */
+/* The language switch.
+   No frame and no filled pill: it sits beside the wordmark in the bar, and a
+   second bold shape there drew more attention than it deserves. What remains
+   is the two labels, the active one bright, with a thin olive underline. */
 .langsw { flex: 0 0 auto; display: flex; align-items: center; }
 .langsw__b {
   position: relative;
@@ -427,7 +427,7 @@
   letter-spacing: 1.4px; color: var(--ink-tertiary);
   transition: color 160ms ease;
 }
-/* Λεπτή κάθετη γραμμή ανάμεσά τους αντί για περίγραμμα γύρω από όλο. */
+/* A thin vertical rule between them, rather than a border around the whole. */
 .langsw__b + .langsw__b::before {
   content: ''; position: absolute; left: 0; top: 50%;
   transform: translateY(-50%);
@@ -442,7 +442,7 @@
 .langsw__b:focus-visible { outline: 2px solid var(--primary); outline-offset: -4px; border-radius: var(--r-xs); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Σελίδες: Απόρρητο & 404
+   Pages: Privacy & 404
    ═══════════════════════════════════════════════════════════════════════════ */
 .shell--center { display: flex; flex-direction: column; }
 .page { padding-bottom: var(--s-xl); }
@@ -478,7 +478,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Ρυθμίσεις: επιβεβαίωση μηδενισμού
+   Settings: reset confirmation
    ═══════════════════════════════════════════════════════════════════════════ */
 .set__confirm {
   display: flex; align-items: center; gap: var(--s-xs); flex-wrap: wrap;
@@ -503,7 +503,7 @@
 .foot__link:hover { color: var(--ink); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Λογαριασμός / σύνδεση
+   Account and sign-in
    ═══════════════════════════════════════════════════════════════════════════ */
 .acc { display: grid; gap: var(--s-sm); }
 .acc__title { margin: 0; font-size: 15px; font-weight: 600; color: var(--ink); }
@@ -513,9 +513,9 @@
 .acc__field { display: grid; gap: 2px; }
 .acc__field .input { margin-top: 4px; }
 
-/* Το κουμπί της Google είναι σήμα κατατεθέν και δεν ακολουθεί τα tokens: με
-   `background: var(--ink)` γινόταν μαύρο πάνω σε μαύρο κείμενο στο φωτεινό
-   θέμα. Λευκό πάντα, με περίγραμμα για να ξεχωρίζει από τον λευκό καμβά. */
+/* The Google button is a trademark and does not follow the tokens: with
+   `background: var(--ink)` it rendered black text on a black button under the
+   light theme. Always white, with a border so it stands off a white canvas. */
 .btn--google {
   display: flex; align-items: center; justify-content: center; gap: var(--s-sm);
   background: #ffffff; color: #1f1f1f;
@@ -547,7 +547,7 @@
 .acc__link:hover:not(:disabled) { color: var(--ink); }
 .acc__link:disabled { opacity: .5; }
 
-/* Συνδεδεμένη κατάσταση */
+/* Signed-in state */
 .acc__who { display: flex; align-items: flex-start; gap: var(--s-sm); min-width: 0; }
 .acc__dot {
   flex: 0 0 auto; width: 8px; height: 8px; margin-top: 6px;
@@ -564,7 +564,7 @@
 .acc__via { margin: 2px 0 0; font-size: 12px; color: var(--ink-subtle); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Αρχική οθόνη καλωσορίσματος
+   The welcome screen
    ═══════════════════════════════════════════════════════════════════════════ */
 .welcome { padding-top: var(--s-lg); }
 .welcome__head { text-align: center; margin-bottom: var(--s-xl); }
@@ -586,7 +586,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Widget εγκατάστασης — εμφανίζεται πάνω από τα tabs
+   Install prompt — appears above the tabs
    ═══════════════════════════════════════════════════════════════════════════ */
 .ib {
   position: fixed; z-index: 40;
@@ -629,7 +629,7 @@
   to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
-/* ── Οδηγός εγκατάστασης ────────────────────────────────────────────────── */
+/* ── Install guide ──────────────────────────────────────────────────────── */
 .ig__head { text-align: center; margin-bottom: var(--s-lg); }
 .ig__logo { display: block; margin: 0 auto var(--s-md); border-radius: 14px; }
 .ig__head .page__intro { margin-left: auto; margin-right: auto; }
@@ -684,8 +684,8 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Μικρογραφίες συσκευής στον οδηγό εγκατάστασης
-   Το μόνο τονισμένο στοιχείο είναι πάντα αυτό που πρέπει να πατηθεί.
+   Device mock-ups in the install guide
+   The only highlighted element is always the one that has to be pressed.
    ═══════════════════════════════════════════════════════════════════════════ */
 .mk {
   position: relative; width: 100%; max-width: 210px; margin: var(--s-md) auto 0;
@@ -701,7 +701,7 @@
 }
 .mk--wide .mk__screen { border-radius: 5px; }
 
-/* Σκελετός περιεχομένου */
+/* Content skeleton */
 .mk__body { flex: 1; padding: 8px; display: flex; flex-direction: column; gap: 5px; min-height: 0; }
 .mk__row { display: flex; align-items: center; gap: 5px; }
 .mk__sq { width: 12px; height: 12px; border-radius: 3px; background: var(--primary); opacity: .8; flex: 0 0 auto; }
@@ -715,7 +715,7 @@
 .mk__dim--sm { flex: 0 0 40%; }
 .mk__dim > .mk__body { flex: 1; }
 
-/* Chrome του browser */
+/* Browser chrome */
 .mk__chrome { padding: 5px 6px 6px; background: var(--surface-1); border-top: 1px solid var(--hairline); }
 .mk__url {
   background: var(--surface-3); border-radius: 5px; padding: 3px 6px;
@@ -748,7 +748,7 @@
   color: var(--ink-tertiary); text-align: center;
 }
 
-/* Φύλλο κοινοποίησης iOS */
+/* The iOS share sheet */
 .mk__sheet {
   position: absolute; left: 0; right: 0; bottom: 0;
   background: var(--surface-1); border-top: 1px solid var(--hairline-strong);
@@ -774,7 +774,7 @@
   font-weight: 600;
 }
 
-/* Το banner της εφαρμογής μέσα στη μικρογραφία */
+/* The app's own banner inside the mock-up */
 .mk__banner {
   position: absolute; left: 6px; right: 6px; bottom: 8px;
   display: flex; align-items: center; gap: 5px;
@@ -788,7 +788,7 @@
 }
 .mk__bbtn { font-size: 6.5px; padding: 3px 6px; border-radius: 4px; flex: 0 0 auto; }
 
-/* Διάλογοι */
+/* Dialogs */
 .mk__dialog {
   position: absolute; left: 6px; right: 6px; top: 14%;
   background: var(--surface-1); border: 1px solid var(--hairline-strong);
@@ -829,22 +829,22 @@
 .mk__ddialog .mk__abtns { grid-column: 1 / -1; }
 .mk__dtext { min-width: 0; text-align: left; }
 
-/* Τα βήματα γίνονται στήλες όταν υπάρχει χώρος, όπως στο πρότυπο. */
+/* The steps become columns when there is room, as in the reference. */
 .ig__stephead { display: flex; gap: var(--s-md); align-items: flex-start; }
 @media (min-width: 700px) {
   .ig__steps { grid-template-columns: repeat(3, 1fr); align-items: stretch; }
   .ig__step { display: flex; flex-direction: column; height: 100%; }
-  /* Σπρώχνει τη μικρογραφία στη βάση, ώστε οι τρεις συσκευές να
-     ευθυγραμμίζονται παρότι τα κείμενα έχουν διαφορετικό μήκος. */
+  /* Pushes the mock-up to the bottom, so the three devices line up even
+     though the texts differ in length. */
   .ig__step > .mk { margin-top: auto; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Ταμείο
+   Money
    ═══════════════════════════════════════════════════════════════════════════ */
 .clock--olive .clock__num { color: var(--ink); }
-/* Δύο ρητές γραμμές — ετικέτες πάνω, ποσά κάτω — ώστε τα ποσά να
-   ευθυγραμμίζονται ακόμη κι όταν μια ετικέτα σπάει σε δύο γραμμές. */
+/* Two explicit rows — labels above, amounts below — so the amounts line up
+   even when a label wraps onto two lines. */
 .mn__split {
   display: grid; grid-template-columns: repeat(3, 1fr);
   grid-template-rows: auto auto;
@@ -875,8 +875,8 @@
   font-family: var(--font-display); font-size: 30px; font-weight: 700;
   line-height: 1; color: var(--ink);
 }
-/* Το `wrap` δεν είναι διακοσμητικό: στο μηνιαίο όριο η σειρά έχει πεδίο και
-   δύο κουμπιά, που στα 320px δεν χωρούν και έσπρωχναν το panel εκτός οθόνης. */
+/* The `wrap` is not decoration: in the monthly limit the row holds a field and
+   two buttons, which do not fit at 320px and pushed the panel off screen. */
 .mn__startrow { display: flex; align-items: stretch; gap: var(--s-xs); flex-wrap: wrap; }
 .mn__startrow .input--sm { flex: 1 1 120px; max-width: none; min-width: 0; }
 .mn__startrow .btn { flex: 0 0 auto; }
@@ -915,7 +915,7 @@
 .mn__idel:hover { color: var(--danger); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Προφίλ
+   Profile
    ═══════════════════════════════════════════════════════════════════════════ */
 .pf { display: grid; gap: var(--s-lg); }
 .pf__head { display: flex; align-items: center; gap: var(--s-md); min-width: 0; }
@@ -963,10 +963,10 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Άδειες με ημερομηνίες, υπηρεσίες, πάγια, ειδοποιήσεις, κοινοποίηση
+   Dated leave, duties, recurring charges, notifications, sharing
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Υπότιτλος κάτω από τον μεγάλο αριθμό — και η περίπτωση «τίποτα ακόμη». */
+/* Subtitle under the big number — including the "nothing yet" case. */
 .clock__sub {
   margin: var(--s-sm) 0 0; font-size: 14px; color: var(--ink-muted);
   line-height: 1.5;
@@ -975,7 +975,7 @@
   margin-top: var(--s-md); font-size: 14px; color: var(--ink-tertiary);
 }
 
-/* Σήμανση «σε εξέλιξη / σήμερα» δίπλα σε εγγραφή λίστας. */
+/* An "ongoing / today" marker beside a list entry. */
 .tag {
   display: inline-block; margin-left: var(--s-xs);
   padding: 2px 7px; border-radius: var(--r-pill);
@@ -989,7 +989,7 @@
 
 .mn__fhint { font-size: 11px; color: var(--ink-tertiary); line-height: 1.5; }
 
-/* Επεξεργασία εξόδου μέσα στη γραμμή της λίστας. */
+/* Editing an expense inside its own row. */
 .mn__edit { flex: 1; display: grid; gap: var(--s-sm); min-width: 0; }
 .mn__iedit {
   flex: 0 0 auto; background: none; border: 0; color: var(--ink-tertiary);
@@ -997,7 +997,7 @@
 }
 .mn__iedit:hover { color: var(--primary); }
 
-/* Πάγια έξοδα. */
+/* Recurring charges. */
 .mn__rec { display: grid; gap: var(--s-sm); justify-items: start; }
 .mn__reclist {
   list-style: none; margin: 0; padding: 0; width: 100%;
@@ -1020,7 +1020,7 @@
 }
 .mn__recbtns { display: flex; gap: var(--s-xs); flex-wrap: wrap; }
 
-/* Ειδοποιήσεις. */
+/* Notifications. */
 .nt { display: grid; gap: var(--s-sm); justify-items: start; }
 .nt__head { display: flex; align-items: center; gap: var(--s-xs); }
 .nt__dot {
@@ -1035,7 +1035,7 @@
 .nt__body { margin: 0; font-size: 13px; color: var(--ink-subtle); line-height: 1.6; }
 .nt__warn { margin: 0; font-size: 12px; color: var(--signal); line-height: 1.6; }
 
-/* Κάρτα κοινοποίησης. */
+/* The share card. */
 .sh {
   display: flex; align-items: center; justify-content: space-between;
   gap: var(--s-md); flex-wrap: wrap;
@@ -1043,13 +1043,13 @@
 .sh__text { flex: 1 1 200px; min-width: 0; }
 .sh__hint { margin: 0; font-size: 13px; color: var(--ink-subtle); line-height: 1.6; }
 
-/* Διαγραφή λογαριασμού. */
+/* Account deletion. */
 .acc__danger {
   width: 100%; display: grid; gap: var(--s-xs); justify-items: start;
   padding-top: var(--s-md); border-top: 1px solid var(--hairline);
 }
 
-/* Αντίγραφο ασφαλείας. */
+/* Backup. */
 .set__data {
   display: grid; gap: var(--s-xs);
   padding-top: var(--s-md); border-top: 1px solid var(--hairline);
@@ -1057,17 +1057,17 @@
 .set__databtns { display: flex; gap: var(--s-xs); flex-wrap: wrap; }
 .set__hint { margin: 0; font-size: 12px; color: var(--ink-tertiary); line-height: 1.6; }
 
-/* Το κρυφό <input type="file"> πρέπει να παραμένει προσβάσιμο από πληκτρολόγιο.
-   Το font-size δεν φαίνεται πουθενά, αλλά κρατά τον κανόνα «κάθε input ≥16px»
-   αληθινό — στο iOS οτιδήποτε μικρότερο κάνει zoom στο focus. */
+/* The hidden <input type="file"> has to stay reachable from a keyboard.
+   The font-size is never visible, but it keeps the "every input >=16px" rule
+   true — on iOS anything smaller zooms on focus. */
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
   font-size: 16px;
 }
 
-/* Πέντε καρτέλες: στα στενά κινητά η γραμμή πρέπει να χωρά ολόκληρη — αν
-   κρυφτεί μια καρτέλα, ο χρήστης δεν μαθαίνει ποτέ ότι υπάρχει. */
+/* Five tabs: on narrow phones the row has to fit whole — hide one and nobody
+   ever learns it exists. */
 @media (max-width: 400px) {
   .tabs { gap: 0; padding: 3px; }
   .tabs__b { padding: 9px 8px; font-size: 10px; letter-spacing: 0.2px; }
@@ -1077,14 +1077,14 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Ημερολόγιο — αντικαθιστά το <input type="date">
+   Date picker — replaces <input type="date">
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Στις Ρυθμίσεις το πεδίο κάθεται δεξιά, όπως τα υπόλοιπα χειριστήρια. */
+/* In Settings the field sits on the right, like the other controls. */
 .set__ctl { flex: 0 0 auto; max-width: 55%; }
 .set__ctl .datef { min-height: 44px; padding: 8px var(--s-sm); }
 
-/* Το πεδίο μοιάζει με input, αλλά είναι κουμπί που ανοίγει το φύλλο. */
+/* The field looks like an input, but is a button that opens the sheet. */
 .datef {
   display: flex; align-items: center; justify-content: space-between; gap: var(--s-xs);
   width: 100%; min-height: 48px; padding: 11px var(--s-sm);
@@ -1097,10 +1097,10 @@
 .datef--empty .datef__v { color: var(--ink-tertiary); }
 .datef__v { font-family: var(--font-mono); font-size: 15px; letter-spacing: .4px; }
 .datef__ico { color: var(--ink-tertiary); font-size: 11px; }
-/* Στο Onboarding το πεδίο ακολουθεί ετικέτα, όπως το .input που αντικατέστησε. */
+/* In onboarding the field follows a label, like the .input it replaced. */
 .field__or + .datef { margin-top: var(--s-xs); }
 
-/* Φύλλο πάνω από τη σελίδα: κάτω στο κινητό, κεντραρισμένο σε μεγάλη οθόνη. */
+/* A sheet over the page: bottom on a phone, centred on a large screen. */
 .calsheet {
   position: fixed; inset: 0; z-index: 60;
   display: flex; align-items: flex-end; justify-content: center;
@@ -1149,8 +1149,8 @@
   color: var(--ink-tertiary);
 }
 
-/* Χωρίς gap: το κελί είναι ολόκληρο ο στόχος αφής, ενώ ο κύκλος από μέσα
-   είναι μικρότερος. Στα 320px βγαίνουν 7 × ~43px χωρίς νεκρές ζώνες. */
+/* No gap: the whole cell is the tap target, while the circle inside it is
+   smaller. At 320px that gives 7 x ~43px with no dead zones. */
 .cal__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .cal__day {
   display: grid; place-items: center;
@@ -1182,7 +1182,7 @@
   border-top: 1px solid var(--hairline);
 }
 
-/* Σε μεγάλη οθόνη το φύλλο δεν έχει λόγο να κολλά στο κάτω μέρος. */
+/* On a large screen the sheet has no reason to stick to the bottom. */
 @media (min-width: 700px) {
   .calsheet { align-items: center; padding: var(--s-md); }
   .cal {
@@ -1197,7 +1197,7 @@
   .cal__dot { transition: none; }
 }
 
-/* Προειδοποίηση αποσύνδεσης χωρίς δίκτυο, μέσα στην κάρτα λογαριασμού. */
+/* The offline sign-out warning, inside the account card. */
 .acc__warn {
   width: 100%; display: grid; gap: var(--s-xs);
   border: 1px solid var(--signal-dim); border-left-width: 3px;
@@ -1211,7 +1211,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Χρονολόγιο θητείας — πρόοδος και ορόσημα σε ένα
+   Service timeline — progress and milestones in one
    ═══════════════════════════════════════════════════════════════════════════ */
 .tl {
   background: var(--surface-1); border: 1px solid var(--hairline);
@@ -1231,8 +1231,8 @@
 .tl .ms > li { list-style: none; }
 .tl .ms > li:last-child .ms__item:last-child { padding-bottom: 0; }
 
-/* Η σειρά του «τώρα»: η μόνη με γεμάτη κουκκίδα σε χρώμα σήματος, ώστε να
-   βρίσκεται με μια ματιά μέσα σε οκτώ ορόσημα. */
+/* The "now" row: the only one with a filled dot in the signal colour, so it
+   can be found at a glance among eight milestones. */
 .ms__item--now .ms__label {
   color: var(--signal);
   font-family: var(--font-mono); font-size: 12px; letter-spacing: 1.2px;
@@ -1243,7 +1243,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Ημερολόγιο μήνα — άδειες, υπηρεσίες, μισθός και έξοδα μαζί
+   Month calendar — leave, duties, pay and spending together
    ═══════════════════════════════════════════════════════════════════════════ */
 .ag { display: grid; gap: var(--s-md); }
 .ag__head {
@@ -1271,7 +1271,7 @@
 .ag__cell--on { background: var(--surface-3); border-color: var(--primary); }
 .ag__n { font-family: var(--font-mono); font-size: 12px; line-height: 1; }
 
-/* Έως τρεις κουκκίδες: παραπάνω σε πλάτος 44px γίνονται μουτζούρα. */
+/* At most three dots: more than that is a smudge at 44px wide. */
 .ag__dots { display: flex; gap: 2px; min-height: 5px; align-items: center; }
 .ag__dot {
   display: inline-block; width: 5px; height: 5px;
@@ -1302,7 +1302,7 @@
 .ag__etext { color: var(--ink-muted); min-width: 0; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Πρόβλεψη αδείας
+   Leave forecast
    ═══════════════════════════════════════════════════════════════════════════ */
 .fc { display: grid; gap: var(--s-md); }
 .fc__hint { margin: 0; font-size: 13px; color: var(--ink-tertiary); line-height: 1.6; }
@@ -1325,7 +1325,7 @@
 .fc__total { color: var(--ink); min-width: 2.5ch; text-align: right; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Αναρρωτική — το μόνο είδος που μετακινεί την απόλυση
+   Sick leave — the only kind that moves the discharge date
    ═══════════════════════════════════════════════════════════════════════════ */
 .sk { display: grid; gap: var(--s-xs); }
 .sk--over { border-color: var(--signal-dim); border-left: 3px solid var(--signal); }
@@ -1335,7 +1335,7 @@
 .sk__check { margin: 0; font-size: 12px; color: var(--ink-tertiary); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Μηνιαίο όριο εξόδων
+   Monthly spending limit
    ═══════════════════════════════════════════════════════════════════════════ */
 .bd { display: grid; gap: var(--s-sm); }
 .bd--over { border-color: var(--danger); }
@@ -1350,7 +1350,7 @@
 .progress__fill--over { background: var(--danger); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Ιστορικό μονάδων
+   Posting history
    ═══════════════════════════════════════════════════════════════════════════ */
 .ps { display: grid; gap: var(--s-sm); }
 .ps__list { list-style: none; margin: 0; padding: 0; }
@@ -1382,7 +1382,7 @@
 .ps__note { font-family: var(--font-body); letter-spacing: 0; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Τμηματικός επιλογέας (θέμα) & κενές καταστάσεις
+   Segmented control (theme) and empty states
    ═══════════════════════════════════════════════════════════════════════════ */
 .seg {
   display: flex; flex: 0 0 auto;
@@ -1401,11 +1401,11 @@
 .set__row--seg { align-items: center; }
 .set__hint--row { margin: -6px 0 var(--s-xs); }
 
-/* Μια κενή λίστα χωρίς διέξοδο αφήνει τον χρήστη να ψάχνει τη φόρμα. */
+/* An empty list with no way out leaves the reader hunting for the form. */
 .empty { display: grid; gap: var(--s-sm); justify-items: start; }
 .empty__text { margin: 0; font-size: 13px; color: var(--ink-tertiary); line-height: 1.6; }
 
-/* Ώρα ειδοποιήσεων */
+/* Notification hour */
 .nt__hour { display: grid; gap: var(--s-xs); }
 .nt__hourhint { font-size: 12px; color: var(--ink-tertiary); line-height: 1.5; }
 
@@ -1413,8 +1413,8 @@
   .tile--lead .tile__value { font-size: 34px; }
   .tile--lead .tile__value--text { font-size: 23px; }
 
-  /* Στα 320px πέντε ετικέτες δεν χωρούν μέσα σε αιωρούμενο pill: η γραμμή
-     γίνεται πλήρους πλάτους και τα κουμπιά μοιράζονται τον χώρο ισομερώς. */
+  /* At 320px five labels do not fit inside a floating pill: the bar goes
+     full width and the buttons share the space evenly. */
   .tabs {
     left: 0; right: 0; transform: none;
     bottom: 0; max-width: 100%; width: 100%;
@@ -1430,7 +1430,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Ανακοινώσεις στρατολογίας
+   Recruitment announcements
    ═══════════════════════════════════════════════════════════════════════════ */
 .nw { display: grid; gap: var(--s-md); }
 .nw__intro { margin: 0; font-size: 13px; color: var(--ink-tertiary); line-height: 1.6; }
@@ -1438,7 +1438,7 @@
 .nw__item { display: grid; gap: 4px; }
 .nw__item + .nw__item { border-top: 1px solid var(--hairline); padding-top: var(--s-md); }
 
-/* Ο τίτλος είναι σύνδεσμος προς την επίσημη σελίδα — φαίνεται ότι φεύγεις. */
+/* The title links to the official page — it should look like you are leaving. */
 .nw__title {
   display: flex; align-items: center; min-height: 44px;
   color: var(--ink); font-weight: 500; line-height: 1.4;
@@ -1464,14 +1464,14 @@
 .nw__links { display: flex; flex-wrap: wrap; gap: var(--s-xs); }
 .nw__links .btn { text-decoration: none; display: inline-flex; align-items: center; }
 
-/* Η εφαρμογή δεν είναι επίσημο κανάλι, και αυτό πρέπει να λέγεται στην ίδια
-   οθόνη με το περιεχόμενο — όχι μόνο στο υποσέλιδο. */
+/* The app is not an official channel, and that has to be said on the same
+   screen as the content — not only in the footer. */
 .nw__note {
   margin: 0; font-size: 12px; line-height: 1.6; color: var(--ink-tertiary);
   border-left: 2px solid var(--hairline-strong); padding-left: var(--s-sm);
 }
 
-/* Κουκκίδα «κάτι νέο» πάνω στην καρτέλα Προφίλ. */
+/* A "something new" dot on the Profile tab. */
 .tabs__b { position: relative; }
 .tabs__dot {
   position: absolute; top: 6px; right: 10px;

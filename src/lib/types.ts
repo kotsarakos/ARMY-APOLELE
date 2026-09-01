@@ -1,17 +1,17 @@
-/** Διάρκεια θητείας σε μήνες. Από 1/1/2026 όλοι κατατάσσονται στον Στρατό Ξηράς. */
+/** Length of service in months. From 1 Jan 2026 every conscript joins the Army. */
 export type ServiceMonths = 12 | 9 | 6 | 3
 
 export type EssoCode = 'A' | 'B' | 'C' | 'D'
 
 import type { Lang } from './i18n'
 
-/** Κατηγορίες εξόδων που βγάζουν νόημα σε φαντάρο. */
+/** Spending categories that make sense to a conscript. */
 export type ExpenseCategory =
   | 'canteen' | 'transport' | 'food' | 'phone' | 'gear' | 'fun' | 'other'
 
 export interface Expense {
   id: string
-  /** Ποσό σε **λεπτά** — ποτέ δεκαδικά, ώστε τα αθροίσματα να μη «γλιστρούν». */
+  /** Amount in **cents** — never a decimal, so totals cannot drift. */
   amount: number
   category: ExpenseCategory
   /** ISO 'YYYY-MM-DD'. */
@@ -20,35 +20,35 @@ export interface Expense {
 }
 
 /**
- * Πάγιο έξοδο που επαναλαμβάνεται κάθε μήνα (τηλέφωνο, συνδρομές).
- * Δεν είναι έξοδο από μόνο του: παράγει κανονικά `Expense` όταν έρθει η μέρα
- * του, με ντετερμινιστικό id ώστε να μη γραφτεί ποτέ δύο φορές.
+ * A charge that repeats every month — a phone plan, a subscription.
+ * It is not an expense itself: it produces ordinary `Expense` entries when its
+ * day comes round, with a deterministic id so it can never be written twice.
  */
 export interface Recurring {
   id: string
   amount: number
   category: ExpenseCategory
-  /** Μέρα του μήνα, 1-28 — το 28 είναι το τελευταίο που υπάρχει σε κάθε μήνα. */
+  /** Day of the month, 1-28 — the 28th is the last day every month has. */
   day: number
   note?: string
-  /** ISO της πρώτης χρέωσης· δεν παράγουμε τίποτε πριν από αυτή. */
+  /** ISO date of the first charge; nothing is produced before it. */
   since: string
 }
 
-/** Είδη άδειας. Οι τιμητικές δεν μετρούν στην κανονική δικαιούμενη. */
+/** Kinds of leave. Honorary kinds do not come off the regular entitlement. */
 export type LeaveKind = 'regular' | 'honorary' | 'blood' | 'march' | 'sick'
 
 export interface LeaveEntry {
   id: string
   kind: LeaveKind
-  /** ISO 'YYYY-MM-DD', πρώτη μέρα εκτός μονάδας. */
+  /** ISO 'YYYY-MM-DD', the first day away from the unit. */
   from: string
-  /** ISO 'YYYY-MM-DD', τελευταία μέρα — **περιλαμβάνεται**. */
+  /** ISO 'YYYY-MM-DD', the last day — **inclusive**. */
   to: string
   note?: string
 }
 
-/** Είδη υπηρεσίας. */
+/** Kinds of duty. */
 export type DutyKind = 'guard' | 'kitchen' | 'orderly' | 'patrol' | 'other'
 
 export interface Duty {
@@ -56,76 +56,76 @@ export interface Duty {
   kind: DutyKind
   /** ISO 'YYYY-MM-DD'. */
   date: string
-  /** 'HH:MM' — ώρα ανάληψης. Προαιρετική. */
+  /** 'HH:MM' — when it starts. Optional. */
   start?: string
-  /** Διάρκεια σε ώρες. */
+  /** Length in hours. */
   hours: number
   note?: string
 }
 
 /**
- * Τοποθέτηση σε μονάδα.
+ * A posting to a unit.
  *
- * Το προφίλ κρατούσε μόνο ένα `unit` ως κείμενο, οπότε η πρώτη μετάθεση
- * έσβηνε το ΚΕΝ. Η λίστα κρατά τη διαδρομή· το `unit` μένει ως η μονάδα που
- * φαίνεται τώρα στην μπάρα.
+ * The profile held a single `unit` string, so the first transfer erased the
+ * training centre. The list keeps the whole route; `unit` remains as whichever
+ * unit is shown in the bar right now.
  */
 export interface Posting {
   id: string
-  /** Όνομα μονάδας ή ΚΕΝ. */
+  /** Name of the unit or training centre. */
   unit: string
-  /** ISO 'YYYY-MM-DD', πρώτη μέρα παρουσίας εκεί. */
+  /** ISO 'YYYY-MM-DD', the first day present there. */
   from: string
   note?: string
 }
 
 export interface Profile {
-  /** Ονοματεπώνυμο ή ψευδώνυμο — μόνο για εμφάνιση. */
+  /** Full name or nickname — for display only. */
   name: string
-  /** Ημερομηνία κατάταξης, ISO 'YYYY-MM-DD'. */
+  /** Enlistment date, ISO 'YYYY-MM-DD'. */
   enlistDate: string
-  /** Πλήρης (12) ή μειωμένη (9/6/3) στρατιωτική υποχρέωση. */
+  /** Full (12) or reduced (9/6/3) military obligation. */
   months: ServiceMonths
-  /** Μονάδα σε παραμεθόριο (Θράκη, νησιά Αν. Αιγαίου, Δωδεκάνησα, ΕΛΔΥΚ). */
+  /** A border-area unit: Thrace, the East Aegean islands, the Dodecanese, ELDYK. */
   borderUnit: boolean
-  /** Προαιρετικό: όνομα μονάδας/ΚΕΝ για εμφάνιση — η μονάδα του **τώρα**. */
+  /** Optional unit name for display — where they are **now**. */
   unit?: string
-  /** Ιστορικό τοποθετήσεων, από το ΚΕΝ μέχρι τη σημερινή μονάδα. */
+  /** Posting history, from the training centre to the current unit. */
   postings: Posting[]
   /**
-   * Ημέρες άδειας που έχουν ήδη καταναλωθεί.
-   * **Παλιό πεδίο.** Πλέον η πηγή αλήθειας είναι το `leaves`· μένει μόνο για
-   * να μεταφερθούν προφίλ που γράφτηκαν πριν μπουν οι ημερομηνίες.
+   * Leave days already spent.
+   * **Legacy field.** `leaves` is the source of truth now; this survives only
+   * so that profiles written before dates existed can be migrated.
    * @deprecated
    */
   leaveTaken: number
-  /** Άδειες με ημερομηνίες. Πηγή αλήθειας για τις μέρες που πάρθηκαν. */
+  /** Leave with dates. The source of truth for days taken. */
   leaves: LeaveEntry[]
-  /** Υπηρεσίες (σκοπιές, θάλαμος, αγγαρείες). */
+  /** Duties: guard shifts, barracks orderly, fatigues. */
   duties: Duty[]
-  /** Φορές αιμοδοσίας (έως 2, τιμητική άδεια 2-4 ημέρες η κάθε μία). */
+  /** Blood donations — up to 2, each worth 2-4 days of honorary leave. */
   bloodDonations: number
-  /** Γλώσσα διεπαφής. */
+  /** Interface language. */
   lang: Lang
-  /** Χρήματα που έχει ο φαντάρος εκτός στρατού, σε **λεπτά**. */
+  /** Money held outside the army, in **cents**. */
   startingBalance: number
-  /** Καταγεγραμμένα έξοδα. */
+  /** Recorded expenses. */
   expenses: Expense[]
-  /** Πάγια μηνιαία έξοδα. */
+  /** Monthly recurring charges. */
   recurring: Recurring[]
   /**
-   * Προσωπικό όριο εξόδων ανά ημερολογιακό μήνα, σε **λεπτά**. Το 0 σημαίνει
-   * «χωρίς όριο» — δεν είναι κανόνας του στρατού, είναι δική του απόφαση.
+   * A personal spending limit per calendar month, in **cents**. Zero means no
+   * limit — this is not an army rule, it is their own decision.
    */
   monthlyBudget: number
   /**
-   * Ταφόπλακες: id που έχει σβήσει ο χρήστης.
+   * Tombstones: ids the user has deleted.
    *
-   * Χωρίς αυτές, η συγχώνευση δύο συσκευών θα ανάσταινε ό,τι έσβησες στη μία
-   * αλλά υπάρχει ακόμη στην άλλη. Κρατιούνται τα τελευταία `MAX_TOMBSTONES`.
+   * Without them, merging two devices would resurrect whatever you deleted on
+   * one but which still exists on the other. The last `MAX_TOMBSTONES` are kept.
    */
   deletedIds: string[]
-  /** Epoch ms της τελευταίας αλλαγής — καθορίζει ποια συσκευή «κερδίζει». */
+  /** Epoch ms of the last change — decides which device wins a merge. */
   updatedAt: number
 }
 

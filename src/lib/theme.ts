@@ -1,14 +1,14 @@
 /**
- * Θέμα εμφάνισης.
+ * The appearance theme.
  *
- * Είναι προτίμηση **συσκευής**, όχι λογαριασμού: το ίδιο πρόσωπο θέλει άλλο
- * θέμα στο κινητό απ' ό,τι στον υπολογιστή. Γι' αυτό μένει στο localStorage
- * και δεν ταξιδεύει με το προφίλ στο Firestore.
+ * This is a **device** preference, not an account one: the same person wants a
+ * different theme on their phone than on their laptop. So it stays in
+ * localStorage and never travels with the profile to Firestore.
  *
- * Τρεις καταστάσεις:
- *  - `auto`  — ακολουθεί το λειτουργικό (κανένα `data-theme`, δουλεύει το
- *              `prefers-color-scheme` του tokens.css).
- *  - `light` / `dark` — ρητή επιλογή, κερδίζει το λειτουργικό.
+ * Three states:
+ *  - `auto` — follows the operating system (no `data-theme`, so the
+ *    `prefers-color-scheme` block in tokens.css does the work).
+ *  - `light` / `dark` — an explicit choice, which beats the system.
  */
 
 export type Theme = 'auto' | 'light' | 'dark'
@@ -18,7 +18,7 @@ export const THEMES: Theme[] = ['auto', 'light', 'dark']
 
 const KEY = 'army_app.theme.v1'
 
-/** Ο καμβάς κάθε θέματος — πρέπει να ταιριάζει με το tokens.css. */
+/** Each theme's canvas colour — must match tokens.css. */
 const CANVAS: Record<ResolvedTheme, string> = {
   dark: '#06070A',
   light: '#FBFBF9',
@@ -43,8 +43,8 @@ export function resolveTheme(theme: Theme): ResolvedTheme {
 }
 
 /**
- * Γράφει το `data-theme` στο <html> και συγχρονίζει το `theme-color`, ώστε η
- * μπάρα του browser στο κινητό να μη μένει μαύρη πάνω από φωτεινή σελίδα.
+ * Writes `data-theme` onto <html> and keeps `theme-color` in step, so the
+ * browser chrome on a phone is not left black above a light page.
  */
 export function applyTheme(theme: Theme): void {
   if (typeof document === 'undefined') return
@@ -62,14 +62,14 @@ export function applyTheme(theme: Theme): void {
 }
 
 export function setTheme(theme: Theme): void {
-  try { localStorage.setItem(KEY, theme) } catch { /* ιδιωτική περιήγηση */ }
+  try { localStorage.setItem(KEY, theme) } catch { /* private browsing */ }
   applyTheme(theme)
 }
 
 /**
- * Σε `auto`, το λειτουργικό μπορεί να αλλάξει θέμα όσο η εφαρμογή είναι
- * ανοιχτή (χειροκίνητα ή με το ηλιοβασίλεμα). Το CSS το πιάνει μόνο του· το
- * `theme-color` όχι, οπότε το ξαναγράφουμε εδώ.
+ * Under `auto`, the system theme can change while the app is open — by hand,
+ * or at sunset. The CSS picks that up on its own; `theme-color` does not, so
+ * it is rewritten here.
  */
 export function watchSystemTheme(): () => void {
   if (typeof matchMedia === 'undefined') return () => {}

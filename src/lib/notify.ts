@@ -6,50 +6,50 @@ import { leaveTimeline } from './leave'
 import { addDays, daysBetween, formatShort, parseISO, toISO } from './dates'
 
 /**
- * Ειδοποιήσεις.
+ * Notifications.
  *
- * Ο browser δεν επιτρέπει σε μια web εφαρμογή να προγραμματίσει ειδοποίηση για
- * μελλοντική ώρα χωρίς διακομιστή. Οπότε δουλεύουμε με δύο μηχανισμούς:
+ * A browser will not let a web app schedule a notification for a future time
+ * without a server. So there are two mechanisms:
  *
- *  1. **Periodic Background Sync** (Chrome, εγκατεστημένη PWA): ο service
- *     worker ξυπνά μία φορά την ημέρα και δείχνει ό,τι έχει ωριμάσει.
- *  2. **Έλεγχος στο άνοιγμα**: ό,τι ωρίμασε και δεν έχει δειχτεί, εμφανίζεται
- *     μόλις ανοίξεις την εφαρμογή.
+ *  1. **Periodic Background Sync** (Chrome, installed PWA): the service worker
+ *     wakes once a day and shows whatever has come due.
+ *  2. **A check on open**: anything due that has not been shown appears as
+ *     soon as the app is opened.
  *
- * Και τα δύο διαβάζουν το ίδιο «πρόγραμμα», που το γράφει το κύριο νήμα στο
- * Cache API — ο service worker δεν βλέπει localStorage.
+ * Both read the same "plan", which the main thread writes to the Cache API —
+ * the service worker cannot see localStorage.
  *
- * Το κείμενο μπαίνει **μεταφρασμένο** μέσα στο πρόγραμμα, ώστε ο service
- * worker να μη χρειάζεται το λεξικό.
+ * The text goes into the plan **already translated**, so the service worker
+ * never needs the dictionary.
  */
 
 export const PLAN_CACHE = 'army-notify-plan'
 export const PLAN_URL = '/__notify-plan'
-/** Ο service worker κρατά δικό του σύνολο· σβήνεται μαζί με τα υπόλοιπα. */
+/** The service worker keeps its own set; it is cleared along with the rest. */
 const SHOWN_CACHE = 'army-notify-shown'
 const SHOWN_KEY = 'army_app.notify.shown.v1'
 const ENABLED_KEY = 'army_app.notify.enabled.v1'
 const HOUR_KEY = 'army_app.notify.hour.v1'
 
 /**
- * Η ώρα που χτυπούν οι ειδοποιήσεις.
+ * The hour notifications fire at.
  *
- * Οι προεπιλογή είναι το βράδυ: η ειδοποίηση «αύριο έχεις σκοπιά» έχει αξία
- * όσο προλαβαίνεις να ετοιμαστείς, όχι στις εφτά το πρωί της ίδιας μέρας.
+ * The default is evening: "you are on guard tomorrow" is worth something while
+ * you can still get ready, not at seven in the morning on the day itself.
  */
 export const DEFAULT_NOTIFY_HOUR = 20
-/** Οι ώρες που προσφέρονται· πιο κοντά από ώρα σε ώρα δεν αλλάζει τίποτα. */
+/** The hours on offer; finer than hourly changes nothing. */
 export const NOTIFY_HOURS = [7, 8, 9, 12, 17, 19, 20, 21, 22]
 
-/** Το πρόγραμμα ξαναχτίζεται όταν αλλάξει η ώρα — δες το App. */
+/** The plan is rebuilt when the hour changes — see App. */
 export const NOTIFY_HOUR_EVENT = 'army:notify-hour'
 
 export function notifyHour(): number {
   try {
     const raw = localStorage.getItem(HOUR_KEY)
-    // Ο έλεγχος για `null` πρέπει να είναι ρητός: το `Number(null)` δίνει 0,
-    // που περνάει άνετα το εύρος 0-23 και θα έστελνε ειδοποιήσεις μεσάνυχτα
-    // σε όποιον δεν έχει διαλέξει ποτέ ώρα.
+    // The `null` check has to be explicit: `Number(null)` is 0, which sails
+    // through a 0-23 range check and would fire notifications at midnight for
+    // anyone who never picked an hour.
     if (raw === null) return DEFAULT_NOTIFY_HOUR
     const h = Number(raw)
     return Number.isInteger(h) && h >= 0 && h <= 23 ? h : DEFAULT_NOTIFY_HOUR
@@ -59,17 +59,17 @@ export function notifyHour(): number {
 }
 
 export function setNotifyHour(hour: number): void {
-  try { localStorage.setItem(HOUR_KEY, String(hour)) } catch { /* ιδιωτική περιήγηση */ }
-  // Η ώρα ζει μέσα στο αποθηκευμένο πρόγραμμα, γιατί ο service worker δεν
-  // βλέπει localStorage. Χωρίς αυτή την ειδοποίηση το πρόγραμμα θα έμενε με
-  // την παλιά ώρα μέχρι την επόμενη αλλαγή του προφίλ.
+  try { localStorage.setItem(HOUR_KEY, String(hour)) } catch { /* private browsing */ }
+  // The hour lives inside the saved plan, because the service worker cannot
+  // see localStorage. Without this event the plan would keep the old hour
+  // until the next change to the profile.
   try { window.dispatchEvent(new Event(NOTIFY_HOUR_EVENT)) } catch { /* SSR */ }
 }
 
 export interface PlanItem {
-  /** Σταθερό id ανά γεγονός — δεν ξαναδείχνεται ποτέ. */
+  /** A stable id per event, so it is never shown twice. */
   id: string
-  /** ISO 'YYYY-MM-DD': η μέρα από την οποία και μετά ισχύει. */
+  /** ISO 'YYYY-MM-DD': the day from which it applies. */
   date: string
   title: string
   body: string
@@ -77,11 +77,11 @@ export interface PlanItem {
 
 export interface Plan {
   items: PlanItem[]
-  /** Ημέρες που απομένουν — για το σήμα στο εικονίδιο. */
+  /** Days remaining — for the badge on the icon. */
   badge: number
   /**
-   * Η ώρα που επιτρέπεται να χτυπήσει ό,τι ωριμάζει **σήμερα**. Μπαίνει μέσα
-   * στο πρόγραμμα γιατί ο service worker δεν βλέπει localStorage.
+   * The hour at which anything due **today** is allowed to fire. It travels
+   * inside the plan because the service worker cannot see localStorage.
    */
   hour: number
 }
@@ -95,13 +95,13 @@ export function notifyState(): NotifyState {
   return Notification.permission as NotifyState
 }
 
-/** Προτίμηση χρήστη — ανά συσκευή, γι' αυτό δεν μπαίνει στο προφίλ. */
+/** A user preference, per device — which is why it is not in the profile. */
 export function notifyEnabled(): boolean {
   try { return localStorage.getItem(ENABLED_KEY) === '1' } catch { return false }
 }
 
 export function setNotifyEnabled(on: boolean): void {
-  try { localStorage.setItem(ENABLED_KEY, on ? '1' : '0') } catch { /* ιδιωτική περιήγηση */ }
+  try { localStorage.setItem(ENABLED_KEY, on ? '1' : '0') } catch { /* private browsing */ }
 }
 
 export async function requestNotifications(): Promise<NotifyState> {
@@ -110,11 +110,11 @@ export async function requestNotifications(): Promise<NotifyState> {
   return res as NotifyState
 }
 
-/* ── Το πρόγραμμα ────────────────────────────────────────────────────────── */
+/* ── The plan ────────────────────────────────────────────────────────────── */
 
 /**
- * Χτίζει τη λίστα των γεγονότων που αξίζουν ειδοποίηση.
- * Μόνο μελλοντικά ή σημερινά — τα περασμένα δεν έχουν νόημα να χτυπήσουν.
+ * Builds the list of events worth a notification.
+ * Today or later only — there is no point firing for something already past.
  */
 export function buildPlan(profile: Profile, s: ServiceState, t: Dict): Plan {
   const items: PlanItem[] = []
@@ -123,7 +123,7 @@ export function buildPlan(profile: Profile, s: ServiceState, t: Dict): Plan {
     items.push({ id, date: toISO(date), title, body })
   }
 
-  // Αντίστροφη μέτρηση απόλυσης στα ορόσημα που κοιτάει όντως κανείς.
+  // Discharge countdown, at the marks people actually watch for.
   for (const d of [100, 30, 7, 1]) {
     const when = addDays(s.discharge, -d)
     if (when > s.now) push(`dis-${d}`, when, n.dischargeSoon(d), n.dischargeSoonBody)
@@ -132,18 +132,18 @@ export function buildPlan(profile: Profile, s: ServiceState, t: Dict): Plan {
     push('dis-0', s.discharge, n.dischargeToday, n.dischargeTodayBody)
   }
 
-  // Πίστωση άδειας στο τέλος κάθε διμήνου.
+  // Leave credited at the close of each two-month block.
   if (s.leave.daysToNextAccrual > 0) {
     const when = addDays(s.now, s.leave.daysToNextAccrual)
     push(`acc-${toISO(when)}`, when, n.accrual, n.accrualBody)
   }
 
-  // Πληρωμή.
+  // Payday.
   if (s.pay.daysToPay > 0) {
     push(`pay-${toISO(s.pay.nextPayDate)}`, s.pay.nextPayDate, n.payday, n.paydayBody(s.pay.perMonth))
   }
 
-  // Επόμενη άδεια: την προηγουμένη και την ίδια μέρα.
+  // Next leave: the evening before, and the day itself.
   const lt = leaveTimeline(profile.leaves, s.now)
   if (lt.next) {
     const start = parseISO(lt.next.from)
@@ -152,7 +152,7 @@ export function buildPlan(profile: Profile, s: ServiceState, t: Dict): Plan {
     push(`lv-${lt.next.id}`, start, n.leaveToday, n.leaveTodayBody)
   }
 
-  // Επόμενη υπηρεσία: την προηγουμένη και την ίδια μέρα.
+  // Next duty: the evening before, and the day itself.
   const dt = computeDuties(profile.duties, s.monthsServed, s.now)
   if (dt.next) {
     const day = parseISO(dt.next.date)
@@ -169,7 +169,7 @@ export function buildPlan(profile: Profile, s: ServiceState, t: Dict): Plan {
   }
 }
 
-/** Γράφει το πρόγραμμα εκεί που το βλέπει και ο service worker. */
+/** Writes the plan where the service worker can see it too. */
 export async function savePlan(plan: Plan): Promise<void> {
   if (typeof caches === 'undefined') return
   try {
@@ -178,10 +178,10 @@ export async function savePlan(plan: Plan): Promise<void> {
       PLAN_URL,
       new Response(JSON.stringify(plan), { headers: { 'Content-Type': 'application/json' } }),
     )
-  } catch { /* δεν είναι κρίσιμο */ }
+  } catch { /* not critical */ }
 }
 
-/* ── Εμφάνιση ────────────────────────────────────────────────────────────── */
+/* ── Showing them ────────────────────────────────────────────────────────── */
 
 function shownIds(): Set<string> {
   try { return new Set(JSON.parse(localStorage.getItem(SHOWN_KEY) ?? '[]') as string[]) }
@@ -189,14 +189,14 @@ function shownIds(): Set<string> {
 }
 
 function rememberShown(ids: Set<string>): void {
-  // Κρατάμε τα τελευταία 200· τα παλιά γεγονότα δεν επανέρχονται.
+  // The last 200 are kept; old events never come round again.
   try { localStorage.setItem(SHOWN_KEY, JSON.stringify([...ids].slice(-200))) }
-  catch { /* ιδιωτική περιήγηση */ }
+  catch { /* private browsing */ }
 }
 
 /**
- * Δείχνει ό,τι έχει ωριμάσει και δεν έχει ήδη δειχτεί. Τρέχει στο άνοιγμα της
- * εφαρμογής· ο service worker κάνει το ίδιο όταν ξυπνά μόνος του.
+ * Shows whatever is due and has not been shown. Runs when the app opens; the
+ * service worker does the same when it wakes on its own.
  */
 export async function flushDue(plan: Plan, now: Date): Promise<number> {
   if (notifyState() !== 'granted' || !notifyEnabled()) return 0
@@ -205,16 +205,16 @@ export async function flushDue(plan: Plan, now: Date): Promise<number> {
 
   const seen = shownIds()
   const iso = toISO(now)
-  // Το `now` είναι στο τοπικό μεσημέρι (δες dates.ts), οπότε δεν λέει τίποτα
-  // για την ώρα· η ώρα διαβάζεται από το πραγματικό ρολόι.
+  // `now` sits at local noon (see dates.ts), so it says nothing about the time
+  // of day; the hour is read from the real clock.
   const clock = new Date().getHours()
   const hour = plan.hour ?? DEFAULT_NOTIFY_HOUR
   let count = 0
 
   for (const item of plan.items) {
     if (item.date > iso || seen.has(item.id)) continue
-    // Ό,τι ωριμάζει σήμερα περιμένει την ώρα που διάλεξε ο χρήστης. Τα
-    // περασμένα εμφανίζονται αμέσως — έχουν ήδη αργήσει.
+    // Anything due today waits for the chosen hour. Anything overdue shows
+    // straight away — it is already late.
     if (item.date === iso && clock < hour) continue
     await reg.showNotification(item.title, {
       body: item.body,
@@ -231,7 +231,7 @@ export async function flushDue(plan: Plan, now: Date): Promise<number> {
   return count
 }
 
-/** Ο αριθμός των ημερών πάνω στο εικονίδιο της εφαρμογής. */
+/** The day count on the app icon. */
 export function setBadge(days: number): void {
   const nav = navigator as Navigator & {
     setAppBadge?: (n?: number) => Promise<void>
@@ -240,41 +240,41 @@ export function setBadge(days: number): void {
   try {
     if (days > 0) void nav.setAppBadge?.(days)
     else void nav.clearAppBadge?.()
-  } catch { /* δεν υποστηρίζεται */ }
+  } catch { /* not supported */ }
 }
 
 /**
- * Σβήνει κάθε ίχνος ειδοποιήσεων από τη συσκευή.
+ * Erases every trace of notifications from the device.
  *
- * Δεν είναι διακοσμητικό: το πρόγραμμα περιέχει τις **ημερομηνίες αδειών, τις
- * υπηρεσίες και την ημερομηνία απόλυσης** του χρήστη, σε μεταφρασμένο κείμενο.
- * Αν έμενε πίσω μετά την αποσύνδεση, ο επόμενος που θα άνοιγε τη συσκευή θα
- * έπαιρνε ειδοποιήσεις για τη θητεία κάποιου άλλου.
+ * This is not housekeeping: the plan holds the user's **leave dates, duty
+ * times and discharge date** as ready-to-display text. Left behind after sign
+ * out, the next person to open the device would get notifications about
+ * somebody else's service.
  */
 export async function clearNotifications(): Promise<void> {
   try {
     localStorage.removeItem(SHOWN_KEY)
     localStorage.removeItem(ENABLED_KEY)
     localStorage.removeItem(HOUR_KEY)
-  } catch { /* ιδιωτική περιήγηση */ }
+  } catch { /* private browsing */ }
 
   if (typeof caches !== 'undefined') {
     try {
       await Promise.all([caches.delete(PLAN_CACHE), caches.delete(SHOWN_CACHE)])
-    } catch { /* δεν είναι κρίσιμο */ }
+    } catch { /* not critical */ }
   }
 
-  // Και οι ειδοποιήσεις που είναι ήδη στην μπάρα.
+  // And any notification already sitting in the tray.
   try {
     const reg = await navigator.serviceWorker?.getRegistration()
     const open = await reg?.getNotifications()
     open?.forEach((n) => n.close())
-  } catch { /* δεν υποστηρίζεται */ }
+  } catch { /* not supported */ }
 
   setBadge(0)
 }
 
-/** Ζητά από τον browser να ξυπνά τον service worker μία φορά την ημέρα. */
+/** Asks the browser to wake the service worker once a day. */
 export async function registerDailySync(): Promise<void> {
   try {
     const reg = await navigator.serviceWorker.ready
@@ -283,5 +283,5 @@ export async function registerDailySync(): Promise<void> {
     }).periodicSync
     if (!sync) return
     await sync.register('army-daily', { minInterval: 20 * 60 * 60 * 1000 })
-  } catch { /* Chrome μόνο, και μόνο σε εγκατεστημένη PWA */ }
+  } catch { /* Chrome only, and only for an installed PWA */ }
 }

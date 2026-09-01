@@ -10,7 +10,7 @@ import { useI18n } from '../hooks/useI18n'
 import { useToast } from '../hooks/useToast'
 import { upperGreek as caps } from '../lib/greek'
 
-/** Μια υπηρεσία σήμερα ή αύριο αξίζει να ξεχωρίζει χρωματικά. */
+/** A duty today or tomorrow is worth setting apart in colour. */
 const SOON_DAYS = 1
 
 export function Duty({
@@ -25,7 +25,7 @@ export function Duty({
   const toast = useToast()
   const d = computeDuties(profile.duties, service.monthsServed, service.now)
 
-  // Στα ελληνικά το δεκαδικό χωρίζεται με κόμμα, όχι με τελεία.
+  // Greek separates decimals with a comma, not a point.
   const decimal = (n: number) =>
     new Intl.NumberFormat(lang === 'el' ? 'el-GR' : 'en-IE', {
       maximumFractionDigits: 1,
@@ -37,8 +37,8 @@ export function Duty({
   const [hours, setHours] = useState(String(DEFAULT_HOURS.guard))
   const [note, setNote] = useState('')
 
-  // Αλλάζοντας είδος, η διάρκεια ακολουθεί την τυπική του — εκτός αν την
-  // πείραξε ήδη ο χρήστης.
+  // Changing the type moves the length to that type's usual one — unless it
+  // has already been edited by hand.
   const pickKind = (k: DutyKind) => {
     if (hours === String(DEFAULT_HOURS[kind])) setHours(String(DEFAULT_HOURS[k]))
     setKind(k)

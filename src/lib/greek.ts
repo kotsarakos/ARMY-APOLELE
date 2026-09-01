@@ -1,21 +1,21 @@
 /**
- * Κεφαλαιοποίηση με τον ελληνικό τυπογραφικό κανόνα.
+ * Capitalisation that follows the Greek typographic rule.
  *
- * Στα κεφαλαία ο τόνος παραλείπεται — ΥΠΟΛΟΓΙΣΤΗΣ, όχι ΥΠΟΛΟΓΙΣΤΉΣ — εκτός
- * όταν πέφτει στο **αρχικό** γράμμα της λέξης, οπότε διατηρείται: ΆΔΕΙΕΣ,
+ * In upper case the accent is dropped — ΥΠΟΛΟΓΙΣΤΗΣ, not ΥΠΟΛΟΓΙΣΤΉΣ — unless
+ * it falls on the **first** letter of the word, where it is kept: ΆΔΕΙΕΣ,
  * ΈΡΧΟΝΤΑΙ, Ή.
  *
- * Τα διαλυτικά ΔΕΝ είναι τόνος και μένουν πάντα: ΑΫΠΝΙΑ.
+ * A diaeresis is NOT an accent and always survives: ΑΫΠΝΙΑ.
  *
- * Δεν χρησιμοποιούμε `text-transform: uppercase` γι' αυτό, επειδή ο browser
- * αφαιρεί τον τόνο και από το αρχικό γράμμα.
+ * `text-transform: uppercase` cannot be used for this, because the browser
+ * strips the accent from the first letter too.
  */
 
-/** Συνδυαστικός χαρακτήρας οξείας (τόνος) μετά από NFD. */
+/** The combining acute accent, as it appears after NFD normalisation. */
 const TONOS = '́'
 
 export function upperGreek(input: string): string {
-  // Δουλεύουμε ανά λέξη: ο κανόνας αφορά το αρχικό γράμμα κάθε λέξης.
+  // Word by word: the rule is about the first letter of each word.
   return input.replace(/[\p{L}\p{M}]+/gu, (word) => {
     const decomposed = word.toUpperCase().normalize('NFD')
     let out = ''
@@ -23,11 +23,11 @@ export function upperGreek(input: string): string {
 
     for (const ch of decomposed) {
       if (ch === TONOS) {
-        // Ο τόνος ακολουθεί το γράμμα του· κρατιέται μόνο στο πρώτο.
+        // The accent trails its letter, and is kept only on the first one.
         if (baseIndex === 0) out += ch
         continue
       }
-      // Κάθε μη-συνδυαστικός χαρακτήρας προχωρά τη θέση του γράμματος.
+      // Any non-combining character advances the letter position.
       if (!/\p{M}/u.test(ch)) baseIndex += 1
       out += ch
     }

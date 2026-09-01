@@ -1,20 +1,20 @@
-/* Design tokens — βλ. DESIGN.md (Linear structure × SpaceX voice, field olive)
+/* Design tokens — see DESIGN.md (Linear structure x SpaceX voice, field olive)
  *
- * Δύο θέματα. Το σκοτεινό είναι το προεπιλεγμένο και ορίζεται ολόκληρο στο
- * `:root`· το φωτεινό ξαναγράφει **μόνο τα χρώματα** σε δύο σημεία:
+ * Two themes. Dark is the default and is defined in full on `:root`; light
+ * redefines **the colours only**, in two places:
  *
- *   1. `@media (prefers-color-scheme: light)` για όποιον δεν έχει διαλέξει,
- *      φραγμένο με `:root:not([data-theme="dark"])` ώστε η ρητή επιλογή
- *      «σκοτεινό» να κερδίζει το λειτουργικό.
- *   2. `:root[data-theme="light"]` για τη ρητή επιλογή.
+ *   1. `@media (prefers-color-scheme: light)` for anyone who has not chosen,
+ *      guarded with `:root:not([data-theme="dark"])` so that an explicit
+ *      "dark" still beats the operating system.
+ *   2. `:root[data-theme="light"]` for the explicit choice.
  *
- * Κάθε χρώμα έχει την αρχική του τιμή εδώ. Χρώμα που ορίζεται μόνο μέσα σε
- * media query δεν υπάρχει στο άλλο θέμα, και αυτό είναι το πιο συνηθισμένο
- * σφάλμα σε διπλά θέματα.
+ * Every colour has its starting value here. A colour defined only inside a
+ * media query does not exist in the other theme, and that is the most common
+ * way a two-theme stylesheet breaks.
  *
- * Οι τιμές του κειμένου είναι επιλεγμένες ώστε να περνούν το WCAG AA (4.5:1)
- * πάνω στον καμβά ΚΑΙ πάνω στα panel. Το παλιό `--ink-tertiary` έβγαζε 2.9:1,
- * που σε κινητό στον ήλιο ήταν πρακτικά αόρατο.
+ * The text values are chosen to clear WCAG AA (4.5:1) against the canvas AND
+ * against the panels. The old `--ink-tertiary` measured 2.9:1, which on a
+ * phone in sunlight was effectively invisible.
  */
 :root {
   color-scheme: dark;
@@ -29,7 +29,7 @@
   --ink: #F4F5F3;
   --ink-muted: #C9CCC4;
   --ink-subtle: #84887E;
-  /* 4.86:1 στον καμβά, 4.56:1 στα panel. */
+  /* 4.86:1 on the canvas, 4.56:1 on the panels. */
   --ink-tertiary: #7A7E74;
 
   --canvas: #06070A;
@@ -40,10 +40,10 @@
   --hairline-strong: #31353B;
 
   --success: #4E9A51;
-  /* 5.08:1 στον καμβά — το παλιό #B4533F έμενε στο 4.08:1. */
+  /* 5.08:1 on the canvas — the old #B4533F sat at 4.08:1. */
   --danger: #C9614A;
 
-  /* Ένταση του πλέγματος στο βάθος· το φωτεινό θέμα το θέλει πιο ήσυχο. */
+  /* Strength of the background grid; the light theme wants it quieter. */
   --grid-opacity: 0.28;
 
   --r-xs: 4px;
@@ -61,14 +61,14 @@
   --s-xxl: 48px;
   --s-section: 72px;
 
-  /* Πρέπει να καλύπτει ελληνικά — δες scripts/audit-fonts.mjs. */
+  /* Must cover Greek — see scripts/audit-fonts.mjs. */
   --font-display: 'Roboto Condensed', 'DIN Alternate', 'Arial Narrow', sans-serif;
   --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   --font-mono: 'Roboto Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 }
 
-/* Το ίδιο σύνολο χρωμάτων, φωτεινή εκδοχή. Το λαδί σκουραίνει: το #7C8B3F
-   είναι φτιαγμένο να λάμπει πάνω σε μαύρο και πέφτει στο 2.6:1 πάνω σε λευκό. */
+/* The same set of colours, light. The olive darkens: #7C8B3F is built to glow
+   on black and falls to 2.6:1 on white. */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     color-scheme: light;

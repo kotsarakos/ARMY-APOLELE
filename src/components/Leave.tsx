@@ -16,7 +16,7 @@ import { useI18n } from '../hooks/useI18n'
 import { useToast } from '../hooks/useToast'
 import { upperGreek as caps } from '../lib/greek'
 
-/** Πόσο κοντά είναι «κοντά»: τρεις μέρες, όσο κρατά ένα σαββατοκύριακο έξω. */
+/** How close is "close": three days, about the length of a weekend out. */
 const SOON_DAYS = 3
 
 export function Leave({
@@ -78,7 +78,7 @@ export function Leave({
 
   return (
     <>
-      {/* Η ερώτηση που κάνει όντως ο φαντάρος: πότε ξαναβγαίνω. */}
+      {/* The question conscripts actually ask: when am I out again. */}
       <section className={`clock ${tl.current ? 'clock--olive' : soon ? 'clock--signal' : ''}`}>
         <p className="eyebrow">
           {caps(tl.current ? t.leave.onLeaveTitle : t.leave.nextTitle)}
@@ -171,7 +171,7 @@ export function Leave({
         </div>
       </section>
 
-      {/* «Θέλω πέντε μέρες τον Οκτώβρη — τις έχω;» */}
+      {/* "I want five days in October — do I have them?" */}
       <section className="band">
         <p className="eyebrow band__label">{caps(t.leave.forecastTitle)}</p>
         <div className="panel fc">
@@ -214,7 +214,7 @@ export function Leave({
         </div>
       </section>
 
-      {/* Η αναρρωτική είναι το μόνο είδος που μπορεί να μετακινήσει την απόλυση. */}
+      {/* Sick leave is the only kind that can move the discharge date. */}
       {sick > 0 && (
         <section className="band">
           <p className="eyebrow band__label">{caps(t.leave.sickTitle)}</p>
@@ -233,7 +233,7 @@ export function Leave({
         </section>
       )}
 
-      {/* Καταχώρηση άδειας — οι μέρες βγαίνουν από τις ημερομηνίες. */}
+      {/* Recording leave — the day count comes from the dates. */}
       <section className="band" id="add-leave">
         <p className="eyebrow band__label">{caps(t.leave.addTitle)}</p>
         <div className="panel mn__add">
@@ -257,8 +257,8 @@ export function Leave({
             </div>
             <div className="mn__f">
               <span className="eyebrow">{caps(t.leave.to)}</span>
-              {/* Το `min` κάνει αδύνατο το ανάποδο διάστημα αντί να το
-                  απορρίπτει μετά — λιγότερα μηνύματα σφάλματος. */}
+              {/* `min` makes a backwards range impossible rather than
+                  rejecting it afterwards — fewer error messages. */}
               <DateField label={t.leave.to} value={to} min={from} onChange={setTo} />
             </div>
           </div>

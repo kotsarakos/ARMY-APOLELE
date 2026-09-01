@@ -1,7 +1,7 @@
 import { chromium } from 'playwright-core'
 const EXEC = process.env.HOME + '/.cache/ms-playwright/chromium-1148/chrome-linux/chrome'
 const browser = await chromium.launch({ executablePath: EXEC })
-// Ελληνικό locale ώστε η σελίδα να ζητήσει όντως τα ελληνικά subsets.
+// A Greek locale, so the page actually requests the Greek subsets.
 const page = await (await browser.newContext({ locale: 'el-GR' })).newPage()
 await page.goto('http://localhost:4173/', { waitUntil: 'networkidle' })
 
@@ -14,7 +14,7 @@ const r = await page.evaluate(async () => {
     ['Roboto Mono', 500, 'ΜΕΡΕΣ ΜΕΧΡΙ ΤΟ ΑΠΟΛΥΤΗΡΙΟ', 'Mono / Greek caps'],
     ['Roboto Mono', 500, 'DAYS UNTIL DISCHARGE', 'Mono / Latin'],
   ]
-  // Το measureText δεν φορτώνει faces — πρέπει να ζητηθούν ρητά.
+  // measureText does not load faces — they have to be requested explicitly.
   await Promise.all(probes.map(([f, w, t]) =>
     document.fonts.load(`${w} 60px "${f}"`, t).catch(() => {})))
   await document.fonts.ready

@@ -5,47 +5,47 @@ import { monthGrid } from './calendar'
 import { addDays, addMonths, parseISO, toISO } from './dates'
 
 /**
- * Ένας μήνας, με όλα μαζί.
+ * One month, with everything on it.
  *
- * Οι άδειες, οι υπηρεσίες και ο μισθός ζούσαν σε τρεις διαφορετικές καρτέλες,
- * ενώ ο φαντάρος τα σκέφτεται ως έναν μήνα: «τι έχω τον Οκτώβρη». Εδώ
- * μαζεύονται όλα πάνω στο ίδιο πλέγμα ημερών.
+ * Leave, duties and pay lived in three separate tabs, while a conscript thinks
+ * of them as one month: "what have I got in October". Here they all land on
+ * the same grid of days.
  *
- * Όπως και τα υπόλοιπα domain modules, επιστρέφει **κλειδιά** — καμία
- * μετάφραση. Τις ετικέτες τις βάζει το component.
+ * Like the other domain modules, this returns **keys** and no translated text.
+ * The component supplies the labels.
  */
 
 export type AgendaKind = 'leave' | 'duty' | 'pay' | 'accrual' | 'milestone' | 'spend'
 
 export interface AgendaEvent {
   kind: AgendaKind
-  /** id της εγγραφής που το γέννησε — για άδειες και υπηρεσίες. */
+  /** Id of the record behind it — for leave and duties. */
   id?: string
-  /** Το είδος μέσα στην κατηγορία: LeaveKind, DutyKind ή MilestoneKey. */
+  /** The kind within the category: LeaveKind, DutyKind or MilestoneKey. */
   ref?: LeaveKind | DutyKind | MilestoneKey
   /**
-   * Το μέγεθος του γεγονότος στη μονάδα του:
-   * λεπτά για `spend`, ευρώ για `pay`, μέρες για `accrual`, ώρες για `duty`.
+   * The size of the event in its own unit: cents for `spend`, euro for `pay`,
+   * days for `accrual`, hours for `duty`.
    */
   amount?: number
-  /** 'HH:MM' — μόνο για υπηρεσίες με ώρα ανάληψης. */
+  /** 'HH:MM' — only for duties that have a start time. */
   at?: string
-  /** Για πολυήμερα (άδειες): είναι η πρώτη μέρα του διαστήματος; */
+  /** For multi-day leave: is this the first day of the span? */
   first?: boolean
 }
 
 export interface AgendaDay {
   iso: string
   date: Date
-  /** Ανήκει στον μήνα που δείχνουμε, ή είναι γέμισμα από τον γειτονικό; */
+  /** Belongs to the month on show, or is padding from a neighbouring one? */
   inMonth: boolean
   today: boolean
-  /** Εντός θητείας — οι μέρες εκτός φαίνονται σβησμένες. */
+  /** Inside the term — days outside it are shown struck through. */
   inService: boolean
   events: AgendaEvent[]
 }
 
-/** Οι ημερομηνίες πληρωμής μέσα σε ένα διάστημα — επέτειος της κατάταξης. */
+/** Payday dates within a range — the monthly anniversary of enlistment. */
 function payDatesWithin(s: ServiceState, months: number, from: string, to: string): string[] {
   const out: string[] = []
   for (let m = 1; m <= months; m++) {
@@ -55,7 +55,7 @@ function payDatesWithin(s: ServiceState, months: number, from: string, to: strin
   return out
 }
 
-/** Οι πιστώσεις άδειας — στο κλείσιμο κάθε πλήρους διμήνου. */
+/** Leave credits — at the close of each completed two-month block. */
 function accrualDatesWithin(s: ServiceState, months: number, from: string, to: string): string[] {
   const out: string[] = []
   for (let k = 1; k <= Math.floor(months / 2); k++) {
@@ -83,12 +83,12 @@ export function monthAgenda(
     else byDay.set(iso, [e])
   }
 
-  // Άδειες: κάθε μέρα του διαστήματος παίρνει δικό της σημάδι, ώστε το
-  // πλέγμα να δείχνει τη διάρκεια και όχι μόνο την αρχή.
+  // Leave: every day of the span gets its own marker, so the grid shows the
+  // duration and not just where it starts.
   for (const l of profile.leaves ?? []) {
     let day = parseISO(l.from)
-    // Το φράγμα προστατεύει από εγγραφή με λάθος έτος στο `to`, που αλλιώς θα
-    // γύριζε τον βρόχο για χρόνια.
+    // The guard protects against an entry with the wrong year in `to`, which
+    // would otherwise spin this loop for years.
     for (let guard = 0; toISO(day) <= l.to && guard < 400; guard++) {
       const iso = toISO(day)
       push(iso, { kind: 'leave', id: l.id, ref: l.kind, first: iso === l.from })
@@ -100,8 +100,8 @@ export function monthAgenda(
     push(d.date, { kind: 'duty', id: d.id, ref: d.kind, amount: d.hours, at: d.start })
   }
 
-  // Τα έξοδα αθροίζονται ανά μέρα: είκοσι καταχωρήσεις σε ένα κελί 44px δεν
-  // λένε τίποτα, το σύνολο λέει.
+  // Spending is summed per day: twenty entries in a 44px cell say nothing,
+  // the total says something.
   const spendByDay = new Map<string, number>()
   for (const e of profile.expenses ?? []) {
     if (e.date < from || e.date > to) continue
@@ -129,7 +129,7 @@ export function monthAgenda(
   }))
 }
 
-/** Η σειρά με την οποία διαβάζονται τα σημάδια ενός κελιού. */
+/** The order in which a cell's markers are read. */
 const ORDER: AgendaKind[] = ['leave', 'duty', 'milestone', 'pay', 'accrual', 'spend']
 
 export function sortEvents(events: AgendaEvent[]): AgendaEvent[] {
@@ -137,11 +137,10 @@ export function sortEvents(events: AgendaEvent[]): AgendaEvent[] {
 }
 
 /**
- * Τα είδη που φαίνονται στο πλέγμα — για να μη δείχνουμε άχρηστο υπόμνημα.
+ * The kinds visible on the grid, so the legend never lists something absent.
  *
- * Μετράνε **όλα** τα κελιά, μαζί με το γέμισμα από τους γειτονικούς μήνες: οι
- * κουκκίδες τους είναι ορατές, οπότε ένα υπόμνημα που τις αγνοούσε άφηνε
- * χρώματα χωρίς εξήγηση.
+ * **Every** cell counts, padding from neighbouring months included: their dots
+ * are on screen, so a legend that ignored them left colours unexplained.
  */
 export function kindsPresent(days: AgendaDay[]): AgendaKind[] {
   const seen = new Set<AgendaKind>()

@@ -1,9 +1,9 @@
 /**
- * Έλεγχος για ό,τι δεν πιάνουν τα άλλα audits: πρόγραμμα ειδοποιήσεων,
- * σήμα στο εικονίδιο, κάρτα κοινοποίησης, αντίγραφο ασφαλείας.
+ * Checks what the other audits cannot reach: the notification plan, the icon
+ * badge, the share card, the backup and the exports.
  *
- * Τρέχει σε πραγματικό Chromium με χορηγημένο δικαίωμα ειδοποιήσεων, γιατί
- * τίποτε από αυτά δεν μπορεί να επαληθευτεί σε Node.
+ * It runs in a real Chromium with the notification permission granted, because
+ * none of this can be verified from Node.
  */
 import { chromium } from 'playwright-core'
 
@@ -26,9 +26,8 @@ const ctx = await browser.newContext({
 const page = await ctx.newPage()
 const errors = []
 page.on('pageerror', (e) => errors.push(String(e)))
-// Το κείμενο ενός σφάλματος δικτύου δεν περιέχει τη διεύθυνση — μόνο το
-// `location()` την ξέρει. Χωρίς αυτή δεν μπορούμε να ξεχωρίσουμε ένα
-// αναμενόμενο 404 από πραγματικό σφάλμα.
+// The text of a network error does not carry the address — only `location()`
+// knows it. Without that we cannot tell an expected 404 from a real fault.
 page.on('console', (m) => {
   if (m.type() !== 'error') return
   const at = m.location()?.url
@@ -42,9 +41,9 @@ await page.click('.esso')
 await page.click('.btn--primary')
 await page.waitForSelector('.clock__num')
 
-/* ── Πρόγραμμα ειδοποιήσεων ─────────────────────────────────────────────── */
+/* ── The notification plan ──────────────────────────────────────────────── */
 
-// Το κύριο νήμα το γράφει στο Cache API, ώστε να το βρει και ο service worker.
+// The main thread writes it to the Cache API, so the service worker finds it too.
 const plan = await page.evaluate(async () => {
   const cache = await caches.open('army-notify-plan')
   const res = await cache.match('/__notify-plan')
@@ -60,7 +59,7 @@ check('τα κείμενα είναι στα ελληνικά',
   plan?.items?.some((i) => /[Α-Ωα-ω]/.test(i.title)),
   plan?.items?.[0]?.title)
 
-// Αλλαγή γλώσσας: το πρόγραμμα ξαναγράφεται μεταφρασμένο.
+// Change the language: the plan is rewritten, translated.
 await page.click('.langsw__b >> nth=1')
 await page.waitForTimeout(600)
 const planEn = await page.evaluate(async () => {
@@ -72,7 +71,7 @@ check('το πρόγραμμα ακολουθεί τη γλώσσα',
 check('ίδιο πλήθος γεγονότων και στις δύο γλώσσες',
   planEn.items.length === plan.items.length)
 
-/* ── Διακόπτης ειδοποιήσεων ─────────────────────────────────────────────── */
+/* ── The notification toggle ────────────────────────────────────────────── */
 
 await page.click('[data-tab="profile"]')
 await page.waitForSelector('.nt')
@@ -89,13 +88,13 @@ await page.waitForSelector('.nt')
 check('παραμένει ενεργός μετά από reload',
   (await page.textContent('.nt__state')).trim() === 'On')
 
-/* ── Κάρτα κοινοποίησης ─────────────────────────────────────────────────── */
+/* ── The share card ─────────────────────────────────────────────────────── */
 
 await page.click('[data-tab="clock"]')
 await page.waitForSelector('.sh')
-// Πατάμε το κουμπί και επιβεβαιώνουμε ότι παράγεται πραγματικό PNG. Το Web
-// Share με αρχεία δεν υπάρχει σε desktop Chromium, οπότε πέφτει στο download —
-// που είναι ακριβώς το μονοπάτι που θέλουμε να ελέγξουμε εδώ.
+// Press the button and confirm a real PNG comes out. Web Share with files
+// does not exist in desktop Chromium, so it falls back to a download — which
+// is exactly the path being tested here.
 const [download] = await Promise.all([
   page.waitForEvent('download', { timeout: 15000 }).catch(() => null),
   page.click('.sh .btn'),
@@ -107,7 +106,7 @@ if (download) {
 }
 await page.waitForTimeout(500)
 
-/* ── Αντίγραφο ασφαλείας ────────────────────────────────────────────────── */
+/* ── Backup ─────────────────────────────────────────────────────────────── */
 
 await page.click('[data-tab="profile"]')
 const [backup] = await Promise.all([
@@ -122,7 +121,7 @@ if (backup) {
 }
 
 
-/* ── Εξαγωγή σε ημερολόγιο (.ics) ───────────────────────────────────────── */
+/* ── Calendar export (.ics) ─────────────────────────────────────────────── */
 
 const [ics] = await Promise.all([
   page.waitForEvent('download', { timeout: 10000 }).catch(() => null),
@@ -145,13 +144,13 @@ if (ics) {
     text.split('\r\n').every((l) => new TextEncoder().encode(l).length <= 75))
 }
 
-/* ── Θέμα εμφάνισης ─────────────────────────────────────────────────────── */
+/* ── The appearance theme ───────────────────────────────────────────────── */
 
-// Χωρίς ρητή επιλογή δεν μπαίνει `data-theme`: δουλεύει το prefers-color-scheme.
+// With no explicit choice there is no `data-theme`: prefers-color-scheme rules.
 check('χωρίς επιλογή το θέμα ακολουθεί τη συσκευή',
   (await page.getAttribute('html', 'data-theme')) === null)
 
-await page.click('.seg__b >> nth=1')          // Φωτεινό
+await page.click('.seg__b >> nth=1')          // Light
 await page.waitForTimeout(150)
 check('η ρητή επιλογή γράφεται στο <html>',
   (await page.getAttribute('html', 'data-theme')) === 'light')
@@ -161,8 +160,8 @@ check('ο καμβάς άλλαξε πραγματικά χρώμα',
 check('συγχρονίζεται και το theme-color της μπάρας',
   (await page.getAttribute('meta[name=theme-color]', 'content')) === '#FBFBF9')
 
-// Το κείμενο πρέπει να μένει αναγνώσιμο: αν κάποιο χρώμα οριζόταν μόνο μέσα
-// στο σκοτεινό μπλοκ, εδώ θα έβγαινε σχεδόν λευκό πάνω σε λευκό.
+// The text has to stay readable: a colour defined only inside the dark block
+// would come out nearly white on white here.
 const inkLight = await page.evaluate(() =>
   getComputedStyle(document.documentElement).getPropertyValue('--ink').trim())
 check('τα tokens του κειμένου ξαναορίστηκαν', inkLight === '#14161A', inkLight)
@@ -172,12 +171,12 @@ check('το θέμα επιβιώνει του reload χωρίς αναλαμπ�
   (await page.getAttribute('html', 'data-theme')) === 'light')
 
 await page.click('[data-tab="profile"]')
-await page.click('.seg__b >> nth=0')          // Αυτόματο
+await page.click('.seg__b >> nth=0')          // Automatic
 await page.waitForTimeout(150)
 check('η επιστροφή στο αυτόματο αφαιρεί το data-theme',
   (await page.getAttribute('html', 'data-theme')) === null)
 
-/* ── Ώρα ειδοποιήσεων ───────────────────────────────────────────────────── */
+/* ── The notification hour ──────────────────────────────────────────────── */
 
 check('η ώρα εμφανίζεται μόνο όταν είναι ενεργές', await page.isVisible('.nt__hour'))
 await page.selectOption('.nt__hour select', '9')
@@ -185,8 +184,8 @@ await page.waitForTimeout(200)
 check('η ώρα αποθηκεύεται ανά συσκευή',
   (await page.evaluate(() => localStorage.getItem('army_app.notify.hour.v1'))) === '9')
 
-// Ο service worker δεν βλέπει localStorage, οπότε η ώρα πρέπει να ταξιδεύει
-// μέσα στο ίδιο το πρόγραμμα.
+// The service worker cannot see localStorage, so the hour has to travel
+// inside the plan itself.
 const planWithHour = await page.evaluate(async () => {
   const cache = await caches.open('army-notify-plan')
   const res = await cache.match('/__notify-plan')
@@ -196,7 +195,7 @@ check('η ώρα μπαίνει στο πρόγραμμα για τον service 
   planWithHour?.hour === 9, String(planWithHour?.hour))
 
 
-/* ── Ανακοινώσεις στρατολογίας ──────────────────────────────────────────── */
+/* ── Recruitment announcements ──────────────────────────────────────────── */
 
 await page.click('[data-tab="profile"]')
 await page.waitForSelector('.nw')
@@ -213,8 +212,8 @@ const news = await page.evaluate(() => [...document.querySelectorAll('.nw__item'
 check('διαβάστηκαν ανακοινώσεις από το αρχείο του build', news.length > 0, `${news.length}`)
 check('κάθε τίτλος δείχνει στην επίσημη σελίδα',
   news.every((n) => n.href.startsWith('https://www.stratologia.gr/')))
-// `noopener` δεν είναι τελετουργικό: χωρίς αυτό η σελίδα που ανοίγει αποκτά
-// `window.opener` και μπορεί να αλλάξει τη διεύθυνση της δικής μας καρτέλας.
+// `noopener` is not ceremony: without it the page that opens gets a
+// `window.opener` and can change the address of our own tab.
 check('οι εξωτερικοί σύνδεσμοι ανοίγουν ασφαλώς',
   news.every((n) => n.target === '_blank' && n.rel.includes('noopener')))
 check('οι περιλήψεις είναι καθαρές από markup του Drupal',
@@ -224,27 +223,27 @@ check('δηλώνεται ότι δεν είναι επίσημο κανάλι',
 check('υπάρχουν σύνδεσμοι προς τις επίσημες πηγές',
   (await page.$$('.nw__links a')).length === 3)
 
-// Η σήμανση «διαβάστηκε» γράφεται μόνο αφού μείνει η λίστα στην οθόνη.
+// The "seen" marker is written only after the list has stayed on screen.
 await page.waitForTimeout(1800)
 const seen = await page.evaluate(() => localStorage.getItem('army_app.news.seen.v1'))
 check('η νεότερη ημερομηνία σημειώνεται ως ιδωμένη', /^\d{4}-\d{2}-\d{2}$/.test(seen ?? ''), seen)
 
-// Πρώτη επίσκεψη: καμία κουκκίδα. Θα ήταν ψέμα να πούμε «νέο» σε κάποιον που
-// δεν έχει δει ποτέ τη λίστα.
+// A first visit: no dot. Calling anything "new" to somebody who has never
+// seen the list would be a lie.
 check('καμία κουκκίδα «νέο» στην πρώτη επίσκεψη',
   (await page.$$('.tabs__dot')).length === 0)
 
-// Το ζωντανό αρχείο στο GitHub μπορεί κάλλιστα να λείπει: πριν τρέξει το
-// Action για πρώτη φορά, ή σε ένα fork. Η ενότητα πρέπει να δείχνει ό,τι
-// ήρθε με το build και να μη λέει τίποτα για την αποτυχία — το παραπάνω
-// «διαβάστηκαν ανακοινώσεις» το επιβεβαιώνει ήδη.
+// The live file on GitHub may well be missing: before the Action first runs,
+// or in a fork. The section has to show what shipped with the build and say
+// nothing about the failure — the "announcements were read" check above
+// already confirms that.
 const liveFailed = errors.some((e) => e.includes('raw.githubusercontent.com'))
 check('η αποτυχία του ζωντανού αρχείου δεν αφήνει ίχνος στην οθόνη',
   await page.isVisible('.nw__list'), liveFailed ? 'το ζωντανό αρχείο έδωσε 404' : '')
 
-// Το αποτυχημένο αίτημα προς το raw.githubusercontent.com το καταγράφει ο
-// ίδιος ο browser και δεν πιάνεται από `catch`. Είναι αναμενόμενη κατάσταση,
-// όχι σφάλμα, και ελέγχεται χωριστά παραπάνω.
+// The failed request to raw.githubusercontent.com is logged by the browser
+// itself and cannot be caught. It is an expected state, not a fault, and is
+// checked separately above.
 const unexpected = errors.filter((e) => !e.includes('raw.githubusercontent.com'))
 check('χωρίς σφάλματα κονσόλας', unexpected.length === 0, unexpected.slice(0, 3).join(' | '))
 

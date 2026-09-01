@@ -44,9 +44,9 @@ export default function App() {
   const { user, ready: authReady, enabled: authEnabled } = useAuth()
   const [skippedAuth, setSkippedAuth] = useState(false)
 
-  // Οι συντομεύσεις του εικονιδίου (long-press στο Android) ανοίγουν την
-  // εφαρμογή σε `/?add=duty`. Διαβάζονται μία φορά και η παράμετρος
-  // αφαιρείται, ώστε ένα refresh να μη σε ξαναπετάει στη φόρμα.
+  // The home-screen shortcuts (long-press on Android) open the app at
+  // `/?add=duty`. They are read once and the parameter removed, so a refresh
+  // does not throw you back into the form.
   useEffect(() => {
     const wanted = new URLSearchParams(window.location.search).get('add')
     const map: Record<string, Tab> = { duty: 'duty', leave: 'leave', money: 'money' }
@@ -54,7 +54,7 @@ export default function App() {
     if (!target) return
     setTab(target)
     window.history.replaceState(null, '', window.location.pathname)
-    // Η φόρμα υπάρχει μόλις αποδοθεί η καρτέλα.
+    // The form exists as soon as the tab has rendered.
     const id = setTimeout(() => focusSection(`add-${target}`), 120)
     return () => clearTimeout(id)
   }, [])
@@ -65,9 +65,9 @@ export default function App() {
   )
   const ms = useMemo(() => (state ? milestones(state) : []), [state])
 
-  // Πόσες ανακοινώσεις έχουν βγει από την τελευταία επίσκεψη. Διαβάζεται μόνο
-  // από το αρχείο του build — ίδιας προέλευσης, χωρίς αίτημα προς τα έξω· το
-  // φρεσκάρισμα από το δίκτυο γίνεται μόνο όταν ανοίξει η ενότητα.
+  // How many announcements have appeared since the last visit. Read from the
+  // file shipped with the build only — same origin, no outbound request; the
+  // network refresh happens only when the section is opened.
   const [unread, setUnread] = useState(0)
   useEffect(() => {
     let cancelled = false
@@ -77,8 +77,8 @@ export default function App() {
     return () => { cancelled = true }
   }, [])
 
-  // Η ώρα των ειδοποιήσεων είναι προτίμηση συσκευής και ζει εκτός React·
-  // αυτός ο μετρητής ξαναχτίζει το πρόγραμμα όταν αλλάξει.
+  // The notification hour is a device preference and lives outside React;
+  // this counter rebuilds the plan whenever it changes.
   const [hourTick, setHourTick] = useState(0)
   useEffect(() => {
     const bump = () => setHourTick((n) => n + 1)
@@ -86,9 +86,9 @@ export default function App() {
     return () => window.removeEventListener(NOTIFY_HOUR_EVENT, bump)
   }, [])
 
-  // Το εικονίδιο δείχνει τις μέρες που μένουν, και ό,τι ειδοποίηση ωρίμασε
-  // εμφανίζεται τώρα. Το πρόγραμμα γράφεται ώστε να το βρει και ο service
-  // worker όταν ξυπνήσει μόνος του, με την εφαρμογή κλειστή.
+  // The icon shows the days remaining, and anything due appears now. The plan
+  // is written where the service worker can find it when it wakes on its own,
+  // with the app closed.
   useEffect(() => {
     if (!profile || !state) return
     setBadge(state.daysLeft)
@@ -106,8 +106,9 @@ export default function App() {
         {profile?.unit && route === 'home' && (
           <span className="topbar__unit">{caps(profile.unit)}</span>
         )}
-        {/* Και οι δύο γλώσσες φαίνονται πάντα: ένα κουμπί που δείχνει μόνο
-            την άλλη δεν λέει ποτέ ξεκάθαρα αν είναι κατάσταση ή ενέργεια. */}
+        {/* Both languages are always visible: a single button showing only
+            the other one never makes clear whether it is a state or an
+            action. */}
         <div className="langsw" role="group" aria-label={t.settings.language}>
           <button
             type="button"
@@ -170,7 +171,7 @@ export default function App() {
   if (loading || (authEnabled && !authReady && !profile)) return <div className="boot" />
 
   if (!profile || !profile.enlistDate || !state) {
-    // Νέος χρήστης, μη συνδεδεμένος: πρώτα η επιλογή σύνδεσης.
+    // A new visitor, not signed in: the sign-in choice comes first.
     if (authEnabled && !user && !skippedAuth) {
       return (
         <main className="shell">
@@ -190,8 +191,8 @@ export default function App() {
   }
 
   const reset = () => {
-    // Καθαρίζει και τις ειδοποιήσεις: το πρόγραμμά τους κρατά ημερομηνίες
-    // αδειών και υπηρεσιών, που είναι εξίσου προσωπικά με το προφίλ.
+    // Notifications are cleared too: their plan holds leave and duty dates,
+    // which are every bit as personal as the profile.
     void wipeDevice().then((ok) => {
       if (!ok) {
         toast.error(t.errors.storage)

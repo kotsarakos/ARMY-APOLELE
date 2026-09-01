@@ -20,7 +20,7 @@ interface ToastValue {
   toasts: Toast[]
   success: (text: string) => void
   error: (text: string) => void
-  /** Μήνυμα με κουμπί — π.χ. «Διαγράφηκε · Αναίρεση». */
+  /** A message with a button — "Deleted · Undo", for instance. */
   undoable: (text: string, label: string, run: () => void) => void
   dismiss: (id: number) => void
   run: (id: number) => void
@@ -29,16 +29,16 @@ interface ToastValue {
 const ToastContext = createContext<ToastValue | null>(null)
 
 const LIFETIME_MS = 3200
-/** Τα μηνύματα με κουμπί μένουν περισσότερο: πρέπει να προλάβει να το πατήσει. */
+/** Messages with a button stay longer: there has to be time to press it. */
 const ACTION_LIFETIME_MS = 7000
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
   const nextId = useRef(1)
   const timers = useRef(new Map<number, ReturnType<typeof setTimeout>>())
-  // Καθρέφτης της λίστας εκτός React. Η ενέργεια της αναίρεσης δεν επιτρέπεται
-  // να τρέξει μέσα σε updater του `setState`: το StrictMode τον καλεί δύο
-  // φορές, και η αναίρεση θα γινόταν δύο φορές μαζί.
+  // A mirror of the list outside React. The undo action must not run inside a
+  // `setState` updater: StrictMode calls it twice, and the undo would happen
+  // twice with it.
   const live = useRef<Toast[]>([])
   live.current = toasts
 
@@ -53,7 +53,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const push = useCallback((kind: ToastKind, text: string, action?: ToastAction) => {
     const id = nextId.current++
-    // Κρατάμε το πολύ 3 μηνύματα ορατά ταυτόχρονα.
+    // At most three messages are visible at once.
     setToasts((prev) => [...prev.slice(-2), { id, kind, text, action }])
     timers.current.set(
       id,
@@ -63,7 +63,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     else buzzWarn()
   }, [dismiss])
 
-  /** Εκτελεί την ενέργεια και κλείνει — δεν έχει νόημα να πατηθεί δεύτερη φορά. */
+  /** Runs the action and closes: pressing it twice would mean nothing. */
   const run = useCallback((id: number) => {
     const action = live.current.find((t) => t.id === id)?.action
     dismiss(id)
