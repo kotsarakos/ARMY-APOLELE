@@ -60,6 +60,7 @@ value rather than as a screenshot somebody has to look at.
 |---|---|
 | `gen-icons.mjs` | Renders `public/icon-*.png` from the SVG sources in `design/logos/` |
 | `build-sw.mjs` | Injects the hashed asset list and a build id into `dist/sw.js` after each build |
+| `gen-screenshots.mjs` | Regenerates every image in `docs/screenshots/` from one seeded profile, so a design change does not leave one stale screenshot beside six new ones. Needs the preview server: `npm run shots`, or `THEME=light npm run shots` |
 | `fetch-announcements.mjs` | Downloads the recruitment service's RSS into `public/announcements.json`. Run daily by [`.github/workflows/announcements.yml`](../.github/workflows/announcements.yml); `--selftest` runs the parser against a saved feed instead of the network, and is part of `npm test` |
 
 If `chromium-1148` is not present locally: `npx playwright install chromium`.

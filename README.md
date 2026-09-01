@@ -14,9 +14,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/counter.png" width="30%" alt="Counter screen showing days until discharge">
-  <img src="docs/screenshots/month.png" width="30%" alt="Monthly calendar with leave, duties and pay on one grid">
-  <img src="docs/screenshots/money.png" width="30%" alt="Money screen with balance, projections and a monthly limit">
+  <img src="docs/screenshots/counter.png" width="30%" alt="Counter screen showing days until discharge, status tiles and rank tier">
+  <img src="docs/screenshots/month.png" width="30%" alt="Monthly calendar carrying leave, duties and pay on one grid">
+  <img src="docs/screenshots/money.png" width="30%" alt="Money screen with balance, projections and a monthly spending limit">
 </p>
 
 ---
@@ -28,7 +28,7 @@ long is left*.
 
 It is **bilingual** (Greek and English), works **entirely offline**, and installs
 to the home screen as a PWA. An account is optional and exists solely to sync
-between devices. The screenshots above and below show the English interface.
+between devices.
 
 ## Features
 
@@ -44,14 +44,19 @@ between devices. The screenshots above and below show the English interface.
 | **Announcements** | The latest notices from the recruitment service, refreshed daily, with a marker for anything published since your last visit |
 
 <p align="center">
-  <img src="docs/screenshots/leave.png" width="30%" alt="Leave screen with entitlement and a when-am-I-entitled forecast">
-  <img src="docs/screenshots/duty.png" width="30%" alt="Duties screen with the next guard shift">
-  <img src="docs/screenshots/profile.png" width="30%" alt="Profile screen with the service record and posting history">
+  <img src="docs/screenshots/leave.png" width="24%" alt="Leave screen with entitlement, days booked and the next leave countdown">
+  <img src="docs/screenshots/duty.png" width="24%" alt="Duties screen with the next guard shift and totals per type">
+  <img src="docs/screenshots/profile.png" width="24%" alt="Profile screen with the service record and posting history">
+  <img src="docs/screenshots/news.png" width="24%" alt="Recruitment announcements, each marked new since the last visit">
 </p>
 
 Alongside those: light and dark themes that follow the system by default, home-screen
 shortcuts that open straight into a form, undo on every deletion, a privacy page, a
 custom 404, and a confirmation step before anything irreversible.
+
+Screenshots show the English interface on a 390px viewport. The announcements
+themselves stay in Greek — that is the only language the recruitment service
+publishes them in, and translating an official notice is not our call to make.
 
 ## Quick start
 
@@ -82,11 +87,10 @@ that a change in the law is a change in one place:
 - **Leave** — 3 days for every completed two-month period (18 for a twelve-month
   term), capped at 36 including sick leave; roughly 3 honorary days per blood
   donation, up to twice; 2 days per completed month in a border unit.
-- **Pay** — €50 a month, €100 in a border unit.
-- **Training** — 10 weeks of basic training, 14 weeks in total before posting.
-
 - **Sick leave** — the first 30 days do not touch the term; beyond that the time
   is not counted as service and discharge moves back by the same number of days.
+- **Pay** — €50 a month, €100 in a border unit.
+- **Training** — 10 weeks of basic training, 14 weeks in total before posting.
 
 One consequence is worth stating because it surprises people: the discharge date
 is `enlistment + months of obligation`. **Ordinary leave counts as service**, so it
@@ -194,6 +198,7 @@ wide.
 npm test           # domain logic, dictionaries, and the announcements parser
 npm run audit      # seven browser suites
 npm run news       # refresh announcements by hand (the schedule does this daily)
+npm run shots      # regenerate every screenshot in docs/ from one seeded profile
 ```
 
 The browser suites run against a production build in headless Chromium and cover
@@ -215,13 +220,13 @@ component but as a white screen.
 src/lib/          domain logic, no React — dates, service, leave, duty, money,
                   postings, agenda, merge, notify, share, backup, ics, calendar,
                   announcements, theme, haptics, greek, i18n
-src/components/   UI, including Agenda, Timeline, Privacy, NotFound, Toasts
+src/components/   UI, including Agenda, Timeline, Announcements, Privacy, Toasts
 src/hooks/        useI18n, useToast, useProfile, useAuth, useRoute, useToday
 src/firebase/     config, auth, sync — inert until credentials are supplied
 src/styles/       tokens, global, app
-tests/            domain and dictionary checks
+tests/            domain and dictionary checks, plus a saved copy of the feed
 scripts/          browser audits, icon generation, service-worker build step,
-                  the announcements fetcher
+                  the announcements fetcher, the screenshot generator
 .github/          the scheduled job that refreshes announcements
 DESIGN.md         the design system
 ```

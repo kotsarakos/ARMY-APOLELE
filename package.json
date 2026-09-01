@@ -20,7 +20,8 @@
     "audit:extras": "node scripts/audit-extras.mjs",
     "audit:legacy": "node scripts/audit-legacy.mjs",
     "news": "node scripts/fetch-announcements.mjs",
-    "test:news": "node scripts/fetch-announcements.mjs --selftest"
+    "test:news": "node scripts/fetch-announcements.mjs --selftest",
+    "shots": "node scripts/gen-screenshots.mjs"
   },
   "dependencies": {
     "firebase": "^12.18.0",
