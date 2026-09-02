@@ -40,7 +40,7 @@ export interface DutyState {
   past: Duty[]
 }
 
-export function sortDuties(duties: Duty[], newestFirst = true): Duty[] {
+function sortDuties(duties: Duty[], newestFirst = true): Duty[] {
   duties = duties ?? []
   // `dir` is what we return when a comes before b in time: +1 sends it to the
   // back (most recent first), -1 to the front.

@@ -20,14 +20,14 @@ export interface Esso {
   provisional?: boolean
 }
 
-export const ESSO_2026: Esso[] = [
+const ESSO_2026: Esso[] = [
   { code: 'A', year: 2026, from: '2026-02-24', to: '2026-02-27' },
   { code: 'B', year: 2026, from: '2026-05-19', to: '2026-05-22', provisional: true },
   { code: 'C', year: 2026, from: '2026-08-18', to: '2026-08-21', provisional: true },
   { code: 'D', year: 2026, from: '2026-11-17', to: '2026-11-20', provisional: true },
 ]
 
-export const ESSO_2027: Esso[] = [
+const ESSO_2027: Esso[] = [
   { code: 'A', year: 2027, from: '2027-02-23', to: '2027-02-26', provisional: true },
   { code: 'B', year: 2027, from: '2027-05-18', to: '2027-05-21', provisional: true },
   { code: 'C', year: 2027, from: '2027-08-17', to: '2027-08-20', provisional: true },

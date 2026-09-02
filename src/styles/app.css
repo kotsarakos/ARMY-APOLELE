@@ -70,12 +70,6 @@
 .clock__note { margin-top: var(--s-md); color: var(--ink-muted); font-size: 14px; }
 
 /* ── Progress ───────────────────────────────────────────────────────────── */
-.progress { margin-top: var(--s-xl); }
-.progress__meta {
-  display: flex; align-items: baseline; justify-content: space-between;
-  margin-bottom: var(--s-xs);
-}
-.progress__pct { font-family: var(--font-mono); font-size: 13px; color: var(--ink-muted); }
 .progress__track {
   height: 6px; background: var(--surface-3);
   border-radius: var(--r-pill); overflow: hidden;
@@ -85,13 +79,6 @@
   border-radius: var(--r-pill); transition: width 600ms ease;
 }
 .progress__fill--signal { background: var(--signal); }
-.progress__ends {
-  display: flex; justify-content: space-between; gap: var(--s-sm);
-  margin-top: var(--s-xs);
-  font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);
-}
-.progress__ends span { min-width: 0; }
-.progress__ends span:last-child { text-align: right; }
 
 /* ── Bands & tiles ──────────────────────────────────────────────────────── */
 .band { margin-bottom: var(--s-section); }
@@ -324,7 +311,6 @@
   .clock { margin-bottom: var(--s-xxl); }
   .tabs__b { padding: 9px 12px; letter-spacing: 0.8px; }
   .topbar__unit { max-width: 32vw; }
-  .progress__ends { font-size: 10px; }
   .set__row { font-size: 13px; }
   .input--sm { max-width: 100%; flex: 1 1 140px; }
 }

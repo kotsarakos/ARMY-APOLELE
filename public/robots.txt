@@ -1,7 +1,7 @@
 # Army Apolele — https://army-apolele.web.app
-# Ενημερωτική εφαρμογή για τη στρατιωτική θητεία στην Ελλάδα.
-# Δεν υπάρχει περιοχή χρήστη ή περιεχόμενο πίσω από σύνδεση: τα δεδομένα του
-# καθενός μένουν στη συσκευή του, οπότε δεν υπάρχει τίποτα να αποκλειστεί.
+# An informational app about military service in Greece.
+# There is no user area and no content behind a login: everyone's data stays
+# on their own device, so there is nothing to disallow.
 
 User-agent: *
 Allow: /

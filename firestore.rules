@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Κάθε χρήστης διαβάζει και γράφει μόνο το δικό του προφίλ.
+// Every user reads and writes only their own profile.
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{uid} {

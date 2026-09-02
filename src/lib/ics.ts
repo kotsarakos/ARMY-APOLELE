@@ -184,7 +184,7 @@ export function buildIcs(
   return lines.map(fold).join(CRLF) + CRLF
 }
 
-export function icsFilename(now: Date = new Date()): string {
+function icsFilename(now: Date = new Date()): string {
   return `army-apolele-${toISO(now)}.ics`
 }
 

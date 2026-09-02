@@ -7,6 +7,6 @@ dist
 .DS_Store
 tsconfig.tsbuildinfo
 
-# Δείχνει σε ΠΟΙΟ project γίνεται deploy — προσωπικό, όχι μέρος του κώδικα.
-# Όποιος κάνει fork βάζει το δικό του με `firebase use --add`.
+# Names WHICH project this deploys to — personal, not part of the code.
+# Anyone who forks sets their own with `firebase use --add`.
 .firebaserc

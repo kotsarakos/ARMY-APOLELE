@@ -68,7 +68,6 @@ const el = {
       spend: 'Έξοδα',
     },
     accrualDays: (n: number) => `+${n} μέρες άδειας`,
-    outside: 'Εκτός θητείας',
   },
   calendarExport: {
     calendarName: 'Θητεία — Army Apolele',
@@ -460,7 +459,6 @@ const el = {
     inCampHint: 'Χωρίς τις άδειες που δικαιούσαι',
     served: 'Μέρες που πέρασαν',
     months: 'Μήνες υπηρεσίας',
-    monthsHint: (total: number) => `Από ${total} μέρες συνολικά`,
     discharge: 'Απολυτήριο',
     dischargeHint: 'Η άδεια υπηρετείται — δεν το μεταθέτει',
     pay: 'Αποζημίωση',
@@ -721,7 +719,6 @@ const en: typeof el = {
       spend: 'Spending',
     },
     accrualDays: (n: number) => `+${n} days of leave`,
-    outside: 'Outside service',
   },
   calendarExport: {
     calendarName: 'Service — Army Apolele',
@@ -1112,7 +1109,6 @@ const en: typeof el = {
     inCampHint: 'Excluding the leave you are entitled to',
     served: 'Days served',
     months: 'Months served',
-    monthsHint: (total: number) => `Of ${total} days total`,
     discharge: 'Discharge date',
     dischargeHint: 'Leave counts as service — it does not push this back',
     pay: 'Pay',

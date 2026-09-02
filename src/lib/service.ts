@@ -23,6 +23,14 @@ export const PAY_PER_MONTH_BORDER = 100
 
 export interface ServiceState {
   enlist: Date
+  /**
+   * The discharge date.
+   *
+   * Regular leave counts as service, so it never pushes discharge back — this
+   * is the single most misunderstood point. Sick leave beyond
+   * `SICK_LEAVE_FREE_DAYS` does not count as service, and moves discharge back
+   * by the same amount.
+   */
   discharge: Date
   /** Discharge without the sick-leave extension — "enlistment + months". */
   baseDischarge: Date
@@ -83,20 +91,8 @@ export interface PayState {
 }
 
 /** Discharge with nothing added: enlistment plus the months owed. */
-export function baseDischargeDate(profile: Profile): Date {
+function baseDischargeDate(profile: Profile): Date {
   return addMonths(parseISO(profile.enlistDate), profile.months)
-}
-
-/**
- * The discharge date.
- *
- * Regular leave counts as service, so it never pushes discharge back — this is
- * the single most misunderstood point. Sick leave beyond
- * `SICK_LEAVE_FREE_DAYS` does not count as service, and moves discharge back
- * by the same amount.
- */
-export function dischargeDate(profile: Profile): Date {
-  return addDays(baseDischargeDate(profile), sickExtensionDays(profile.leaves))
 }
 
 function computeLeave(profile: Profile, monthsServed: number, now: Date, enlist: Date): LeaveState {

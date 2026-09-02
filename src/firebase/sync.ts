@@ -53,7 +53,7 @@ export async function pushProfile(profile: Profile, uid?: string): Promise<boole
   return ok
 }
 
-export async function fetchRemoteProfile(uid: string): Promise<Profile | null> {
+async function fetchRemoteProfile(uid: string): Promise<Profile | null> {
   if (!isFirebaseConfigured()) return null
   const db = await getDb()
   if (!db) return null

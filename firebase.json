@@ -7,7 +7,7 @@
     "rewrites": [{ "source": "**", "destination": "/index.html" }],
     "headers": [
       {
-        "comment": "Baseline: κάθε διαδρομή HTML (και το «/», και οι SPA διαδρομές μέσω rewrite) δεν πρέπει να είναι cached, αλλιώς μετά από deploy ο κόσμος μένει στην παλιά έκδοση. Οι επόμενοι κανόνες υπερισχύουν για ό,τι είναι όντως αμετάβλητο.",
+        "comment": "Baseline: every HTML path (both \"/\" and the SPA routes served through the rewrite) must not be cached, or people stay on the old build after a deploy. The rules below override this for whatever really is immutable.",
         "source": "**",
         "headers": [
           { "key": "Cache-Control", "value": "no-cache, max-age=0, must-revalidate" },
@@ -17,7 +17,7 @@
         ]
       },
       {
-        "comment": "Hash στο όνομα — ασφαλές για πάντα.",
+        "comment": "Hashed filename — safe to cache forever.",
         "source": "/assets/**",
         "headers": [{ "key": "Cache-Control", "value": "max-age=31536000, immutable" }]
       },

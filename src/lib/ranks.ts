@@ -17,7 +17,7 @@ export interface Tier {
   accent: 'olive' | 'signal'
 }
 
-export const TIERS: Tier[] = [
+const TIERS: Tier[] = [
   { key: 'psaraki', from: 0.00, accent: 'olive' },
   { key: 'neos',    from: 0.10, accent: 'olive' },
   { key: 'mesaios', from: 0.35, accent: 'olive' },

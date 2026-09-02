@@ -33,12 +33,12 @@ export function readTheme(): Theme {
   }
 }
 
-export function systemTheme(): ResolvedTheme {
+function systemTheme(): ResolvedTheme {
   if (typeof matchMedia === 'undefined') return 'dark'
   return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
 }
 
-export function resolveTheme(theme: Theme): ResolvedTheme {
+function resolveTheme(theme: Theme): ResolvedTheme {
   return theme === 'auto' ? systemTheme() : theme
 }
 

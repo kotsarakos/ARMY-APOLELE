@@ -14,7 +14,7 @@ import { newId } from './id'
  * overlap that would need validating.
  */
 
-export function sortPostings(postings: Posting[]): Posting[] {
+function sortPostings(postings: Posting[]): Posting[] {
   return [...(postings ?? [])].sort((a, b) => (a.from < b.from ? -1 : a.from > b.from ? 1 : 0))
 }
 

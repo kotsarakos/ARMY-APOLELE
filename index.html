@@ -2,10 +2,10 @@
 <html lang="el">
   <head>
     <meta charset="UTF-8" />
-    <!-- maximum-scale/user-scalable κλειδώνουν το pinch-zoom κατόπιν αιτήματος.
-         Για να μη χρειάζεται ζουμ, το κείμενο ξεκινά από 15px, τα πεδία είναι
-         16px (αλλιώς το iOS Safari κάνει αυτόματο zoom στο focus) και οι
-         στόχοι αφής είναι τουλάχιστον 44px. -->
+    <!-- maximum-scale/user-scalable lock pinch-zoom, as requested. So that
+         zooming is never needed: text starts at 15px, fields are 16px (below
+         that iOS Safari zooms in on focus) and touch targets are at least
+         44px. -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#06070A" />
     <meta name="color-scheme" content="dark" />
@@ -40,8 +40,8 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Roboto Condensed/Mono: καλύπτουν ελληνικά ΚΑΙ λατινικά. Το Oswald και το
-         IBM Plex Mono δεν έχουν ελληνικά glyphs και έκαναν σιωπηλό fallback. -->
+    <!-- Roboto Condensed/Mono: they cover Greek AND Latin. Oswald and IBM Plex
+         Mono have no Greek glyphs and fell back silently. -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
   </head>
   <body>
