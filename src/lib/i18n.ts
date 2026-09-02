@@ -616,7 +616,7 @@ const el = {
       },
       {
         h: 'Εξωτερικοί πόροι',
-        p: 'Οι γραμματοσειρές φορτώνονται από το Google Fonts, το οποίο βλέπει τη διεύθυνση IP σου όπως κάθε ιστότοπος που επισκέπτεσαι. Όταν ανοίγεις τις «Ανακοινώσεις στρατολογίας», η εφαρμογή κατεβάζει ένα στατικό αρχείο από το GitHub — το ίδιο για όλους, χωρίς τίποτε δικό σου μαζί του. Σε καμία από τις δύο περιπτώσεις δεν στέλνεται δεδομένο σχετικό με τη θητεία σου.',
+        p: 'Οι γραμματοσειρές σερβίρονται από την ίδια την εφαρμογή, οπότε για να αποδοθεί το κείμενο δεν φεύγει κανένα αίτημα προς τρίτους. Απομένει ένα: όταν ανοίγεις τις «Ανακοινώσεις στρατολογίας», η εφαρμογή κατεβάζει ένα στατικό αρχείο από το GitHub — το ίδιο για όλους, χωρίς τίποτε δικό σου μαζί του. Το GitHub βλέπει τότε τη διεύθυνση IP σου, όπως κάθε ιστότοπος που επισκέπτεσαι. Δεδομένο σχετικό με τη θητεία σου δεν στέλνεται ποτέ.',
       },
       {
         h: 'Επικοινωνία',
@@ -1266,7 +1266,7 @@ const en: typeof el = {
       },
       {
         h: 'External resources',
-        p: 'Fonts are loaded from Google Fonts, which sees your IP address as it would on any site you visit. When you open “Recruitment announcements”, the app downloads a static file from GitHub — the same file for everyone, carrying nothing of yours. In neither case do we send any data about your service.',
+        p: 'The fonts are served by the app itself, so rendering text sends no request to anyone else. One request remains: when you open “Recruitment announcements”, the app downloads a static file from GitHub — the same file for everyone, carrying nothing of yours. GitHub sees your IP address then, as any site you visit would. No data about your service is ever sent.',
       },
       {
         h: 'Contact',

@@ -131,6 +131,22 @@ device still holds. Without it, undoing a deletion would be a local illusion —
 deletion has already synced, so the tombstone exists elsewhere and the next merge
 would delete the row again.
 
+**The fonts are served from this origin, not from Google.** They used to come
+from `fonts.googleapis.com`, which put two extra origins on the critical path: a
+render-blocking stylesheet, then the woff2 files from `fonts.gstatic.com`. The
+service worker could not help either, because it skips cross-origin requests, so
+offline the app fell back to system fonts. Both families turn out to be
+**variable** — one file per unicode subset carries the whole weight axis — so six
+files cover every weight the design uses. Median first paint on a throttled 4G
+link went from 1818 ms to 1524 ms, and the spread narrowed from 391 ms to 110 ms,
+because a third-party network is no longer in the way. The files are Google's own
+subsets byte for byte, so rendering is unchanged: a screenshot taken before and
+after is identical down to the byte.
+
+Preloading them was tried and **rejected on the measurement**: putting 55 kB of
+font in front of the JavaScript that renders the page cost 269 ms. `font-display:
+swap` already means text is never invisible.
+
 **Undo hands back a builder, not a snapshot.** `deletion()` returns the delete patch
 plus a `restore(current)` function. Between the tap and the undo, something else may
 have been added; a patch built from the old profile would erase it.
@@ -223,7 +239,8 @@ src/lib/          domain logic, no React — dates, service, leave, duty, money,
 src/components/   UI, including Agenda, Timeline, Announcements, Privacy, Toasts
 src/hooks/        useI18n, useToast, useProfile, useAuth, useRoute, useToday
 src/firebase/     config, auth, sync — inert until credentials are supplied
-src/styles/       tokens, global, app
+src/styles/       fonts, tokens, global, app
+public/fonts/     the two self-hosted variable typefaces, Apache 2.0
 tests/            domain and dictionary checks, plus a saved copy of the feed
 scripts/          browser audits, icon generation, service-worker build step,
                   the announcements fetcher, the screenshot generator
@@ -289,9 +306,10 @@ Typefaces are Roboto Condensed and Roboto Mono because they **must cover Greek**
 
 Without an account, no data leaves the device: no tracking, no analytics, no
 advertising. Signing in stores the profile in Firestore in a document readable only
-by that account. Two requests do go outside — Google Fonts, and the announcements
-file on GitHub when that section is opened. Both are static, identical for every
-visitor, and carry nothing of yours. The full text is at `/privacy` in the app, in
+by that account. Exactly one request goes outside — the announcements file on
+GitHub, and only when that section is opened. It is static, identical for every
+visitor, and carries nothing of yours. The fonts used to be a second such request;
+they are served from this origin now. The full text is at `/privacy` in the app, in
 both languages.
 
 The recruitment service's **personal** area — call-up papers, applications — sits

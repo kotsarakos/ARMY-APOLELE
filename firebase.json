@@ -28,6 +28,11 @@
       {
         "source": "/manifest.webmanifest",
         "headers": [{ "key": "Cache-Control", "value": "max-age=3600" }]
+      },
+      {
+        "comment": "Self-hosted fonts. Last, so it wins over the one-day rule for woff2 above. The upstream version is in the filename, so a file at a given path never changes and immutable is honest. Without this the fonts would be revalidated daily — worse than what Google Fonts served.",
+        "source": "/fonts/**",
+        "headers": [{ "key": "Cache-Control", "value": "max-age=31536000, immutable" }]
       }
     ]
   },

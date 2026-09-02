@@ -38,11 +38,16 @@
     <meta name="apple-mobile-web-app-title" content="Apolele" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- Roboto Condensed/Mono: they cover Greek AND Latin. Oswald and IBM Plex
-         Mono have no Greek glyphs and fell back silently. -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+         Mono have no Greek glyphs and fell back silently. Both are served from
+         this origin now — see src/styles/fonts.css for why, and for the fact
+         that they are variable fonts, one file per subset for every weight.
+
+         There is deliberately no <link rel="preload"> for them. It was tried
+         and measured: preloading the two most visible faces put 55 kB in front
+         of the JavaScript that has to render the page at all, and pushed the
+         median first paint from 1504 ms to 1773 ms on a throttled 4G link.
+         font-display: swap means text is never invisible while they load. -->
   </head>
   <body>
     <div id="root"></div>

@@ -31,12 +31,24 @@ const ASSETS = `assets-${VERSION}`
  */
 const MATCH = { ignoreVary: true }
 
+// The Greek and Latin subsets, which every screen of this app needs. The
+// latin-ext files are left out on purpose: nothing the app writes reaches that
+// range — only a name or a unit somebody types — so they are fetched on demand
+// and cached by the handler below like any other same-origin asset.
+const FONTS = [
+  '/fonts/roboto-condensed-v31-greek.woff2',
+  '/fonts/roboto-condensed-v31-latin.woff2',
+  '/fonts/roboto-mono-v31-greek.woff2',
+  '/fonts/roboto-mono-v31-latin.woff2',
+]
+
 const PRECACHE = [
   '/',
   '/manifest.webmanifest',
   '/icon.svg',
   '/icon-192.png',
   '/apple-touch-icon.png',
+  ...FONTS,
   ...BUILD_ASSETS,
 ]
 
